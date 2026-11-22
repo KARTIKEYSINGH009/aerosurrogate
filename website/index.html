@@ -478,7 +478,9 @@
     display: flex; justify-content: space-between; font-family: var(--mono);
     font-size: 11px; color: #94a3b8; margin-bottom: 6px;
   }
-  .silhouette-stage svg { width: 100%; height: 110px; display: block; }
+  .stage-visual { position: relative; }
+  .demo-car-img { width: 100%; display: block; border-radius: 8px; }
+  .silhouette-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
   .readout-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .readout-card {
     background: var(--surface); border: 1px solid var(--line-strong);
@@ -972,19 +974,17 @@
                 <span id="stage-body-lbl">PROFILE &middot; FASTBACK</span>
                 <span id="stage-cda-lbl">Cd&middot;A = 0.584 m&sup2;</span>
               </div>
-              <svg id="demo-svg" viewBox="0 0 460 125" fill="none" aria-label="Dynamic car geometry silhouette">
-                <!-- streamlines in mini stage -->
-                <path id="st-1" d="M 10 38 Q 140 20 245 20 T 450 42" stroke="rgba(96,165,250,0.45)" stroke-width="1.3" stroke-dasharray="5 4"/>
-                <path id="st-2" d="M 10 62 Q 125 32 245 30 T 450 65" stroke="rgba(56,189,248,0.65)" stroke-width="1.5"/>
-                <path id="st-3" d="M 10 98 L 450 98" stroke="rgba(52,211,153,0.4)" stroke-width="1.2"/>
-                <!-- wake zone -->
-                <ellipse id="demo-wake" cx="405" cy="72" rx="34" ry="18" fill="rgba(245,158,11,0.16)" stroke="rgba(245,158,11,0.45)" stroke-dasharray="3 3"/>
-                <!-- car body -->
-                <path id="demo-car-path" d="M 65 95 L 72 72 Q 105 64 140 60 L 205 34 Q 255 32 305 42 L 368 64 L 378 88 L 65 95 Z" fill="rgba(59,130,246,0.18)" stroke="#60a5fa" stroke-width="2"/>
-                <circle cx="122" cy="95" r="14" fill="#0b0f17" stroke="#94a3b8" stroke-width="2"/>
-                <circle cx="332" cy="95" r="14" fill="#0b0f17" stroke="#94a3b8" stroke-width="2"/>
-                <line x1="20" y1="110" x2="440" y2="110" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
-              </svg>
+              <div class="stage-visual">
+                <img id="demo-car-img" class="demo-car-img" src="demo-fastback.jpg" alt="3D sample fastback side profile" loading="lazy">
+                <svg id="demo-svg" viewBox="0 0 460 150" fill="none" aria-label="Airflow streamlines and wake over a 3D sample car">
+                  <!-- streamlines over the 3D car -->
+                  <path id="st-1" d="M 8 48 Q 150 22 250 20 T 452 42" stroke="rgba(96,165,250,0.45)" stroke-width="1.3" stroke-dasharray="5 4"/>
+                  <path id="st-2" d="M 8 70 Q 150 46 250 44 T 452 66" stroke="rgba(56,189,248,0.65)" stroke-width="1.5"/>
+                  <path id="st-3" d="M 8 146 L 452 146" stroke="rgba(52,211,153,0.4)" stroke-width="1.2"/>
+                  <!-- wake zone -->
+                  <ellipse id="demo-wake" cx="392" cy="105" rx="34" ry="16" fill="rgba(245,158,11,0.16)" stroke="rgba(245,158,11,0.45)" stroke-dasharray="3 3"/>
+                </svg>
+              </div>
             </div>
 
             <div class="readout-grid">
@@ -1723,31 +1723,23 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     var y = CAR.roof[i] * (1 - fr) + CAR.roof[Math.min(i + 1, CAR.roof.length - 1)] * fr;
     return y * H;
   }
-  /* Roofline with a smooth bow-wave ramp ahead of the nose */
-  function roofTopAt(x) {
-    if (x < car.x0) {
-      var r = Math.max(0, Math.min(1, (x - (car.x0 - 70)) / 70));
-      return car.ground + (carTopY(car.x0) - car.ground) * r * r;
-    }
-    return carTopY(x);
-  }
   /* True streamline: every particle keeps its undisturbed height y0 and is
-     deflected smoothly around the body. Lift is strongest close to the roof
-     and fades with height, so the flow bends over the car instead of arcing
-     over it. Floor air runs under the car, and the wake relaxes back to
-     freestream behind the tail. */
+     deflected smoothly around the body. Lift follows the roof's rise above
+     the nose level, strongest close to the roof and fading fast with height,
+     so the flow bends over the car instead of arcing over it. Floor air runs
+     under the car, and the wake relaxes back to freestream behind the tail. */
   function streamY(p) {
     var x = p.x, y0 = p.y0;
-    if (x < car.x0 - 70) return y0;
+    if (x < car.x0) return y0;
     if (x >= car.x1) {
       var dx = x - car.x1;
       return y0 - p.liftTail * Math.exp(-dx / 170);
     }
-    var top = roofTopAt(x);
+    var top = carTopY(x);
     var ground = car.ground;
     if (y0 >= ground) return y0;
-    var bodyH = ground - top;
-    var lift = bodyH * Math.exp(-Math.max(0, top - y0) / 130);
+    var rise = Math.max(0, carTopY(car.x0) - top);
+    var lift = rise * Math.exp(-Math.max(0, top - y0) / 55);
     return Math.min(y0 - lift, top - 5);
   }
   function makeParticle(anywhere) {
@@ -1816,14 +1808,14 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
       var localSpeed = p.v;
-      var top = roofTopAt(p.x);
+      var top = carTopY(p.x);
       var bodyH = car.ground - top;
       if (p.x >= car.x1 && p.liftTail === null) p.liftTail = p.y0 - p.y;
       if (p.x >= car.x1) {
         // Turbulent wake: slow, amber, swirling
         p.wake = Math.min(p.wake + 0.08, 1);
         localSpeed *= 0.6;
-      } else if (p.x > car.x0 - 70 && p.y0 < car.ground) {
+      } else if (p.x > car.x0 && p.y0 < car.ground) {
         // Accelerate over the roof (Bernoulli), faster where the body is tall
         localSpeed *= 1 + 0.5 * Math.max(0, bodyH) / car.maxBody;
         p.wake = Math.max(p.wake - 0.02, 0);
@@ -1840,7 +1832,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
         vortexPush(p);
       }
       p.hist.push({ x: p.x, y: p.y });
-      if (p.hist.length > 22) p.hist.shift();
+      if (p.hist.length > 80) p.hist.shift();
       if (p.x > W + 24 || p.y > H || p.y < 0) { particles[i] = makeParticle(false); continue; }
 
       var col;
@@ -1936,24 +1928,11 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     document.getElementById("stage-cda-lbl").textContent = "Cd·A = " + cda.toFixed(3) + " m²";
     document.getElementById("hud-cd").innerHTML = cd.toFixed(3) + " <small>±0.025</small>";
 
-    // Update SVG silhouette dynamically
-    var roofYpx = 38 - (roof - 1420) * 0.07;
-    var wsX = 195 + (ws - 28) * 1.1;
-    var rwDrop = (rw - 20) * 0.75;
-    var dPath;
-    if (bodyState === "fastback") {
-      dPath = "M 65 95 L 72 " + (74 - bump * 6) + " Q 105 64 140 60 L " + wsX + " " + roofYpx +
-              " Q 255 " + (roofYpx - 2) + " 305 " + (roofYpx + 8 + rwDrop * 0.4) +
-              " L 372 " + (62 + rwDrop * 0.5) + " L 378 " + (90 - diff * 0.35) + " L 65 95 Z";
-    } else if (bodyState === "notchback") {
-      dPath = "M 65 95 L 72 " + (74 - bump * 6) + " Q 105 64 140 60 L " + wsX + " " + roofYpx +
-              " L 285 " + roofYpx + " L 332 " + (58 + rwDrop * 0.35) +
-              " L 374 62 L 378 " + (90 - diff * 0.35) + " L 65 95 Z";
-    } else {
-      dPath = "M 65 95 L 72 " + (74 - bump * 6) + " Q 105 64 140 60 L " + wsX + " " + roofYpx +
-              " L 364 " + (roofYpx + 2) + " L 376 " + (90 - diff * 0.3) + " L 65 95 Z";
-    }
-    document.getElementById("demo-car-path").setAttribute("d", dPath);
+    // Swap the 3D sample car render for the selected body type; the wake
+    // ellipse still grows with Cd
+    var demoImg = document.getElementById("demo-car-img");
+    demoImg.src = "demo-" + bodyState + ".jpg";
+    demoImg.alt = "3D sample " + bodyState + " side profile";
     var wakeRx = Math.max(20, (cd - 0.22) * 420);
     document.getElementById("demo-wake").setAttribute("rx", wakeRx.toFixed(1));
   }
