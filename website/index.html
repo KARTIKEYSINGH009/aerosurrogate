@@ -851,7 +851,7 @@
             <span class="tunnel-live">LIVE FIELD</span>
           </div>
           <div class="tunnel-canvas-wrap">
-            <canvas id="airflow" role="img" aria-label="Animated aerodynamic streamlines, pressure field and wake vortices over a fastback car profile"></canvas>
+            <iframe src="hero-wind-tunnel.html" title="Interactive isometric wind-tunnel figure: airflow over a 1:18 scale fastback model" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0 0 12px 12px;background:#0b0f17;" loading="lazy"></iframe>
           </div>
           <div class="tunnel-hud">
             <div class="hud-cell">
@@ -918,107 +918,7 @@
         </div>
 
         <div class="demo-main">
-          <div class="demo-controls">
-            <div class="slider-group">
-              <div class="slider-row">
-                <label for="s-rw">
-                  <span>Rear window inclination <span class="param-code">d_rear_window_inclination</span></span>
-                  <output id="o-rw">24.0&deg;</output>
-                </label>
-                <input type="range" id="s-rw" min="14" max="38" step="0.5" value="24">
-              </div>
-
-              <div class="slider-row">
-                <label for="s-diff">
-                  <span>Rear diffuser angle <span class="param-code">b_diffusor_angle</span></span>
-                  <output id="o-diff">9.5&deg;</output>
-                </label>
-                <input type="range" id="s-diff" min="2" max="18" step="0.5" value="9.5">
-              </div>
-
-              <div class="slider-row">
-                <label for="s-ws">
-                  <span>Windscreen inclination <span class="param-code">d_winscreen_inclination</span></span>
-                  <output id="o-ws">28.0&deg;</output>
-                </label>
-                <input type="range" id="s-ws" min="20" max="38" step="0.5" value="28">
-              </div>
-
-              <div class="slider-row">
-                <label for="s-roof">
-                  <span>Roof height <span class="param-code">a_car_roof_height</span></span>
-                  <output id="o-roof">1420 mm</output>
-                </label>
-                <input type="range" id="s-roof" min="1340" max="1520" step="5" value="1420">
-              </div>
-
-              <div class="slider-row">
-                <label for="s-bump">
-                  <span>Front bumper curvature <span class="param-code">h_front_bumper_curvature</span></span>
-                  <output id="o-bump">0.55</output>
-                </label>
-                <input type="range" id="s-bump" min="0.10" max="1.00" step="0.05" value="0.55">
-              </div>
-            </div>
-
-            <div class="demo-actions">
-              <button type="button" class="btn primary" id="btn-opt">
-                &#9889; Run Optuna inverse design (&lt;1.5 s)
-              </button>
-              <button type="button" class="btn" id="btn-reset">Reset to baseline</button>
-            </div>
-          </div>
-
-          <div class="demo-readout">
-            <div class="silhouette-stage">
-              <div class="stage-lbl">
-                <span id="stage-body-lbl">PROFILE &middot; FASTBACK</span>
-                <span id="stage-cda-lbl">Cd&middot;A = 0.584 m&sup2;</span>
-              </div>
-              <div class="stage-visual">
-                <img id="demo-car-img" class="demo-car-img" src="demo-fastback.jpg" alt="3D sample fastback side profile" loading="lazy">
-                <svg id="demo-svg" viewBox="0 0 460 150" fill="none" aria-label="Airflow streamlines and wake over a 3D sample car">
-                  <!-- streamlines over the 3D car -->
-                  <path id="st-1" d="M 8.0 100.6 L 31.7 89.6 L 53.7 84.6 L 68.0 81.9 L 82.3 80.0 L 96.6 75.4 L 110.9 72.7 L 125.2 70.4 L 139.5 67.7 L 153.8 64.3 L 168.1 60.8 L 182.4 57.0 L 196.6 53.5 L 210.9 51.6 L 225.2 51.2 L 239.5 52.0 L 253.8 53.5 L 268.1 55.4 L 282.4 58.5 L 296.7 61.6 L 311.0 69.6 L 325.3 72.7 L 339.6 76.2 L 381.6 83.2 L 452.0 89.2" stroke="rgba(96,165,250,0.45)" stroke-width="1.3" stroke-dasharray="5 4"/>
-                  <path id="st-2" d="M 8.0 109.6 L 31.7 98.6 L 53.7 93.6 L 68.0 90.9 L 82.3 89.0 L 96.6 84.4 L 110.9 81.7 L 125.2 79.4 L 139.5 76.7 L 153.8 73.3 L 168.1 69.8 L 182.4 66.0 L 196.6 62.5 L 210.9 60.6 L 225.2 60.2 L 239.5 61.0 L 253.8 62.5 L 268.1 64.4 L 282.4 67.5 L 296.7 70.6 L 311.0 78.6 L 325.3 81.7 L 339.6 85.2 L 381.6 92.2 L 452.0 98.2" stroke="rgba(56,189,248,0.65)" stroke-width="1.5"/>
-                  <path id="st-3" d="M 8 145.8 L 452 145.8" stroke="rgba(52,211,153,0.4)" stroke-width="1.2"/>
-                  <!-- wake zone -->
-                  <ellipse id="demo-wake" cx="377.6" cy="118.0" rx="34" ry="14" fill="rgba(245,158,11,0.16)" stroke="rgba(245,158,11,0.45)" stroke-dasharray="3 3"/>
-                </svg>
-              </div>
-            </div>
-
-            <div class="demo-actions" style="margin-top: 12px;">
-              <a class="btn primary" href="wind-tunnel.html" target="_blank" rel="noopener">Open the interactive 3D wind tunnel</a>
-            </div>
-
-            <div class="readout-grid">
-              <div class="readout-card">
-                <div class="rk">Drag Coefficient (Cd)</div>
-                <div class="rv accent" id="r-cd">0.264</div>
-                <div class="rsub" id="r-cd-ci">90% CV+ interval: &plusmn;0.0245</div>
-              </div>
-              <div class="readout-card">
-                <div class="rk">Lift Coefficient (Cl)</div>
-                <div class="rv" id="r-cl">0.082</div>
-                <div class="rsub" id="r-area">Frontal area A = 2.21 m&sup2;</div>
-              </div>
-              <div class="readout-card">
-                <div class="rk">EV Range Delta (110 km/h)</div>
-                <div class="rv green" id="r-range">+14.2 km</div>
-                <div class="rsub">vs. 0.285 Cd reference (75 kWh)</div>
-              </div>
-              <div class="readout-card">
-                <div class="rk">Aero Power @ 110 km/h</div>
-                <div class="rv" id="r-power">9.8 kW</div>
-                <div class="rsub" id="r-status">Baseline geometry</div>
-              </div>
-            </div>
-
-            <div class="demo-footnote">
-              <strong>Honest scope note:</strong> This browser widget runs an illustrative analytical response surface shaped by the measured Cd range and the conformal intervals (&plusmn;0.0245 @ 90%, &plusmn;0.0301 @ 95%). It is a demo, not the trained model. Run the full ONNX/LightGBM ensemble locally via the Quickstart below.
-            </div>
-          </div>
+          <iframe src="wind-tunnel.html" title="Interactive 3D wind-tunnel explorer" style="width:100%;height:920px;border:0;border-radius:12px;background:#f6f7f9;" loading="lazy"></iframe>
         </div>
       </div>
     </div>
@@ -1699,7 +1599,8 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   initHeroField();
   drawHeroField();
 
-  /* =====================================================================
+    if (document.getElementById("airflow")) {
+/* =====================================================================
      2. DARK WIND-TUNNEL STAGE CARD (#airflow)
      High-contrast car profile + pressure heatmap + streamline field + vortex wake
      ===================================================================== */
@@ -1893,7 +1794,10 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     }, 180);
   });
 
-  /* =====================================================================
+    }
+
+  if (document.getElementById("s-rw")) {
+/* =====================================================================
      3. INTERACTIVE SURROGATE SANDBOX (Sliders + Inverse Design)
      ===================================================================== */
   var bodyState = "fastback";
@@ -2063,6 +1967,8 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     document.getElementById("r-status").textContent = "Baseline geometry";
     evalSurrogate();
   });
+
+  }
 
   evalSurrogate();
 })();
