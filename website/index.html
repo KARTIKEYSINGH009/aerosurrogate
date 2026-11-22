@@ -1704,7 +1704,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   var particles = [];
   var car = { x0: 0, x1: 0, ground: 0 };
   /* Real 3D car photo: roofline measured from tunnel-car.jpg (fractions of image size) */
-  var CAR = { x0: 0.065, x1: 0.935, ground: 0.8817, roof: [0.6682, 0.6624, 0.6565, 0.6457, 0.6345, 0.6232, 0.6135, 0.6051, 0.5976, 0.5912, 0.5856, 0.5809, 0.5768, 0.5732, 0.5694, 0.5649, 0.5588, 0.5509, 0.5407, 0.5287, 0.5156, 0.5023, 0.4892, 0.4771, 0.4662, 0.4565, 0.4479, 0.4407, 0.4346, 0.4297, 0.426, 0.4231, 0.4211, 0.4197, 0.4189, 0.4185, 0.4188, 0.4195, 0.4207, 0.4224, 0.4245, 0.4271, 0.4302, 0.4339, 0.4383, 0.4433, 0.4491, 0.4557, 0.4629, 0.4707, 0.4791, 0.4881, 0.4974, 0.5069, 0.5165, 0.5259, 0.5402, 0.555, 0.571, 0.5798, 0.5918] };
+  var CAR = { x0: 0.0558, x1: 0.7942, ground: 0.8833, roof: [0.7002, 0.6954, 0.6904, 0.6813, 0.672, 0.6624, 0.6542, 0.6471, 0.6409, 0.6355, 0.6309, 0.6269, 0.6235, 0.6204, 0.6171, 0.6133, 0.6081, 0.6014, 0.5929, 0.5829, 0.5719, 0.5606, 0.5496, 0.5393, 0.5299, 0.5215, 0.5141, 0.5077, 0.5025, 0.4984, 0.4952, 0.4929, 0.4912, 0.4901, 0.4895, 0.4893, 0.4895, 0.4901, 0.4911, 0.4926, 0.4945, 0.4967, 0.4993, 0.5025, 0.5061, 0.5104, 0.5153, 0.521, 0.5272, 0.5339, 0.5409, 0.5485, 0.5561, 0.564, 0.572, 0.5799, 0.5921, 0.6046, 0.6181, 0.6257, 0.6358] };
   var tunnelImg = new Image();
   tunnelImg.src = "tunnel-car.jpg";
   function layout() {
@@ -1735,16 +1735,16 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   }
   function initParticles() {
     particles = [];
-    for (var i = 0; i < 150; i++) particles.push(makeParticle(true));
+    for (var i = 0; i < 180; i++) particles.push(makeParticle(true));
   }
 
   /* Wake vortices: spinning eddies shed behind the tail */
   function vortexPush(p) {
     for (var k = 0; k < 3; k++) {
-      var vx = car.x1 + 46 + k * 52;
+      var vx = car.x1 + 40 + k * 44;
       var vy = car.ground - 34 - k * 10 + Math.sin(hPhase * 1.4 + k * 2.1) * 6;
       var dx = p.x - vx, dy = p.y - vy;
-      var d2 = dx * dx + dy * dy, r = 30;
+      var d2 = dx * dx + dy * dy, r = 34;
       if (d2 < r * r && d2 > 4) {
         var d = Math.sqrt(d2);
         var swirl = (1 - d / r) * 1.6 * (k % 2 === 0 ? 1 : -1);
@@ -1791,9 +1791,9 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
         localSpeed *= 1.45;
         p.y = top - 6 - Math.sin(p.wob) * 2;
       } else if (p.x >= car.x1 + 8) {
-        p.wake = Math.min(p.wake + 0.05, 1);
+        p.wake = Math.min(p.wake + 0.08, 1);
         p.y += Math.sin(p.wob * 3.6) * 1.4 * p.wake + (Math.random() - 0.5) * 1.1 * p.wake;
-        localSpeed *= 0.72;
+        localSpeed *= 0.6;
         vortexPush(p);
       } else {
         p.wake = Math.max(p.wake - 0.02, 0);
@@ -1804,7 +1804,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
       p.x += localSpeed;
       p.wob += 0.04;
       p.hist.push({ x: p.x, y: p.y });
-      if (p.hist.length > 14) p.hist.shift();
+      if (p.hist.length > 22) p.hist.shift();
       if (p.x > W + 24 || p.y > H || p.y < 0) { particles[i] = makeParticle(false); continue; }
 
       var col;
