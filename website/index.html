@@ -851,7 +851,7 @@
             <span class="tunnel-live">LIVE FIELD</span>
           </div>
           <div class="tunnel-canvas-wrap">
-            <iframe src="hero-wind-tunnel.html" title="Interactive isometric wind-tunnel figure: airflow over a 1:18 scale fastback model" style="position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0 0 12px 12px;background:#0b0f17;" loading="lazy"></iframe>
+            <canvas id="airflow" role="img" aria-label="Animated aerodynamic streamlines, pressure field and wake vortices over a fastback car profile"></canvas>
           </div>
           <div class="tunnel-hud">
             <div class="hud-cell">
@@ -894,7 +894,26 @@
   <div class="ticker" aria-label="23 geometric input parameters">
     <div class="ticker-track" id="ticker-track"></div>
   </div>
-  <!-- ==================== INTERACTIVE SURROGATE SANDBOX ==================== -->
+  
+  <!-- ==================== INTERACTIVE WIND TUNNEL FIGURE ==================== -->
+  <section id="wind-tunnel" class="alt">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>INTERACTIVE</b> Wind Tunnel</div>
+        <div class="sec-body">
+          <h2>Explore the airflow. <span class="thin">Change the case, body, streamlines and sliders yourself.</span></h2>
+          <p class="sub">
+            A 1:18 scale fastback model on a turntable balance in a wind tunnel. Switch between the three test cases, change the body style, toggle streamlines and the tour, and move the sliders to see the wake and the readouts respond.
+          </p>
+        </div>
+      </div>
+      <div class="reveal d1">
+        <iframe src="hero-wind-tunnel.html" title="Interactive isometric wind-tunnel figure: airflow over a 1:18 scale fastback model" style="width:100%;height:980px;border:1px solid var(--line);border-radius:14px;background:#0b0f17;" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
+
+<!-- ==================== INTERACTIVE SURROGATE SANDBOX ==================== -->
   <section id="demo" class="alt">
     <div class="wrap">
       <div class="sec-head reveal">
@@ -918,7 +937,7 @@
         </div>
 
         <div class="demo-main">
-          <iframe src="wind-tunnel.html" title="Interactive 3D wind-tunnel explorer" style="width:100%;height:920px;border:0;border-radius:12px;background:#f6f7f9;" loading="lazy"></iframe>
+          <iframe src="wind-tunnel.html" title="Interactive 3D wind-tunnel explorer" style="grid-column: 1 / -1; width:100%;height:880px;border:0;border-radius:12px;background:#f6f7f9;" loading="lazy"></iframe>
         </div>
       </div>
     </div>
@@ -1599,8 +1618,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   initHeroField();
   drawHeroField();
 
-    if (document.getElementById("airflow")) {
-/* =====================================================================
+  /* =====================================================================
      2. DARK WIND-TUNNEL STAGE CARD (#airflow)
      High-contrast car profile + pressure heatmap + streamline field + vortex wake
      ===================================================================== */
@@ -1794,8 +1812,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     }, 180);
   });
 
-    }
-
+  
   if (document.getElementById("s-rw")) {
 /* =====================================================================
      3. INTERACTIVE SURROGATE SANDBOX (Sliders + Inverse Design)
