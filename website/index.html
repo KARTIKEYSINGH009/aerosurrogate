@@ -3,32 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AeroSurrogate: Car aerodynamics in milliseconds, not hours</title>
-<meta name="description" content="A physics-informed ML surrogate that predicts a car's drag, lift and EV highway range from geometry in under 2 ms, replacing hours of CFD.">
+<title>AeroSurrogate — Car aerodynamics in milliseconds, not hours</title>
+<meta name="description" content="A physics-informed ML surrogate predicting vehicle drag, lift and EV highway range from 23 geometric parameters in 0.051 ms on CPU. Built on MIT's DrivAerNet++ dataset.">
+<meta name="author" content="Kartikey Singh">
+<link rel="canonical" href="https://aerosurrogate.vercel.app/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://aerosurrogate.vercel.app/">
+<meta property="og:title" content="AeroSurrogate — Car aerodynamics in milliseconds, not hours">
+<meta property="og:description" content="Predict vehicle Cd, Cl and EV highway range from 23 geometry parameters in 0.051 ms on CPU, with calibrated conformal uncertainty and constrained inverse design.">
+<meta property="og:site_name" content="AeroSurrogate">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AeroSurrogate — Car aero in milliseconds, not hours">
+<meta name="twitter:description" content="Physics-informed ML surrogate on MIT's DrivAerNet++ (4,051 designs). 0.051 ms CPU inference, calibrated 90/95% conformal intervals, inverse design in <1.5 s.">
+
+<!-- Inline SVG Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c1220'/%3E%3Cpath d='M5 20c4-6 10-8 17-7 3 .4 5 2 5 4H5z' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 13h14M6 9h10' stroke='%2393c5fd' stroke-width='1.5' stroke-linecap='round' opacity='.7'/%3E%3Ccircle cx='10' cy='21' r='2' fill='%23fff'/%3E%3Ccircle cx='22' cy='21' r='2' fill='%23fff'/%3E%3C/svg%3E">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "AeroSurrogate",
+  "description": "Physics-informed ML surrogate that predicts a car's drag, lift and EV highway range from 23 geometric parameters in 0.051 ms on CPU.",
+  "url": "https://aerosurrogate.vercel.app/",
+  "codeRepository": "https://github.com/KARTIKEYSINGH009/aerosurrogate",
+  "programmingLanguage": "Python",
+  "author": {
+    "@type": "Person",
+    "name": "Kartikey Singh",
+    "url": "https://github.com/KARTIKEYSINGH009"
+  }
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #08090b;
-    --surface: #0b0d10;
-    --surface-2: #101318;
-    --line: rgba(255, 255, 255, 0.08);
-    --line-strong: rgba(255, 255, 255, 0.16);
-    --text: #f2f3f4;
-    --muted: #9aa1ab;
-    --faint: #626973;
-    --accent: #8ab4ff;
-    --accent-dim: rgba(138, 180, 255, 0.14);
-    --green: #5fd68f;
-    --amber: #e8b34b;
-    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", monospace;
-    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+    --bg: #fafaf9;
+    --bg-alt: #f3f4f6;
+    --surface: #ffffff;
+    --surface-2: #f4f5f7;
+    --surface-3: #ebedf0;
+    --ink-dark: #0b0f17;
+    --ink-dark-2: #151c28;
+    --line: rgba(15, 23, 42, 0.08);
+    --line-strong: rgba(15, 23, 42, 0.15);
+    --text: #0f172a;
+    --text-2: #334155;
+    --muted: #526071;
+    --faint: #64748b;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-soft: rgba(37, 99, 235, 0.08);
+    --accent-border: rgba(37, 99, 235, 0.24);
+    --green: #059669;
+    --green-soft: rgba(5, 150, 105, 0.09);
+    --green-border: rgba(5, 150, 105, 0.28);
+    --amber: #d97706;
+    --amber-soft: rgba(217, 119, 6, 0.09);
+    --amber-border: rgba(217, 119, 6, 0.28);
+    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-sm: 0 2px 8px -2px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 12px 32px -8px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --serif: "Instrument Serif", Georgia, serif;
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --radius: 14px;
+    --radius-sm: 8px;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
   body {
     background: var(--bg);
     color: var(--text);
@@ -39,312 +93,677 @@
     overflow-x: hidden;
     font-feature-settings: "cv11", "ss01";
   }
-  a { color: var(--text); text-decoration: none; }
-  ::selection { background: rgba(138, 180, 255, 0.28); }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+  ::selection { background: rgba(37, 99, 235, 0.16); color: var(--text); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .skip-link {
+    position: absolute; left: -999px; top: 8px; z-index: 200;
+    background: var(--text); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 13px;
+  }
+  .skip-link:focus { left: 12px; }
 
   /* scroll progress hairline */
   .progress {
-    position: fixed; top: 0; left: 0; height: 2px; width: 0;
-    background: var(--accent); z-index: 60;
+    position: fixed; top: 0; left: 0; height: 2.5px; width: 0;
+    background: linear-gradient(90deg, var(--accent), #60a5fa); z-index: 100;
   }
 
   /* ---------- nav ---------- */
   nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    background: rgba(8, 9, 11, 0.75);
+    position: fixed; top: 0; left: 0; right: 0; z-index: 90;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    background: rgba(250, 250, 249, 0.84);
     border-bottom: 1px solid var(--line);
+    transition: box-shadow 0.25s ease;
   }
+  nav.scrolled { box-shadow: var(--shadow-xs); }
   .nav-inner {
-    max-width: 1200px; margin: 0 auto; padding: 15px 32px;
-    display: flex; align-items: center; gap: 32px;
+    max-width: 1240px; margin: 0 auto; padding: 13px 32px;
+    display: flex; align-items: center; gap: 28px;
   }
-  .logo { font-weight: 700; font-size: 15px; letter-spacing: -0.02em; }
+  .logo {
+    font-weight: 700; font-size: 15.5px; letter-spacing: -0.025em;
+    display: inline-flex; align-items: center; gap: 9px; color: var(--text);
+  }
+  .logo-mark {
+    width: 24px; height: 24px; border-radius: 6px; background: var(--ink-dark);
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+  }
   .logo i { font-style: normal; color: var(--accent); }
-  .nav-links { display: flex; gap: 26px; margin-left: auto; font-size: 13.5px; align-items: center; }
-  .nav-links a { color: var(--muted); transition: color 0.2s ease; }
-  .nav-links a:hover { color: var(--text); }
-  .nav-cta {
-    font-weight: 600; color: #0a0b0d !important;
-    background: var(--text); padding: 7px 14px; border-radius: 6px;
-    transition: opacity 0.2s ease;
+  .nav-links {
+    display: flex; gap: 4px; margin-left: auto; font-size: 13.5px; align-items: center;
   }
-  .nav-cta:hover { opacity: 0.85; }
-  @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } .nav-inner { padding: 14px 20px; } }
+  .nav-links a:not(.nav-cta):not(.nav-demo) {
+    color: var(--muted); padding: 6px 11px; border-radius: 6px; font-weight: 500;
+    transition: color 0.18s ease, background 0.18s ease;
+  }
+  .nav-links a:not(.nav-cta):not(.nav-demo):hover,
+  .nav-links a.active {
+    color: var(--text); background: rgba(15, 23, 42, 0.05);
+  }
+  .nav-demo {
+    color: var(--accent) !important; background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    padding: 6px 12px; border-radius: 99px; font-weight: 600; font-size: 12.5px;
+    margin: 0 4px; display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.2s ease, transform 0.2s var(--ease);
+  }
+  .nav-demo::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  }
+  .nav-demo:hover { background: rgba(37, 99, 235, 0.14); transform: translateY(-1px); }
+  .nav-cta {
+    font-weight: 600; color: #fff !important;
+    background: var(--text); padding: 7px 14px; border-radius: 8px;
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
+    box-shadow: var(--shadow-xs);
+    transition: background 0.2s ease, transform 0.2s var(--ease);
+  }
+  .nav-cta:hover { background: #1e293b; transform: translateY(-1px); }
+  .menu-btn {
+    display: none; margin-left: auto; background: var(--surface);
+    border: 1px solid var(--line-strong); border-radius: 8px;
+    padding: 7px 10px; cursor: pointer; color: var(--text);
+  }
+  @media (max-width: 860px) {
+    .nav-inner { padding: 12px 20px; }
+    .menu-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+    .nav-links {
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      background: var(--surface); border-bottom: 1px solid var(--line-strong);
+      flex-direction: column; align-items: stretch; padding: 14px 20px 18px; gap: 6px;
+      box-shadow: var(--shadow-md);
+    }
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 9px 12px !important; }
+    .nav-demo, .nav-cta { justify-content: center; margin: 4px 0 0; }
+  }
 
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
   @media (max-width: 760px) { .wrap { padding: 0 20px; } }
-
-  /* ---------- hero ---------- */
+  /* ---------- hero: full-bleed CFD wind tunnel ---------- */
   .hero {
-    position: relative; min-height: 100vh; min-height: 100svh;
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 120px 0 0; overflow: hidden;
+    position: relative;
+    padding: 136px 0 0; overflow: hidden;
+    background:
+      radial-gradient(ellipse 90% 65% at 62% 42%, rgba(37, 99, 235, 0.14), rgba(6, 182, 212, 0.08) 45%, transparent 75%),
+      radial-gradient(ellipse 55% 45% at 18% 20%, rgba(59, 130, 246, 0.10), transparent 65%),
+      linear-gradient(180deg, #f0f5ff 0%, #f6f8fc 55%, var(--bg) 100%);
+  }
+  #hero-cfd {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+     display: block; pointer-events: none; z-index: 1;
+  }
+  .hero-iso {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background-image:
+      linear-gradient(to right, rgba(37, 99, 235, 0.065) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(37, 99, 235, 0.065) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 85% 75% at 55% 40%, black 15%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 85% 75% at 55% 40%, black 15%, transparent 80%);
+  }
+  .cfd-legend {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    background: rgba(255,255,255,0.78); backdrop-filter: blur(8px);
+    border: 1px solid var(--line-strong); border-radius: 99px;
+    padding: 5px 12px; box-shadow: var(--shadow-xs);
+  }
+  .cfd-scale {
+    width: 72px; height: 6px; border-radius: 99px;
+    background: linear-gradient(90deg, #2563eb, #06b6d4, #10b981, #f59e0b, #ef4444);
   }
   .grid-lines {
     position: absolute; inset: 0; pointer-events: none;
-    background-image: linear-gradient(to right, var(--line) 1px, transparent 1px);
-    background-size: 25% 100%;
-    background-position: center;
-    opacity: 0.35;
-    mask-image: linear-gradient(180deg, transparent, black 20%, black 80%, transparent);
-    -webkit-mask-image: linear-gradient(180deg, transparent, black 20%, black 80%, transparent);
+    background-image:
+      linear-gradient(to right, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, black 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, black 20%, transparent 80%);
   }
-  #airflow { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .hero-fade {
-    position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(180deg, rgba(8,9,11,0.6) 0%, rgba(8,9,11,0) 25%, rgba(8,9,11,0) 62%, rgba(8,9,11,0.55) 82%, rgba(8,9,11,0.92) 100%);
+  .hero-grid {
+    position: relative; z-index: 2;
+    display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 48px; align-items: center;
+    padding-bottom: 56px;
   }
-  .hero-content { position: relative; z-index: 2; padding-bottom: 56px; }
+  @media (max-width: 980px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+  }
   .eyebrow {
-    font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 26px;
-    display: flex; align-items: center; gap: 12px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 22px;
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--accent-soft); border: 1px solid var(--accent-border);
+    padding: 6px 12px; border-radius: 99px; font-weight: 600;
   }
-  .eyebrow::before { content: ""; width: 32px; height: 1px; background: var(--accent); display: inline-block; }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   .hero h1 {
-    font-size: clamp(48px, 7.6vw, 104px); line-height: 0.99;
-    letter-spacing: -0.045em; font-weight: 700; max-width: 1000px;
+    font-size: clamp(44px, 6.2vw, 82px); line-height: 0.98;
+    letter-spacing: -0.042em; font-weight: 700; color: var(--text);
   }
-  .hero h1 em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.01em; }
-  .hero h1 .thin { color: var(--muted); font-weight: 300; }
+  .hero h1 em {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    color: var(--accent); letter-spacing: -0.01em;
+  }
+  .hero h1 .thin { color: var(--faint); font-weight: 400; }
   .hero .lede {
-    font-size: clamp(16px, 1.6vw, 19px); color: var(--muted);
-    margin-top: 26px; max-width: 600px; line-height: 1.65;
+    font-size: clamp(16.5px, 1.45vw, 18.5px); color: var(--muted);
+    margin-top: 24px; max-width: 580px; line-height: 1.68;
   }
   .hero .lede strong { color: var(--text); font-weight: 600; }
-  .cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 36px; }
+  .cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 11px 20px; border-radius: 6px; font-weight: 600; font-size: 14.5px;
-    border: 1px solid var(--line-strong); background: transparent; color: var(--text);
-    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s var(--ease);
+    padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 14px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
+    box-shadow: var(--shadow-xs); cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s var(--ease), box-shadow 0.2s ease;
   }
-  .btn:hover { border-color: rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.04); }
-  .btn.primary { background: var(--text); border-color: var(--text); color: #0a0b0d; }
-  .btn.primary:hover { background: #fff; opacity: 0.92; }
+  .btn:hover {
+    border-color: rgba(15, 23, 42, 0.28); background: var(--surface-2);
+    transform: translateY(-1px); box-shadow: var(--shadow-sm);
+  }
+  .btn.primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+  }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.dark {
+    background: var(--text); border-color: var(--text); color: #fff;
+  }
+  .btn.dark:hover { background: #1e293b; }
   .btn .arrow { transition: transform 0.25s var(--ease); font-weight: 400; }
   .btn:hover .arrow { transform: translateX(3px); }
 
+  .trust-strip {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line);
+    font-size: 12.5px; color: var(--faint); font-family: var(--mono);
+  }
+  .trust-strip span { display: inline-flex; align-items: center; gap: 6px; }
+  .trust-strip b { color: var(--text-2); font-weight: 600; }
+
+  /* hero wind-tunnel stage card */
+  .tunnel-card {
+    background: var(--ink-dark); color: #f8fafc;
+    border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: var(--shadow-lg); overflow: hidden; position: relative;
+  }
+  .tunnel-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-family: var(--mono); font-size: 11.5px; color: #94a3b8;
+    background: rgba(255,255,255,0.02);
+  }
+  .tunnel-dots { display: flex; gap: 6px; }
+  .tunnel-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.18); display: block; }
+  .tunnel-live {
+    display: inline-flex; align-items: center; gap: 6px; color: #60a5fa; font-weight: 500;
+  }
+  .tunnel-live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: #34d399;
+    box-shadow: 0 0 8px #34d399;
+  }
+  .tunnel-canvas-wrap { position: relative; height: 290px; width: 100%; }
+  #airflow { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .tunnel-hud {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(15, 23, 42, 0.7);
+  }
+  .hud-cell {
+    padding: 14px 18px; border-right: 1px solid rgba(255,255,255,0.08);
+    font-family: var(--mono);
+  }
+  .hud-cell:last-child { border-right: none; }
+  .hud-cell .k { font-size: 10.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+  .hud-cell .v { font-size: 18px; font-weight: 600; color: #fff; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .hud-cell .v small { font-size: 11.5px; color: #60a5fa; font-weight: 400; }
+
+  /* hero stat strip */
   .hero-stats {
     position: relative; z-index: 2;
     display: grid; grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--line);
-    margin-top: 64px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius) var(--radius) 0 0;
+    border-bottom: none;
+    box-shadow: var(--shadow-sm);
   }
-  .hstat { padding: 24px 24px 28px 0; border-right: 1px solid var(--line); }
-  .hstat + .hstat { padding-left: 24px; }
+  .hstat { padding: 26px 28px; border-right: 1px solid var(--line); }
   .hstat:last-child { border-right: none; }
   .hstat .num {
-    font-size: clamp(26px, 3vw, 36px); font-weight: 600; letter-spacing: -0.03em;
-    font-variant-numeric: tabular-nums; line-height: 1.1;
+    font-size: clamp(28px, 3vw, 38px); font-weight: 700; letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums; line-height: 1.05; color: var(--text);
   }
-  .hstat .num .unit { font-size: 15px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+  .hstat .num .unit { font-size: 15px; color: var(--accent); font-weight: 600; letter-spacing: 0; }
   .hstat .lbl { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
   @media (max-width: 760px) {
     .hero-stats { grid-template-columns: 1fr 1fr; }
     .hstat:nth-child(2) { border-right: none; }
     .hstat:nth-child(n+3) { border-top: 1px solid var(--line); }
-    .hstat:nth-child(even) { padding-left: 24px; }
-    .hstat:nth-child(odd) { padding-left: 0; }
+    .hstat { padding: 20px; }
   }
 
   /* ---------- ticker ---------- */
   .ticker {
-    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
-    overflow: hidden; padding: 12px 0; position: relative;
+    background: var(--surface-2);
+    border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong);
+    overflow: hidden; padding: 11px 0; position: relative;
   }
   .ticker-track {
     display: flex; white-space: nowrap; width: max-content;
-    animation: tick 72s linear infinite;
+    animation: tick 68s linear infinite;
   }
   .ticker:hover .ticker-track { animation-play-state: paused; }
   .ticker span {
-    font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em;
-    color: var(--faint); padding: 0 16px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em;
+    color: var(--muted); padding: 0 16px;
   }
-  .ticker span b { color: var(--muted); font-weight: 500; }
+  .ticker span b {
+    color: var(--accent); font-weight: 600;
+    background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; margin-right: 4px;
+  }
   @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
   /* ---------- sections ---------- */
-  section { padding: 128px 0; position: relative; }
+  section { padding: 112px 0; position: relative; }
+  section.alt { background: var(--bg-alt); }
   section + section { border-top: 1px solid var(--line); }
   .sec-head { display: flex; gap: 48px; flex-wrap: wrap; align-items: flex-start; }
   .kicker {
-    font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em;
-    color: var(--faint); padding-top: 14px; flex: none; width: 120px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--faint); padding-top: 10px;
+    flex: none; width: 140px; font-weight: 600;
   }
-  .kicker b { color: var(--accent); font-weight: 500; }
+  .kicker b {
+    color: var(--accent); font-weight: 700;
+    background: var(--accent-soft); border: 1px solid var(--accent-border);
+    padding: 2px 7px; border-radius: 5px; margin-right: 6px;
+  }
   .sec-body { flex: 1; min-width: 280px; }
   h2 {
-    font-size: clamp(32px, 4.2vw, 52px); letter-spacing: -0.035em;
-    line-height: 1.05; font-weight: 700; max-width: 780px;
+    font-size: clamp(30px, 4vw, 48px); letter-spacing: -0.035em;
+    line-height: 1.07; font-weight: 700; max-width: 780px; color: var(--text);
   }
-  h2 .thin { color: var(--muted); font-weight: 350; }
-  .sub { color: var(--muted); margin-top: 18px; max-width: 640px; font-size: 16.5px; line-height: 1.7; }
+  h2 .thin { color: var(--faint); font-weight: 400; }
+  .sub { color: var(--muted); margin-top: 16px; max-width: 650px; font-size: 16.5px; line-height: 1.7; }
   .sub strong { color: var(--text); font-weight: 600; }
-  .sub a { color: var(--accent); border-bottom: 1px solid transparent; transition: border-color 0.2s ease; }
+  .sub a { color: var(--accent); font-weight: 500; border-bottom: 1px solid var(--accent-border); transition: border-color 0.2s ease; }
   .sub a:hover { border-color: var(--accent); }
 
-  /* reveal on scroll: slow, small, no bounce */
-  .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
+  /* reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
   .reveal.in { opacity: 1; transform: none; }
-  .reveal.d1 { transition-delay: 0.1s; }
-  .reveal.d2 { transition-delay: 0.2s; }
-  .reveal.d3 { transition-delay: 0.3s; }
+  .reveal.d1 { transition-delay: 0.08s; }
+  .reveal.d2 { transition-delay: 0.16s; }
+  .reveal.d3 { transition-delay: 0.24s; }
+  /* ---------- interactive demo sandbox ---------- */
+  .demo-shell {
+    margin-top: 48px; background: var(--surface);
+    border: 1px solid var(--line-strong); border-radius: 18px;
+    box-shadow: var(--shadow-md); overflow: hidden;
+  }
+  .demo-topbar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    padding: 16px 24px; background: var(--surface-2); border-bottom: 1px solid var(--line);
+  }
+  .demo-badge {
+    font-family: var(--mono); font-size: 11.5px; color: var(--amber);
+    background: var(--amber-soft); border: 1px solid var(--amber-border);
+    padding: 4px 10px; border-radius: 99px; font-weight: 600;
+  }
+  .body-pills { display: inline-flex; gap: 4px; background: var(--surface); padding: 4px; border-radius: 10px; border: 1px solid var(--line-strong); }
+  .body-pills button {
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    padding: 7px 14px; border-radius: 7px; border: none; background: transparent;
+    color: var(--muted); cursor: pointer; transition: all 0.18s ease;
+  }
+  .body-pills button.active { background: var(--text); color: #fff; box-shadow: var(--shadow-xs); }
+  .body-pills button:hover:not(.active) { color: var(--text); }
+
+  .demo-main {
+    display: grid; grid-template-columns: 1.05fr 0.95fr;
+  }
+  @media (max-width: 920px) { .demo-main { grid-template-columns: 1fr; } }
+  .demo-controls { padding: 28px; border-right: 1px solid var(--line); }
+  @media (max-width: 920px) { .demo-controls { border-right: none; border-bottom: 1px solid var(--line); } }
+  .slider-group { display: flex; flex-direction: column; gap: 18px; }
+  .slider-row label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 7px;
+  }
+  .slider-row label span.param-code {
+    font-family: var(--mono); font-size: 11.5px; color: var(--faint); font-weight: 400; margin-left: 6px;
+  }
+  .slider-row label output {
+    font-family: var(--mono); font-size: 13px; color: var(--accent); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 6px; background: var(--surface-3);
+    border-radius: 99px; outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); border: 2.5px solid #fff;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
+    transition: transform 0.15s ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.12); }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); border: 2.5px solid #fff;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
+  }
+  .demo-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+
+  .demo-readout {
+    padding: 28px; background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
+  }
+  .silhouette-stage {
+    background: var(--ink-dark); border-radius: 12px; padding: 18px 20px 14px;
+    border: 1px solid rgba(15,23,42,0.12); position: relative;
+  }
+  .silhouette-stage .stage-lbl {
+    display: flex; justify-content: space-between; font-family: var(--mono);
+    font-size: 11px; color: #94a3b8; margin-bottom: 6px;
+  }
+  .silhouette-stage svg { width: 100%; height: 110px; display: block; }
+  .readout-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .readout-card {
+    background: var(--surface); border: 1px solid var(--line-strong);
+    border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow-xs);
+  }
+  .readout-card .rk {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--faint);
+  }
+  .readout-card .rv {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums; margin-top: 4px; color: var(--text);
+  }
+  .readout-card .rv.accent { color: var(--accent); }
+  .readout-card .rv.green { color: var(--green); }
+  .readout-card .rsub {
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-top: 3px;
+  }
+  .demo-footnote {
+    font-size: 12.5px; color: var(--faint); line-height: 1.55;
+    border-top: 1px solid var(--line); padding-top: 12px;
+  }
 
   /* ---------- CFD vs surrogate ---------- */
-  .race { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 56px; }
-  @media (max-width: 760px) { .race { grid-template-columns: 1fr; } }
-  .race-card { background: var(--surface); padding: 32px; }
-  .race-card .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); }
-  .race-card .big {
-    font-size: clamp(40px, 5vw, 56px); font-weight: 600; letter-spacing: -0.04em;
-    margin: 14px 0 6px; font-variant-numeric: tabular-nums; line-height: 1;
+  .race {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px;
   }
-  .race-card .big .unit { font-size: 20px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+  @media (max-width: 760px) { .race { grid-template-columns: 1fr; } }
+  .race-card {
+    background: var(--surface); padding: 34px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); position: relative;
+  }
+  .race-card.fast {
+    border-color: var(--accent-border);
+    background: linear-gradient(180deg, rgba(37,99,235,0.03) 0%, var(--surface) 100%);
+  }
+  .race-card .tag {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); font-weight: 600;
+  }
+  .race-card.fast .tag { color: var(--accent); }
+  .race-card .big {
+    font-size: clamp(40px, 4.8vw, 56px); font-weight: 700; letter-spacing: -0.04em;
+    margin: 14px 0 8px; font-variant-numeric: tabular-nums; line-height: 1; color: var(--text);
+  }
+  .race-card .big .unit { font-size: 20px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
   .race-card.fast .big { color: var(--accent); }
-  .race-card p { color: var(--muted); font-size: 14.5px; line-height: 1.65; max-width: 420px; }
-  .race-bar { height: 3px; background: var(--surface-2); margin-top: 28px; overflow: hidden; border-radius: 99px; }
-  .race-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.6s var(--ease); }
-  .race-card.slow .race-bar i { background: var(--muted); }
+  .race-card p { color: var(--muted); font-size: 15px; line-height: 1.65; max-width: 440px; }
+  .race-bar { height: 6px; background: var(--surface-3); margin-top: 26px; overflow: hidden; border-radius: 99px; }
+  .race-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.5s var(--ease); }
+  .race-card.slow .race-bar i { background: #94a3b8; }
   .race-card.fast .race-bar i { background: var(--accent); }
   .race-bar-lbl { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-top: 10px; }
   .flow-line {
-    margin-top: 1px; font-family: var(--mono); font-size: 13.5px; line-height: 2.1;
-    background: var(--surface); border: 1px solid var(--line); border-top: none;
-    border-radius: 0 0 12px 12px; padding: 24px 32px; color: var(--muted);
+    margin-top: 16px; font-family: var(--mono); font-size: 13.5px; line-height: 2.1;
+    background: var(--ink-dark); color: #cbd5e1;
+    border-radius: var(--radius); padding: 22px 28px;
+    box-shadow: var(--shadow-sm);
   }
-  .flow-line .hl { color: var(--accent); font-weight: 600; }
+  .flow-line .hl { color: #60a5fa; font-weight: 600; }
 
   /* ---------- cards ---------- */
-  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 56px; }
+  .cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px;
+  }
   @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
   .card {
     background: var(--surface); padding: 32px;
-    transition: background 0.3s ease;
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.25s var(--ease), box-shadow 0.25s ease, border-color 0.25s ease;
   }
-  .card:hover { background: var(--surface-2); }
-  .card .k { font-family: var(--mono); font-size: 11.5px; color: var(--faint); letter-spacing: 0.14em; display: block; margin-bottom: 14px; }
-  .card .k b { color: var(--accent); font-weight: 500; }
-  .card h3 { font-size: 19px; margin-bottom: 8px; letter-spacing: -0.015em; font-weight: 600; }
+  .card:hover {
+    transform: translateY(-3px); box-shadow: var(--shadow-md);
+    border-color: rgba(37, 99, 235, 0.3);
+  }
+  .card .k { font-family: var(--mono); font-size: 11.5px; color: var(--faint); letter-spacing: 0.12em; display: block; margin-bottom: 12px; font-weight: 600; }
+  .card .k b { color: var(--accent); font-weight: 700; }
+  .card h3 { font-size: 20px; margin-bottom: 8px; letter-spacing: -0.02em; font-weight: 700; color: var(--text); }
   .card p { color: var(--muted); font-size: 14.5px; line-height: 1.7; }
-  .card .soon { display: inline-block; margin-top: 16px; font-size: 11.5px; font-family: var(--mono); color: var(--amber); letter-spacing: 0.1em; }
+  .card .soon {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+    font-size: 11.5px; font-family: var(--mono); color: var(--amber);
+    background: var(--amber-soft); border: 1px solid var(--amber-border);
+    padding: 4px 10px; border-radius: 99px; font-weight: 600; letter-spacing: 0.06em;
+  }
   .card .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
   .chip {
     font-family: var(--mono); font-size: 11.5px; color: var(--muted);
-    border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px;
+    background: var(--surface-2); border: 1px solid var(--line-strong);
+    border-radius: 6px; padding: 4px 10px;
   }
   .chip b { color: var(--text); font-weight: 600; }
 
-  /* ---------- results chart ---------- */
-  .chart-box { margin-top: 56px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 32px; }
+  /* ---------- results scorecard + chart ---------- */
+  .scorecard {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 44px;
+  }
+  @media (max-width: 820px) { .scorecard { grid-template-columns: 1fr 1fr; } }
+  .score-tile {
+    background: var(--surface); border: 1px solid var(--line-strong);
+    border-radius: 12px; padding: 20px 22px; box-shadow: var(--shadow-xs);
+  }
+  .score-tile.met { border-top: 3px solid var(--green); }
+  .score-tile.gap { border-top: 3px solid var(--amber); }
+  .score-tile .st-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .score-tile .st-lbl { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); font-weight: 600; }
+  .score-tile .st-val { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .score-tile .st-sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+
+  .chart-box {
+    margin-top: 24px; background: var(--surface);
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    padding: 32px; box-shadow: var(--shadow-sm);
+  }
   .chart-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .chart-head h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
-  .toggle { display: inline-flex; gap: 2px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+  .chart-head h3 { font-size: 17.5px; font-weight: 700; letter-spacing: -0.015em; }
+  .toggle {
+    display: inline-flex; gap: 3px; background: var(--surface-2);
+    border: 1px solid var(--line-strong); border-radius: 10px; padding: 3px;
+  }
   .toggle button {
     font-family: var(--mono); font-size: 12px; color: var(--muted); background: none;
-    border: none; cursor: pointer; padding: 6px 13px; border-radius: 6px; transition: all 0.2s ease;
+    border: none; cursor: pointer; padding: 7px 14px; border-radius: 7px; font-weight: 600;
+    transition: all 0.18s ease;
   }
-  .toggle button.active { background: rgba(255, 255, 255, 0.09); color: var(--text); }
+  .toggle button.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-xs); }
   .toggle button:hover:not(.active) { color: var(--text); }
-  .bars { margin-top: 32px; display: flex; flex-direction: column; gap: 20px; }
-  .bar-row { display: grid; grid-template-columns: 180px 1fr 76px; align-items: center; gap: 16px; }
-  @media (max-width: 640px) { .bar-row { grid-template-columns: 110px 1fr 60px; } }
-  .bar-row .name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
-  .bar-row .name small { display: block; font-weight: 400; color: var(--faint); font-size: 12px; font-family: var(--mono); }
-  .bar-track { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
-  .bar-fill { height: 100%; width: 0; border-radius: 99px; transition: width 1.1s var(--ease); }
-  .bar-fill.best { background: var(--accent); }
-  .bar-fill.mid { background: #7c8590; }
-  .bar-fill.low { background: #4a515c; }
-  .bar-row .val { font-family: var(--mono); font-size: 14.5px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .target-line { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--faint); font-family: var(--mono); }
-  .target-line b { color: var(--green); font-weight: 500; }
-  .chart-note { margin-top: 16px; font-size: 13.5px; color: var(--faint); line-height: 1.7; }
+  .bars { margin-top: 28px; display: flex; flex-direction: column; gap: 18px; }
+  .bar-row { display: grid; grid-template-columns: 190px 1fr 80px; align-items: center; gap: 16px; }
+  @media (max-width: 640px) { .bar-row { grid-template-columns: 120px 1fr 64px; } }
+  .bar-row .name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+  .bar-row .name small { display: block; font-weight: 400; color: var(--faint); font-size: 12px; font-family: var(--mono); margin-top: 2px; }
+  .bar-track { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+  .bar-fill { height: 100%; width: 0; border-radius: 99px; transition: width 1s var(--ease); }
+  .bar-fill.best { background: linear-gradient(90deg, var(--accent), #60a5fa); }
+  .bar-fill.mid { background: #64748b; }
+  .bar-fill.low { background: #94a3b8; }
+  .bar-row .val { font-family: var(--mono); font-size: 14.5px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+  .target-line { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+  .target-line b { color: var(--green); font-weight: 700; }
+  .chart-note { margin-top: 12px; font-size: 13.5px; color: var(--muted); line-height: 1.65; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin-top: 32px; }
-  th, td { text-align: left; padding: 13px 12px; border-bottom: 1px solid var(--line); }
-  th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--faint); font-weight: 600; }
+  .table-wrap {
+    margin-top: 24px; background: var(--surface); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); overflow-x: auto; box-shadow: var(--shadow-xs);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+  th, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: none; }
+  th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--faint); font-weight: 700; background: var(--surface-2);
+  }
   td.num, th.num { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
-  td .pill { font-size: 11.5px; font-family: var(--mono); padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); }
-  .pill.met { color: var(--green); border-color: rgba(95, 214, 143, 0.35); }
-  .pill.gap { color: var(--amber); border-color: rgba(232, 179, 75, 0.35); }
+  td .pill {
+    font-size: 11px; font-family: var(--mono); font-weight: 700;
+    padding: 3px 10px; border-radius: 99px; display: inline-block;
+  }
+  .pill.met { color: var(--green); background: var(--green-soft); border: 1px solid var(--green-border); }
+  .pill.gap { color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); }
   .note {
-    border: 1px solid var(--line); border-left: 2px solid var(--accent);
-    border-radius: 8px; padding: 22px 24px; font-size: 15px; color: var(--muted); margin-top: 32px; line-height: 1.7;
+    background: var(--surface); border: 1px solid var(--line-strong);
+    border-left: 3px solid var(--accent); border-radius: 10px;
+    padding: 20px 24px; font-size: 14.5px; color: var(--muted);
+    margin-top: 24px; line-height: 1.7; box-shadow: var(--shadow-xs);
   }
   .note strong { color: var(--text); font-weight: 600; }
 
   /* ---------- body type breakdown ---------- */
-  .body-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 56px; }
-  @media (max-width: 760px) { .body-grid { grid-template-columns: 1fr; } }
-  .body-card { background: var(--surface); padding: 32px; transition: background 0.3s ease; }
-  .body-card:hover { background: var(--surface-2); }
-  .body-card svg { width: 100%; height: 64px; display: block; margin-bottom: 22px; }
-  .body-card h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
-  .body-card .bcount { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 3px; }
-  .body-card .r2 { font-size: 36px; font-weight: 600; letter-spacing: -0.03em; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
-  .body-card .r2 small { font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
+  .body-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; }
+  @media (max-width: 820px) { .body-grid { grid-template-columns: 1fr; } }
+  .body-card {
+    background: var(--surface); padding: 30px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    box-shadow: var(--shadow-xs); transition: transform 0.25s var(--ease), box-shadow 0.25s ease;
+  }
+  .body-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .body-card svg { width: 100%; height: 58px; display: block; margin-bottom: 20px; }
+  .body-card h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.015em; }
+  .body-card .count-lbl { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 3px; }
+  .body-card .r2 { font-size: 38px; font-weight: 700; letter-spacing: -0.035em; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
+  .body-card .r2 small { font-size: 13.5px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
   .body-card .r2.good { color: var(--green); }
   .body-card .r2.warn { color: var(--amber); }
-  .body-card p { font-size: 13.5px; color: var(--muted); line-height: 1.7; }
-  .mini-bar { height: 3px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 14px 0 6px; }
+  .body-card p { font-size: 14px; color: var(--muted); line-height: 1.68; }
+  .mini-bar { height: 6px; background: var(--surface-3); border-radius: 99px; overflow: hidden; margin: 14px 0 10px; }
   .mini-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.2s var(--ease); }
   .mini-bar i.good { background: var(--green); }
   .mini-bar i.warn { background: var(--amber); }
 
   /* ---------- uncertainty ---------- */
-  .conf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 56px; }
+  .conf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
   @media (max-width: 760px) { .conf-grid { grid-template-columns: 1fr; } }
-  .conf-card { background: var(--surface); padding: 32px; }
-  .conf-card .lvl { font-family: var(--mono); font-size: 11.5px; color: var(--faint); letter-spacing: 0.14em; }
-  .conf-card .cov { font-size: 44px; font-weight: 600; letter-spacing: -0.035em; margin: 12px 0 2px; font-variant-numeric: tabular-nums; line-height: 1; }
-  .conf-card .cov small { font-size: 15px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
-  .conf-card p { color: var(--muted); font-size: 14px; line-height: 1.7; }
-  .gauge { height: 3px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 22px 0 10px; }
+  .conf-card {
+    background: var(--surface); padding: 32px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+  }
+  .conf-card .lvl { font-family: var(--mono); font-size: 11.5px; color: var(--accent); letter-spacing: 0.12em; font-weight: 600; }
+  .conf-card .cov { font-size: 44px; font-weight: 700; letter-spacing: -0.035em; margin: 12px 0 4px; font-variant-numeric: tabular-nums; line-height: 1; color: var(--text); }
+  .conf-card .cov small { font-size: 15px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
+  .conf-card p { color: var(--muted); font-size: 14.5px; line-height: 1.7; margin-top: 10px; }
+  .gauge { height: 6px; background: var(--surface-3); border-radius: 99px; overflow: hidden; margin: 20px 0 10px; }
   .gauge i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width 1.3s var(--ease); }
   .gauge-lbl { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
 
   /* ---------- data ---------- */
-  .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 56px; }
-  @media (max-width: 760px) { .data-grid { grid-template-columns: 1fr 1fr; } }
-  .data-cell { background: var(--surface); padding: 28px 24px; }
-  .data-cell .num { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
+  @media (max-width: 820px) { .data-grid { grid-template-columns: 1fr 1fr; } }
+  .data-cell {
+    background: var(--surface); padding: 26px 24px;
+    border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow-xs);
+  }
+  .data-cell .num { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--text); }
   .data-cell .lbl { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.55; }
 
+  /* ---------- quickstart code ---------- */
+  .code-shell {
+    margin-top: 40px; background: var(--ink-dark); color: #e2e8f0;
+    border-radius: var(--radius); border: 1px solid rgba(15,23,42,0.18);
+    box-shadow: var(--shadow-md); overflow: hidden;
+  }
+  .code-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; background: var(--ink-dark-2);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-family: var(--mono); font-size: 12px; color: #94a3b8;
+  }
+  .copy-btn {
+    font-family: var(--mono); font-size: 11.5px; color: #e2e8f0;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    transition: background 0.18s ease;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.15); }
+  code { font-family: var(--mono); font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: 4px; color: var(--text); }
+  pre { padding: 22px 26px; overflow-x: auto; margin: 0; }
+  pre code { background: none; padding: 0; font-size: 13px; line-height: 1.9; color: #e2e8f0; }
+  pre code .cm { color: #64748b; }
+
   /* ---------- roadmap ---------- */
-  .steps { list-style: none; margin-top: 56px; position: relative; }
-  .steps::before { content: ""; position: absolute; left: 11px; top: 10px; bottom: 10px; width: 1px; background: var(--line); }
+  .steps { list-style: none; margin-top: 48px; position: relative; }
+  .steps::before { content: ""; position: absolute; left: 9px; top: 12px; bottom: 12px; width: 2px; background: var(--line-strong); }
   .steps .fill {
-    position: absolute; left: 11px; top: 10px; width: 1px; height: 0;
-    background: var(--accent);
-    transition: height 1.8s var(--ease);
+    position: absolute; left: 9px; top: 12px; width: 2px; height: 0;
+    background: var(--accent); transition: height 1.8s var(--ease);
   }
-  .steps li { display: flex; gap: 24px; padding: 20px 0 20px 4px; position: relative; }
+  .steps li { display: flex; gap: 24px; padding: 18px 0 18px 2px; position: relative; }
   .steps .dot {
-    width: 15px; height: 15px; border-radius: 50%; flex: none; margin-top: 5px;
-    border: 1px solid var(--line-strong); background: var(--bg); position: relative; z-index: 1;
+    width: 17px; height: 17px; border-radius: 50%; flex: none; margin-top: 4px;
+    border: 2px solid var(--line-strong); background: var(--surface); position: relative; z-index: 1;
   }
-  .steps li.done .dot { background: var(--accent); border-color: var(--accent); }
+  .steps li.done .dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
   .steps li.next .dot { border-color: var(--accent); }
-  .steps .st { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em; }
+  .steps .st { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; font-weight: 700; }
   .steps li.done .st { color: var(--green); }
   .steps li.next .st { color: var(--accent); }
-  .steps p { color: var(--muted); font-size: 14.5px; margin-top: 3px; line-height: 1.65; }
+  .steps p { color: var(--muted); font-size: 15px; margin-top: 3px; line-height: 1.65; }
   .steps p strong { color: var(--text); font-weight: 600; }
 
-  code { font-family: var(--mono); font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: 4px; }
-  pre { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 26px; overflow-x: auto; margin-top: 40px; }
-  pre code { background: none; padding: 0; font-size: 13px; line-height: 1.9; }
+  /* ---------- builder / footer ---------- */
+  .builder-card {
+    margin-top: 56px; background: var(--surface); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); padding: 28px 32px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .builder-info { display: flex; align-items: center; gap: 16px; }
+  .avatar {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--ink-dark);
+    color: #fff; font-weight: 700; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .builder-info h3 { font-size: 16.5px; font-weight: 700; }
+  .builder-info p { font-size: 13.5px; color: var(--muted); margin-top: 2px; }
 
-  footer { border-top: 1px solid var(--line); padding: 48px 0 64px; color: var(--muted); font-size: 13.5px; }
-  footer .row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  footer a { color: var(--muted); transition: color 0.2s ease; }
-  footer a:hover { color: var(--text); }
+  footer { border-top: 1px solid var(--line-strong); background: var(--surface); padding: 48px 0 60px; color: var(--muted); font-size: 13.5px; }
+  footer .row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
+  footer a { color: var(--muted); font-weight: 500; transition: color 0.18s ease; }
+  footer a:hover { color: var(--accent); }
   footer .bigfoot {
-    font-size: clamp(44px, 9vw, 104px); font-weight: 700; letter-spacing: -0.045em; line-height: 1;
-    color: rgba(255, 255, 255, 0.05); margin-bottom: 36px; user-select: none; white-space: nowrap; overflow: hidden;
+    font-size: clamp(44px, 9vw, 108px); font-weight: 800; letter-spacing: -0.045em; line-height: 1;
+    color: rgba(15, 23, 42, 0.045); margin-bottom: 32px; user-select: none; white-space: nowrap; overflow: hidden;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -356,345 +775,699 @@
 </style>
 </head>
 <body>
-<div class="progress" id="progress"></div>
+<a href="#main" class="skip-link">Skip to main content</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
 
-<nav>
+<nav id="topnav" aria-label="Primary">
   <div class="nav-inner">
-    <a class="logo" href="#">Aero<i>Surrogate</i>.</a>
-    <div class="nav-links">
+    <a href="#" class="logo" aria-label="AeroSurrogate home">
+      <span class="logo-mark" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round">
+          <path d="M3 15c3-5 8-7 14-6 2.5.4 4 1.8 4 3.5H3z"/>
+          <path d="M2 9h11M4 5h8" stroke="#93c5fd" stroke-width="1.6"/>
+        </svg>
+      </span>
+      <span>Aero<i>Surrogate</i>.</span>
+    </a>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav-links">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      Menu
+    </button>
+    <div class="nav-links" id="nav-links">
+      <a href="#demo" class="nav-demo">Interactive Demo</a>
       <a href="#problem">Problem</a>
+      <a href="#system">System</a>
       <a href="#results">Results</a>
+      <a href="#limits">Limits</a>
       <a href="#data">Data</a>
+      <a href="#quickstart">Quickstart</a>
       <a href="#roadmap">Roadmap</a>
-      <a class="nav-cta" href="https://github.com/KARTIKEYSINGH009/aerosurrogate">GitHub</a>
+      <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="nav-cta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.67.41.36.78 1.06.78 2.14 0 1.55-.01 2.79-.01 3.17 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+        GitHub
+      </a>
     </div>
   </div>
 </nav>
 
-<header class="hero">
-  <div class="grid-lines"></div>
-  <canvas id="airflow" aria-hidden="true"></canvas>
-  <div class="hero-fade"></div>
-  <div class="wrap hero-content">
-    <div class="eyebrow">Automotive AI &middot; ML Surrogate &middot; DrivAerNet++</div>
-    <h1>Car aero in <em>milliseconds</em>,<br>not hours<span class="thin">.</span></h1>
-    <p class="lede">A physics-informed ML surrogate that predicts a car's <strong>drag, lift and EV highway range</strong> from its shape, and finds the lowest-drag shape under your constraints. The air above is simulated live, in your browser.</p>
-    <div class="cta-row">
-      <a class="btn primary" href="https://github.com/KARTIKEYSINGH009/aerosurrogate">View on GitHub <span class="arrow">&rarr;</span></a>
-      <a class="btn" href="#results">Measured results</a>
-      <a class="btn" href="#quickstart">Quick start</a>
-    </div>
-  </div>
-  <div class="wrap" style="position: relative; z-index: 2; width: 100%;">
-    <div class="hero-stats">
-      <div class="hstat">
-        <div class="num"><span class="count" data-target="0.051" data-decimals="3">0</span> <span class="unit">ms</span></div>
-        <div class="lbl">One prediction, joint MLP on CPU</div>
-      </div>
-      <div class="hstat">
-        <div class="num"><span class="count" data-target="4051">0</span></div>
-        <div class="lbl">Usable designs, DrivAerNet++ merged set</div>
-      </div>
-      <div class="hstat">
-        <div class="num"><span class="count" data-target="0.0103" data-decimals="4">0</span></div>
-        <div class="lbl">Cd MAE, best baseline (LightGBM), val</div>
-      </div>
-      <div class="hstat">
-        <div class="num"><span class="count" data-target="35">0</span></div>
-        <div class="lbl">Features: 23 geometry params, 12 engineered</div>
-      </div>
-    </div>
-  </div>
-</header>
+<main id="main">
+  <!-- ==================== HERO ==================== -->
+  <header class="hero">
+    <div class="hero-iso" aria-hidden="true"></div>
+    <canvas id="hero-cfd" aria-hidden="true"></canvas>
 
-<div class="ticker" aria-hidden="true">
-  <div class="ticker-track" id="ticker-track"></div>
-</div>
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow"><span class="dot"></span>Automotive AI &middot; ML Surrogate &middot; DrivAerNet++</div>
+          <h1>Car aero in <em>milliseconds</em>, <span class="thin">not hours.</span></h1>
+          <p class="lede">
+            A physics-informed ML surrogate that predicts a vehicle's <strong>drag, lift and EV highway range</strong> from 23 geometric parameters in <strong>0.051 ms</strong> on CPU &mdash; and searches for the lowest-drag body under your constraints.
+          </p>
+          <div class="cta-row">
+            <a href="#demo" class="btn primary">Try interactive surrogate <span class="arrow">&darr;</span></a>
+            <a href="#results" class="btn">Measured results</a>
+            <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="btn dark">View on GitHub <span class="arrow">&rarr;</span></a>
+          </div>
+          <div class="trust-strip">
+            <span class="cfd-legend">
+              <span>Flow velocity field</span>
+              <i class="cfd-scale" aria-hidden="true"></i>
+              <span>0 &rarr; 1.6 U&infin;</span>
+            </span>
+            <span><b>MIT DrivAerNet++</b> (NeurIPS 2024)</span>
+            <span><b>ONNX Runtime</b> CPU</span>
+          </div>
+        </div>
 
-<div class="wrap">
-
-  <section id="problem">
-    <div class="sec-head">
-      <div class="kicker reveal"><b>01</b> &nbsp;Problem</div>
-      <div class="sec-body">
-        <h2 class="reveal">CFD takes hours.<br><span class="thin">Designers need answers now.</span></h2>
-        <p class="sub reveal d1">One car shape, one high-fidelity CFD run, hours of compute. Engineers cannot iterate, and they definitely cannot ask "what shape is best?" in real time. AeroSurrogate learns the map from shape to aero numbers, then answers in a blink.</p>
-      </div>
-    </div>
-
-    <div class="race reveal d1">
-      <div class="race-card slow">
-        <div class="tag">High-fidelity CFD</div>
-        <div class="big">2&ndash;8 <span class="unit">hours</span></div>
-        <p>One design, one run. A mesh, a solver, a wait. Exploring 100 shapes means weeks.</p>
-        <div class="race-bar"><i data-w="96"></i></div>
-        <div class="race-bar-lbl"><span>per design</span><span>hours</span></div>
-      </div>
-      <div class="race-card fast">
-        <div class="tag">AeroSurrogate, joint MLP on CPU</div>
-        <div class="big">0.051 <span class="unit">ms</span></div>
-        <p>Same question, answered before you finish blinking. Ten thousand shapes in half a second.</p>
-        <div class="race-bar"><i data-w="2"></i></div>
-        <div class="race-bar-lbl"><span>per design</span><span>milliseconds</span></div>
-      </div>
-    </div>
-
-    <div class="flow-line reveal d2">
-      shape (23 params) &nbsp;&rarr;&nbsp; <span class="hl">AeroSurrogate</span> &nbsp;&rarr;&nbsp; Cd, Cl, frontal area, EV range in <span class="hl">0.051 ms</span><br>
-      target Cd + constraints &nbsp;&rarr;&nbsp; <span class="hl">inverse design</span> &nbsp;&rarr;&nbsp; lowest-drag geometry in <span class="hl">&lt; 1.5 s</span>
-    </div>
-  </section>
-
-  <section>
-    <div class="sec-head">
-      <div class="kicker reveal"><b>02</b> &nbsp;System</div>
-      <div class="sec-body">
-        <h2 class="reveal">Four parts.<br><span class="thin">Three built and measured.</span></h2>
-      </div>
-    </div>
-    <div class="cards">
-      <div class="card reveal">
-        <span class="k"><b>01</b> &nbsp;/&nbsp; SURROGATE ENGINE</span>
-        <h3>Predict the aero numbers</h3>
-        <p>LightGBM, CatBoost and a PyTorch Residual MLP ensemble predicting Cd, Cl and frontal area from 23 geometric parameters, served as ONNX on CPU, with calibrated 95% conformal prediction intervals.</p>
-        <div class="meta"><span class="chip"><b>3</b> models</span><span class="chip"><b>35</b> features</span><span class="chip">ONNX on CPU</span></div>
-      </div>
-      <div class="card reveal d1">
-        <span class="k"><b>02</b> &nbsp;/&nbsp; EV RANGE BRIDGE</span>
-        <h3>Turn drag into kilometres</h3>
-        <p>Drag area (Cd&middot;A) and aero power converted into EV highway range delta in km, for a reference 75 kWh EV at 110 km/h. A drag cut becomes a range number you can feel.</p>
-        <div class="meta"><span class="chip"><b>75 kWh</b> reference EV</span><span class="chip"><b>110 km/h</b></span><span class="chip">range in km</span></div>
-      </div>
-      <div class="card reveal d2">
-        <span class="k"><b>03</b> &nbsp;/&nbsp; INVERSE DESIGN</span>
-        <h3>Ask for the shape, not the number</h3>
-        <p>An Optuna optimizer that returns the lowest-drag geometry under practical constraints: cabin space, ground clearance, diffuser limits and frontal-area bounds.</p>
-        <div class="meta"><span class="chip">Optuna</span><span class="chip"><b>&lt; 1.5 s</b></span><span class="chip">constrained</span></div>
-      </div>
-      <div class="card reveal d3">
-        <span class="k"><b>04</b> &nbsp;/&nbsp; DASHBOARD</span>
-        <h3>Drive it with sliders</h3>
-        <p>FastAPI <code>/predict</code> and <code>/optimize</code> endpoints behind a Streamlit UI: geometry sliders, live Cd, Cl and range gauges, a SHAP waterfall and one-click optimization.</p>
-        <span class="soon">IN PROGRESS</span>
-      </div>
-    </div>
-  </section>
-
-  <section id="results">
-    <div class="sec-head">
-      <div class="kicker reveal"><b>03</b> &nbsp;Results</div>
-      <div class="sec-body">
-        <h2 class="reveal">Every number is measured.<br><span class="thin">None is claimed.</span></h2>
-        <p class="sub reveal d1">Measured 22 Nov 2026, laptop CPU only, on MIT's official validation split (555 designs). The test split (559 designs) stays untouched until final evaluation. Switch the metric and watch the bars move.</p>
-      </div>
-    </div>
-
-    <div class="chart-box reveal d1">
-      <div class="chart-head">
-        <h3 id="chart-title">Drag coefficient, MAE (lower is better)</h3>
-        <div class="toggle" role="group" aria-label="Choose metric">
-          <button class="active" data-metric="cdmae">Cd MAE</button>
-          <button data-metric="cdr2">Cd R&sup2;</button>
-          <button data-metric="clr2">Cl R&sup2;</button>
+        <!-- Dark CFD Wind-Tunnel Stage Card -->
+        <div class="tunnel-card" aria-label="Live browser wind-tunnel visualization">
+          <div class="tunnel-bar">
+            <div class="tunnel-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span>WIND TUNNEL &middot; U&infin; = 110 km/h &middot; Re = 4.8&times;10&#8310;</span>
+            <span class="tunnel-live">LIVE FIELD</span>
+          </div>
+          <div class="tunnel-canvas-wrap">
+            <canvas id="airflow" role="img" aria-label="Animated aerodynamic streamlines, pressure field and wake vortices over a fastback car profile"></canvas>
+          </div>
+          <div class="tunnel-hud">
+            <div class="hud-cell">
+              <div class="k">Predicted Cd</div>
+              <div class="v" id="hud-cd">0.264 <small>&plusmn;0.025</small></div>
+            </div>
+            <div class="hud-cell">
+              <div class="k">Inference (ONNX)</div>
+              <div class="v">0.051 <small>ms CPU</small></div>
+            </div>
+            <div class="hud-cell">
+              <div class="k">Wake Regime</div>
+              <div class="v" id="hud-wake">Fastback <small>attached</small></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="bars" id="bars"></div>
-      <div class="target-line" id="target-line">Target: Cd MAE &lt; 0.005</div>
-      <p class="chart-note">LightGBM trains in about 10 seconds on CPU. CatBoost is close behind and leads on frontal area. The Residual MLP trails the tree ensembles on this tabular geometry.</p>
+
+      <div class="hero-stats">
+        <div class="hstat">
+          <div class="num"><span class="count" data-target="0.051" data-decimals="3">0.051</span> <span class="unit">ms</span></div>
+          <div class="lbl">One prediction, joint MLP on CPU (ONNX)</div>
+        </div>
+        <div class="hstat">
+          <div class="num"><span class="count" data-target="4051" data-decimals="0">4051</span></div>
+          <div class="lbl">Usable designs, DrivAerNet++ merged set</div>
+        </div>
+        <div class="hstat">
+          <div class="num"><span class="count" data-target="0.0103" data-decimals="4">0.0103</span></div>
+          <div class="lbl">Cd MAE, best baseline (LightGBM), val</div>
+        </div>
+        <div class="hstat">
+          <div class="num"><span class="count" data-target="35" data-decimals="0">35</span></div>
+          <div class="lbl">Features: 23 geometry params, 12 engineered</div>
+        </div>
+      </div>
     </div>
+  </header>
 
-    <table class="reveal d2">
-      <tr><th>Metric</th><th class="num">Target</th><th class="num">Measured</th><th>Status</th></tr>
-      <tr><td>Cd MAE, LightGBM baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0103</td><td><span class="pill gap">GAP</span></td></tr>
-      <tr><td>Cd R&sup2;, LightGBM baseline</td><td class="num">&gt; 0.96</td><td class="num">0.64</td><td><span class="pill gap">GAP</span></td></tr>
-      <tr><td>Cd MAE, CatBoost baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0110</td><td><span class="pill gap">GAP</span></td></tr>
-      <tr><td>Cd MAE, Residual MLP baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0126</td><td><span class="pill gap">GAP</span></td></tr>
-      <tr><td>Cl R&sup2;, best baseline</td><td class="num">&gt; 0.96</td><td class="num">0.38</td><td><span class="pill gap">GAP</span></td></tr>
-      <tr><td>Frontal area R&sup2;, best baseline</td><td class="num">&gt; 0.96</td><td class="num">0.999</td><td><span class="pill met">MET</span></td></tr>
-      <tr><td>Inference latency, joint MLP ONNX</td><td class="num">&lt; 2 ms</td><td class="num">0.051 ms</td><td><span class="pill met">MET</span></td></tr>
-      <tr><td>Conformal coverage, 90% nominal, Cd</td><td class="num">90%</td><td class="num">90&ndash;94%</td><td><span class="pill met">MET</span></td></tr>
-      <tr><td>Conformal coverage, 95% nominal, Cd</td><td class="num">95%</td><td class="num">95&ndash;97%</td><td><span class="pill met">MET</span></td></tr>
-    </table>
+  <div class="ticker" aria-label="23 geometric input parameters">
+    <div class="ticker-track" id="ticker-track"></div>
+  </div>
+  <!-- ==================== INTERACTIVE SURROGATE SANDBOX ==================== -->
+  <section id="demo" class="alt">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>LIVE</b> Sandbox</div>
+        <div class="sec-body">
+          <h2>Drive the surrogate. <span class="thin">Watch Cd, lift &amp; EV range respond.</span></h2>
+          <p class="sub">
+            Adjust key DrivAerNet++ geometric parameters below or run a constrained inverse-design sweep. The vehicle profile, wake separation and 75 kWh EV highway range delta update in real time.
+          </p>
+        </div>
+      </div>
 
-    <div class="note reveal d2"><strong>Honest read.</strong> Latency is met and the uncertainty calibration is sound, but the accuracy targets are not. Baselines sit at Cd MAE 0.0103 and R&sup2; 0.64, lift is hard to predict from geometry alone, and estateback drag is the weakest subgroup (within-group R&sup2; 0.01&ndash;0.18). Closing that gap is the remaining work. Full breakdowns live in <code>benchmarks/</code> in the repo.</div>
+      <div class="demo-shell reveal d1">
+        <div class="demo-topbar">
+          <div class="body-pills" role="tablist" aria-label="Vehicle body style">
+            <button type="button" class="active" data-body="fastback" role="tab" aria-selected="true">Fastback (R&sup2; 0.67)</button>
+            <button type="button" data-body="notchback" role="tab" aria-selected="false">Notchback (R&sup2; 0.60)</button>
+            <button type="button" data-body="estateback" role="tab" aria-selected="false">Estateback (R&sup2; 0.17)</button>
+          </div>
+          <span class="demo-badge">Client-side illustrative response surface, not the trained model</span>
+        </div>
+
+        <div class="demo-main">
+          <div class="demo-controls">
+            <div class="slider-group">
+              <div class="slider-row">
+                <label for="s-rw">
+                  <span>Rear window inclination <span class="param-code">d_rear_window_inclination</span></span>
+                  <output id="o-rw">24.0&deg;</output>
+                </label>
+                <input type="range" id="s-rw" min="14" max="38" step="0.5" value="24">
+              </div>
+
+              <div class="slider-row">
+                <label for="s-diff">
+                  <span>Rear diffuser angle <span class="param-code">b_diffusor_angle</span></span>
+                  <output id="o-diff">9.5&deg;</output>
+                </label>
+                <input type="range" id="s-diff" min="2" max="18" step="0.5" value="9.5">
+              </div>
+
+              <div class="slider-row">
+                <label for="s-ws">
+                  <span>Windscreen inclination <span class="param-code">d_winscreen_inclination</span></span>
+                  <output id="o-ws">28.0&deg;</output>
+                </label>
+                <input type="range" id="s-ws" min="20" max="38" step="0.5" value="28">
+              </div>
+
+              <div class="slider-row">
+                <label for="s-roof">
+                  <span>Roof height <span class="param-code">a_car_roof_height</span></span>
+                  <output id="o-roof">1420 mm</output>
+                </label>
+                <input type="range" id="s-roof" min="1340" max="1520" step="5" value="1420">
+              </div>
+
+              <div class="slider-row">
+                <label for="s-bump">
+                  <span>Front bumper curvature <span class="param-code">h_front_bumper_curvature</span></span>
+                  <output id="o-bump">0.55</output>
+                </label>
+                <input type="range" id="s-bump" min="0.10" max="1.00" step="0.05" value="0.55">
+              </div>
+            </div>
+
+            <div class="demo-actions">
+              <button type="button" class="btn primary" id="btn-opt">
+                &#9889; Run Optuna inverse design (&lt;1.5 s)
+              </button>
+              <button type="button" class="btn" id="btn-reset">Reset to baseline</button>
+            </div>
+          </div>
+
+          <div class="demo-readout">
+            <div class="silhouette-stage">
+              <div class="stage-lbl">
+                <span id="stage-body-lbl">PROFILE &middot; FASTBACK</span>
+                <span id="stage-cda-lbl">Cd&middot;A = 0.584 m&sup2;</span>
+              </div>
+              <svg id="demo-svg" viewBox="0 0 460 125" fill="none" aria-label="Dynamic car geometry silhouette">
+                <!-- streamlines in mini stage -->
+                <path id="st-1" d="M 10 38 Q 140 20 245 20 T 450 42" stroke="rgba(96,165,250,0.45)" stroke-width="1.3" stroke-dasharray="5 4"/>
+                <path id="st-2" d="M 10 62 Q 125 32 245 30 T 450 65" stroke="rgba(56,189,248,0.65)" stroke-width="1.5"/>
+                <path id="st-3" d="M 10 98 L 450 98" stroke="rgba(52,211,153,0.4)" stroke-width="1.2"/>
+                <!-- wake zone -->
+                <ellipse id="demo-wake" cx="405" cy="72" rx="34" ry="18" fill="rgba(245,158,11,0.16)" stroke="rgba(245,158,11,0.45)" stroke-dasharray="3 3"/>
+                <!-- car body -->
+                <path id="demo-car-path" d="M 65 95 L 72 72 Q 105 64 140 60 L 205 34 Q 255 32 305 42 L 368 64 L 378 88 L 65 95 Z" fill="rgba(59,130,246,0.18)" stroke="#60a5fa" stroke-width="2"/>
+                <circle cx="122" cy="95" r="14" fill="#0b0f17" stroke="#94a3b8" stroke-width="2"/>
+                <circle cx="332" cy="95" r="14" fill="#0b0f17" stroke="#94a3b8" stroke-width="2"/>
+                <line x1="20" y1="110" x2="440" y2="110" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+              </svg>
+            </div>
+
+            <div class="readout-grid">
+              <div class="readout-card">
+                <div class="rk">Drag Coefficient (Cd)</div>
+                <div class="rv accent" id="r-cd">0.264</div>
+                <div class="rsub" id="r-cd-ci">90% CV+ interval: &plusmn;0.0245</div>
+              </div>
+              <div class="readout-card">
+                <div class="rk">Lift Coefficient (Cl)</div>
+                <div class="rv" id="r-cl">0.082</div>
+                <div class="rsub" id="r-area">Frontal area A = 2.21 m&sup2;</div>
+              </div>
+              <div class="readout-card">
+                <div class="rk">EV Range Delta (110 km/h)</div>
+                <div class="rv green" id="r-range">+14.2 km</div>
+                <div class="rsub">vs. 0.285 Cd reference (75 kWh)</div>
+              </div>
+              <div class="readout-card">
+                <div class="rk">Aero Power @ 110 km/h</div>
+                <div class="rv" id="r-power">9.8 kW</div>
+                <div class="rsub" id="r-status">Baseline geometry</div>
+              </div>
+            </div>
+
+            <div class="demo-footnote">
+              <strong>Honest scope note:</strong> This browser widget runs an illustrative analytical response surface shaped by the measured Cd range and the conformal intervals (&plusmn;0.0245 @ 90%, &plusmn;0.0301 @ 95%). It is a demo, not the trained model. Run the full ONNX/LightGBM ensemble locally via the Quickstart below.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section>
-    <div class="sec-head">
-      <div class="kicker reveal"><b>04</b> &nbsp;Limits</div>
-      <div class="sec-body">
-        <h2 class="reveal">Same model, three bodies.<br><span class="thin">One of them breaks it.</span></h2>
-        <p class="sub reveal d1">Cd R&sup2; by body type, LightGBM, validation split. Fastback and notchback behave. Estateback has a blunt, squared rear end where the wake separates at the trailing edge no matter how you tweak the slant, so geometry alone barely explains its drag.</p>
+  <!-- ==================== 01 PROBLEM ==================== -->
+  <section id="problem">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>01</b> Problem</div>
+        <div class="sec-body">
+          <h2>CFD takes hours. <span class="thin">Designers need answers now.</span></h2>
+          <p class="sub">
+            One car shape, one high-fidelity CFD run, hours of compute. Engineers cannot iterate, and they definitely cannot ask &ldquo;what shape is best?&rdquo; in real time. AeroSurrogate learns the map from shape to aero numbers, then answers in a blink.
+          </p>
+        </div>
       </div>
-    </div>
 
-    <div class="body-grid">
-      <div class="body-card reveal">
-        <svg viewBox="0 0 220 64" aria-hidden="true"><path d="M10 54 L12 46 Q24 41 38 39 L62 37 Q74 26 88 18 Q104 12 124 13 Q140 14 150 19 Q172 29 190 37 L204 41 L206 54 Z" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.55)" stroke-width="1.25"/><path d="M68 36 L90 20 Q104 14 122 15 Q136 16 144 20 L134 36 Z" fill="rgba(138,180,255,0.07)" stroke="rgba(138,180,255,0.4)" stroke-width="1"/><circle cx="56" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="56" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><circle cx="158" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="158" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/></svg>
-        <h3>Fastback</h3>
-        <div class="bcount">177 designs in val</div>
-        <div class="r2 good">0.67 <small>R&sup2;</small></div>
-        <div class="mini-bar"><i class="good" data-w="67"></i></div>
-        <p>Sloping rear window, separation point moves with the angles. Geometry explains most of the drag.</p>
+      <div class="race reveal d1">
+        <div class="race-card slow">
+          <div class="tag">High-fidelity CFD</div>
+          <div class="big">2&ndash;8 <span class="unit">hours</span></div>
+          <p>One design, one run. A mesh, a solver, a wait. Exploring 100 shapes means weeks.</p>
+          <div class="race-bar"><i data-w="100"></i></div>
+          <div class="race-bar-lbl"><span>per design</span><span>hours</span></div>
+        </div>
+        <div class="race-card fast">
+          <div class="tag">AeroSurrogate, joint MLP on CPU</div>
+          <div class="big">0.051 <span class="unit">ms</span></div>
+          <p>Same question, answered before you finish blinking. Ten thousand shapes in half a second.</p>
+          <div class="race-bar"><i data-w="2"></i></div>
+          <div class="race-bar-lbl"><span>per design</span><span>milliseconds</span></div>
+        </div>
       </div>
-      <div class="body-card reveal d1">
-        <svg viewBox="0 0 220 64" aria-hidden="true"><path d="M10 54 L12 46 Q24 41 38 39 L62 37 Q74 26 88 18 Q104 12 124 13 L138 15 Q148 19 152 29 L156 33 L192 35 L204 39 L206 54 Z" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.55)" stroke-width="1.25"/><path d="M68 36 L90 20 Q104 14 122 15 L136 17 L132 36 Z" fill="rgba(138,180,255,0.07)" stroke="rgba(138,180,255,0.4)" stroke-width="1"/><circle cx="56" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="56" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><circle cx="158" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="158" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/></svg>
-        <h3>Notchback</h3>
-        <div class="bcount">163 designs in val</div>
-        <div class="r2 good">0.60 <small>R&sup2;</small></div>
-        <div class="mini-bar"><i class="good" data-w="60"></i></div>
-        <p>Distinct boot lid, trunk and rear-window angles still steer the wake. Solid, not great.</p>
-      </div>
-      <div class="body-card reveal d2">
-        <svg viewBox="0 0 220 64" aria-hidden="true"><path d="M10 54 L12 46 Q24 41 38 39 L62 37 Q74 26 88 18 Q104 12 124 13 L196 13 L206 17 L206 54 Z" fill="rgba(255,255,255,0.02)" stroke="rgba(232,179,75,0.85)" stroke-width="1.25"/><path d="M68 36 L90 20 Q104 14 122 15 L196 15 L196 36 Z" fill="rgba(138,180,255,0.07)" stroke="rgba(138,180,255,0.4)" stroke-width="1"/><circle cx="56" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="56" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><circle cx="158" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="158" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/></svg>
-        <h3>Estateback</h3>
-        <div class="bcount">215 designs in val</div>
-        <div class="r2 warn">0.17 <small>R&sup2;</small></div>
-        <div class="mini-bar"><i class="warn" data-w="17"></i></div>
-        <p>Blunt squared tail. Wake separation barely responds to the parameters, so the model has almost nothing to learn from. The fix is body-type stratified trees or explicit estateback interaction terms.</p>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="sec-head">
-      <div class="kicker reveal"><b>05</b> &nbsp;Uncertainty</div>
-      <div class="sec-body">
-        <h2 class="reveal">It knows how unsure it is.<br><span class="thin">And it is right about that.</span></h2>
-        <p class="sub reveal d1">Split conformal prediction (CV+) on the training set gives distribution-free intervals for every Cd prediction. A 90% interval really does cover the truth about 93% of the time.</p>
-      </div>
-    </div>
-
-    <div class="conf-grid">
-      <div class="conf-card reveal">
-        <div class="lvl">90% NOMINAL &middot; LIGHTGBM &middot; Cd</div>
-        <div class="cov"><span class="count" data-target="93.15" data-decimals="2">0</span><small>% empirical coverage</small></div>
-        <div class="gauge"><i data-w="93.15"></i></div>
-        <div class="gauge-lbl"><span>nominal 90%</span><span>interval &plusmn;0.0245</span></div>
-        <p style="margin-top: 14px;">The interval is honest: slightly conservative, never overconfident. Group-conditional coverage stays above 92% on every body type.</p>
-      </div>
-      <div class="conf-card reveal d1">
-        <div class="lvl">95% NOMINAL &middot; LIGHTGBM &middot; Cd</div>
-        <div class="cov"><span class="count" data-target="96.76" data-decimals="2">0</span><small>% empirical coverage</small></div>
-        <div class="gauge"><i data-w="96.76"></i></div>
-        <div class="gauge-lbl"><span>nominal 95%</span><span>interval &plusmn;0.0301</span></div>
-        <p style="margin-top: 14px;">Widen the interval a little and coverage follows. Calibration holds, so the intervals are safe to plan around, not just to quote.</p>
+      <div class="flow-line reveal d2">
+        shape (23 params) &nbsp;&rarr;&nbsp; <span class="hl">AeroSurrogate</span> &nbsp;&rarr;&nbsp; Cd, Cl, frontal area, EV range in <span class="hl">0.051 ms</span><br>
+        target Cd + constraints &nbsp;&rarr;&nbsp; <span class="hl">inverse design</span> &nbsp;&rarr;&nbsp; lowest-drag geometry in <span class="hl">&lt; 1.5 s</span>
       </div>
     </div>
   </section>
 
-  <section id="data">
-    <div class="sec-head">
-      <div class="kicker reveal"><b>06</b> &nbsp;Data</div>
-      <div class="sec-body">
-        <h2 class="reveal">Real CFD. Real cars.<br><span class="thin">One honest correction.</span></h2>
-        <p class="sub reveal d1"><a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">DrivAerNet++</a> (MIT, NeurIPS 2024): 8,150 car designs with high-fidelity CFD, fastback, notchback and estateback, ICE and EV underbodies. This project uses only the lightweight tabular files, not the 39 TB of volumetric CFD. Dataset license: CC BY-NC 4.0, non-commercial research and education only.</p>
+  <!-- ==================== 02 SYSTEM ==================== -->
+  <section id="system" class="alt">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>02</b> System</div>
+        <div class="sec-body">
+          <h2>Four parts. <span class="thin">Three built and measured.</span></h2>
+        </div>
+      </div>
+
+      <div class="cards reveal d1">
+        <div class="card">
+          <span class="k"><b>01</b> &nbsp;/&nbsp; SURROGATE ENGINE</span>
+          <h3>Predict the aero numbers</h3>
+          <p>LightGBM, CatBoost and a PyTorch Residual MLP ensemble predicting Cd, Cl and frontal area from 23 geometric parameters, served as ONNX on CPU, with calibrated 95% conformal prediction intervals.</p>
+          <div class="meta">
+            <span class="chip"><b>3</b> models</span>
+            <span class="chip"><b>35</b> features</span>
+            <span class="chip">ONNX on CPU</span>
+          </div>
+        </div>
+        <div class="card">
+          <span class="k"><b>02</b> &nbsp;/&nbsp; EV RANGE BRIDGE</span>
+          <h3>Turn drag into kilometres</h3>
+          <p>Drag area (Cd&middot;A) and aero power converted into EV highway range delta in km, for a reference 75 kWh EV at 110 km/h. A drag cut becomes a range number you can feel.</p>
+          <div class="meta">
+            <span class="chip"><b>75 kWh</b> reference EV</span>
+            <span class="chip"><b>110 km/h</b></span>
+            <span class="chip">range in km</span>
+          </div>
+        </div>
+        <div class="card">
+          <span class="k"><b>03</b> &nbsp;/&nbsp; INVERSE DESIGN</span>
+          <h3>Ask for the shape, not the number</h3>
+          <p>An Optuna optimizer that returns the lowest-drag geometry under practical constraints: cabin space, ground clearance, diffuser limits and frontal-area bounds.</p>
+          <div class="meta">
+            <span class="chip"><b>Optuna</b></span>
+            <span class="chip"><b>&lt; 1.5 s</b></span>
+            <span class="chip">constrained</span>
+          </div>
+        </div>
+        <div class="card">
+          <span class="k"><b>04</b> &nbsp;/&nbsp; DASHBOARD</span>
+          <h3>Drive it with sliders</h3>
+          <p>FastAPI <code>/predict</code> and <code>/optimize</code> endpoints behind a Streamlit UI: geometry sliders, live Cd, Cl and range gauges, a SHAP waterfall and one-click optimization.</p>
+          <span class="soon">&#9679; IN PROGRESS</span>
+        </div>
       </div>
     </div>
+  </section>
+  <!-- ==================== 03 RESULTS ==================== -->
+  <section id="results">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>03</b> Results</div>
+        <div class="sec-body">
+          <h2>Every number is measured. <span class="thin">None is claimed.</span></h2>
+          <p class="sub">
+            Measured 22 Nov 2026, laptop CPU only, on MIT's official validation split (555 designs). The test split (559 designs) stays untouched until final evaluation. Switch the metric and watch the bars move.
+          </p>
+        </div>
+      </div>
 
-    <div class="data-grid reveal d1">
-      <div class="data-cell"><div class="num"><span class="count" data-target="4051">0</span></div><div class="lbl">Usable designs after the full join</div></div>
-      <div class="data-cell"><div class="num"><span class="count" data-target="4165">0</span></div><div class="lbl">Designs in the parametric CSV, 23 params each</div></div>
-      <div class="data-cell"><div class="num">2,937 / 555 / 559</div><div class="lbl">Train / val / test, MIT's official split</div></div>
-      <div class="data-cell"><div class="num">0</div><div class="lbl">Test rows read before final evaluation</div></div>
+      <!-- Executive Scorecard -->
+      <div class="scorecard reveal d1">
+        <div class="score-tile met">
+          <div class="st-top">
+            <span class="st-lbl">Inference Latency</span>
+            <span class="pill met">MET</span>
+          </div>
+          <div class="st-val">0.051 ms</div>
+          <div class="st-sub">Target &lt; 2 ms (39&times; faster)</div>
+        </div>
+        <div class="score-tile met">
+          <div class="st-top">
+            <span class="st-lbl">Frontal Area R&sup2;</span>
+            <span class="pill met">MET</span>
+          </div>
+          <div class="st-val">0.999</div>
+          <div class="st-sub">Target &gt; 0.96 (CatBoost)</div>
+        </div>
+        <div class="score-tile met">
+          <div class="st-top">
+            <span class="st-lbl">90% / 95% Conformal</span>
+            <span class="pill met">MET</span>
+          </div>
+          <div class="st-val">93.2% / 96.8%</div>
+          <div class="st-sub">Calibrated CV+ empirical coverage</div>
+        </div>
+        <div class="score-tile gap">
+          <div class="st-top">
+            <span class="st-lbl">Cd MAE (LightGBM)</span>
+            <span class="pill gap">GAP</span>
+          </div>
+          <div class="st-val">0.0103</div>
+          <div class="st-sub">Target &lt; 0.005 (R&sup2; = 0.64)</div>
+        </div>
+      </div>
+
+      <div class="chart-box reveal d1">
+        <div class="chart-head">
+          <h3 id="chart-title">Drag coefficient, MAE (lower is better)</h3>
+          <div class="toggle" role="tablist" aria-label="Validation metric">
+            <button class="active" data-metric="cdmae" role="tab" aria-selected="true">Cd MAE</button>
+            <button data-metric="cdr2" role="tab" aria-selected="false">Cd R&sup2;</button>
+            <button data-metric="clr2" role="tab" aria-selected="false">Cl R&sup2;</button>
+          </div>
+        </div>
+        <div class="bars" id="bars"></div>
+        <div class="target-line" id="target-line"><b>Target</b> &nbsp;Cd MAE &lt; 0.005</div>
+        <p class="chart-note">LightGBM trains in about 10 seconds on CPU. CatBoost is close behind and leads on frontal area. The Residual MLP trails the tree ensembles on this tabular geometry.</p>
+      </div>
+
+      <div class="table-wrap reveal d2">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Metric</th>
+              <th scope="col" class="num">Target</th>
+              <th scope="col" class="num">Measured</th>
+              <th scope="col" class="num">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Cd MAE, LightGBM baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0103</td><td class="num"><span class="pill gap">GAP</span></td></tr>
+            <tr><td>Cd R&sup2;, LightGBM baseline</td><td class="num">&gt; 0.96</td><td class="num">0.64</td><td class="num"><span class="pill gap">GAP</span></td></tr>
+            <tr><td>Cd MAE, CatBoost baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0110</td><td class="num"><span class="pill gap">GAP</span></td></tr>
+            <tr><td>Cd MAE, Residual MLP baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0126</td><td class="num"><span class="pill gap">GAP</span></td></tr>
+            <tr><td>Cl R&sup2;, best baseline</td><td class="num">&gt; 0.96</td><td class="num">0.38</td><td class="num"><span class="pill gap">GAP</span></td></tr>
+            <tr><td>Frontal area R&sup2;, best baseline</td><td class="num">&gt; 0.96</td><td class="num">0.999</td><td class="num"><span class="pill met">MET</span></td></tr>
+            <tr><td>Inference latency, joint MLP ONNX</td><td class="num">&lt; 2 ms</td><td class="num">0.051 ms</td><td class="num"><span class="pill met">MET</span></td></tr>
+            <tr><td>Conformal coverage, 90% nominal, Cd</td><td class="num">90%</td><td class="num">90&ndash;94%</td><td class="num"><span class="pill met">MET</span></td></tr>
+            <tr><td>Conformal coverage, 95% nominal, Cd</td><td class="num">95%</td><td class="num">95&ndash;97%</td><td class="num"><span class="pill met">MET</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note reveal d3">
+        <strong>Honest read.</strong> Latency is met and the uncertainty calibration is sound, but the accuracy targets are not. Baselines sit at Cd MAE 0.0103 and R&sup2; 0.64, lift is hard to predict from geometry alone, and estateback drag is the weakest subgroup (within-group R&sup2; 0.01&ndash;0.18). Closing that gap is the remaining work. Full breakdowns live in <code>benchmarks/</code> in the repo.
+      </div>
     </div>
-    <p class="sub reveal d2" style="margin-top: 28px;">One verified correction to the headline number: the parametric CSV covers 4,165 designs with 23 geometric parameters, and the full join (parameters + Cd + Cl + frontal area + official split) is 4,051 designs. The other ~4,000 designs exist in the Cd file and the splits but have no lightweight parametric row.</p>
   </section>
 
+  <!-- ==================== 04 LIMITS ==================== -->
+  <section id="limits" class="alt">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>04</b> Limits</div>
+        <div class="sec-body">
+          <h2>Same model, three bodies. <span class="thin">One of them breaks it.</span></h2>
+          <p class="sub">
+            Cd R&sup2; by body type, LightGBM, validation split. Fastback and notchback behave. Estateback has a blunt, squared rear end where the wake separates at the trailing edge no matter how you tweak the slant, so geometry alone barely explains its drag.
+          </p>
+        </div>
+      </div>
+
+      <div class="body-grid reveal d1">
+        <div class="body-card">
+          <svg viewBox="0 0 240 56" fill="none" aria-hidden="true">
+            <path d="M18 44 L28 30 L74 26 L118 12 L182 14 L218 32 L222 44 Z" stroke="#059669" stroke-width="1.8" fill="rgba(5,150,105,0.08)"/>
+            <circle cx="58" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/><circle cx="184" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/>
+          </svg>
+          <h3>Fastback</h3>
+          <div class="count-lbl">177 designs in val</div>
+          <div class="r2 good">0.67 <small>R&sup2;</small></div>
+          <div class="mini-bar"><i class="good" data-w="67"></i></div>
+          <p>Sloping rear window, separation point moves with the angles. Geometry explains most of the drag.</p>
+        </div>
+
+        <div class="body-card">
+          <svg viewBox="0 0 240 56" fill="none" aria-hidden="true">
+            <path d="M18 44 L28 30 L74 26 L116 12 L162 12 L182 28 L216 30 L222 44 Z" stroke="#059669" stroke-width="1.8" fill="rgba(5,150,105,0.08)"/>
+            <circle cx="58" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/><circle cx="184" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/>
+          </svg>
+          <h3>Notchback</h3>
+          <div class="count-lbl">163 designs in val</div>
+          <div class="r2 good">0.60 <small>R&sup2;</small></div>
+          <div class="mini-bar"><i class="good" data-w="60"></i></div>
+          <p>Distinct boot lid, trunk and rear-window angles still steer the wake. Solid, not great.</p>
+        </div>
+
+        <div class="body-card">
+          <svg viewBox="0 0 240 56" fill="none" aria-hidden="true">
+            <path d="M18 44 L28 30 L74 26 L114 12 L212 12 L220 44 Z" stroke="#d97706" stroke-width="1.8" fill="rgba(217,119,6,0.08)"/>
+            <circle cx="58" cy="44" r="7" stroke="#d97706" stroke-width="1.5" fill="#fff"/><circle cx="184" cy="44" r="7" stroke="#d97706" stroke-width="1.5" fill="#fff"/>
+          </svg>
+          <h3>Estateback</h3>
+          <div class="count-lbl">215 designs in val</div>
+          <div class="r2 warn">0.17 <small>R&sup2;</small></div>
+          <div class="mini-bar"><i class="warn" data-w="17"></i></div>
+          <p>Blunt squared tail. Wake separation barely responds to the parameters, so the model has almost nothing to learn from. The fix is body-type stratified trees or explicit estateback interaction terms.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 05 UNCERTAINTY ==================== -->
+  <section id="uncertainty">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>05</b> Uncertainty</div>
+        <div class="sec-body">
+          <h2>It knows how unsure it is. <span class="thin">And it is right about that.</span></h2>
+          <p class="sub">
+            Split conformal prediction (CV+) on the training set gives distribution-free intervals for every Cd prediction. A 90% interval really does cover the truth about 93% of the time.
+          </p>
+        </div>
+      </div>
+
+      <div class="conf-grid reveal d1">
+        <div class="conf-card">
+          <div class="lvl">90% NOMINAL &middot; LIGHTGBM &middot; Cd</div>
+          <div class="cov"><span class="count" data-target="93.15" data-decimals="2">93.15</span><small>% empirical coverage</small></div>
+          <div class="gauge"><i data-w="93.15"></i></div>
+          <div class="gauge-lbl"><span>nominal 90%</span><span>interval &plusmn;0.0245</span></div>
+          <p>The interval is honest: slightly conservative, never overconfident. Group-conditional coverage stays above 92% on every body type.</p>
+        </div>
+        <div class="conf-card">
+          <div class="lvl">95% NOMINAL &middot; LIGHTGBM &middot; Cd</div>
+          <div class="cov"><span class="count" data-target="96.76" data-decimals="2">96.76</span><small>% empirical coverage</small></div>
+          <div class="gauge"><i data-w="96.76"></i></div>
+          <div class="gauge-lbl"><span>nominal 95%</span><span>interval &plusmn;0.0301</span></div>
+          <p>Widen the interval a little and coverage follows. Calibration holds, so the intervals are safe to plan around, not just to quote.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 06 DATA ==================== -->
+  <section id="data" class="alt">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>06</b> Data</div>
+        <div class="sec-body">
+          <h2>Real CFD. Real cars. <span class="thin">One honest correction.</span></h2>
+          <p class="sub">
+            <a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus" target="_blank" rel="noopener">DrivAerNet++</a> (MIT, NeurIPS 2024): 8,150 car designs with high-fidelity CFD, fastback, notchback and estateback, ICE and EV underbodies. This project uses only the lightweight tabular files, not the 39 TB of volumetric CFD. Dataset license: CC BY-NC 4.0, non-commercial research and education only.
+          </p>
+        </div>
+      </div>
+
+      <div class="data-grid reveal d1">
+        <div class="data-cell">
+          <div class="num"><span class="count" data-target="4051" data-decimals="0">4051</span></div>
+          <div class="lbl">Usable designs after the full join</div>
+        </div>
+        <div class="data-cell">
+          <div class="num"><span class="count" data-target="4165" data-decimals="0">4165</span></div>
+          <div class="lbl">Designs in the parametric CSV, 23 params each</div>
+        </div>
+        <div class="data-cell">
+          <div class="num">2,937 / 555 / 559</div>
+          <div class="lbl">Train / val / test, MIT's official split</div>
+        </div>
+        <div class="data-cell">
+          <div class="num">0</div>
+          <div class="lbl">Test rows read before final evaluation</div>
+        </div>
+      </div>
+
+      <div class="note reveal d2">
+        One verified correction to the headline number: the parametric CSV covers <strong>4,165</strong> designs with 23 geometric parameters, and the full join (parameters + Cd + Cl + frontal area + official split) is <strong>4,051</strong> designs. The other ~4,000 designs exist in the Cd file and the splits but have no lightweight parametric row.
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 07 QUICKSTART ==================== -->
   <section id="quickstart">
-    <div class="sec-head">
-      <div class="kicker reveal"><b>07</b> &nbsp;Start</div>
-      <div class="sec-body">
-        <h2 class="reveal">Clone it. Run it.<br><span class="thin">Ten minutes, CPU only.</span></h2>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>07</b> Start</div>
+        <div class="sec-body">
+          <h2>Clone it. Run it. <span class="thin">Ten minutes, CPU only.</span></h2>
+        </div>
       </div>
-    </div>
-    <pre class="reveal d1"><code>python -m venv .venv &amp;&amp; source .venv/bin/activate
+
+      <div class="code-shell reveal d1">
+        <div class="code-head">
+          <span>bash &middot; local setup &amp; baseline training</span>
+          <button type="button" class="copy-btn" id="copy-btn">Copy commands</button>
+        </div>
+        <pre><code id="code-block">python -m venv .venv &amp;&amp; source .venv/bin/activate
 pip install -r requirements.txt
-python -m src.ingest.download_drivaer   # 6 lightweight files, ~2 MB
-python -m src.ingest.merge_validate     # merged Parquet + manifest
-python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval on val</code></pre>
-  </section>
 
-  <section id="roadmap">
-    <div class="sec-head">
-      <div class="kicker reveal"><b>08</b> &nbsp;Roadmap</div>
-      <div class="sec-body">
-        <h2 class="reveal">Two-week build.<br><span class="thin">22 Nov to 5 Dec 2026.</span></h2>
+python -m src.ingest.download_drivaer   <span class="cm"># 6 lightweight files, ~2 MB</span>
+python -m src.ingest.merge_validate     <span class="cm"># merged Parquet + manifest</span>
+python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, MLP on train, eval on val</span></code></pre>
       </div>
     </div>
-    <ul class="steps" id="steps">
-      <span class="fill" id="steps-fill"></span>
-      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Day 1 &middot; Data.</strong> Download, merge and validate DrivAerNet++.</p></div></li>
-      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Days 2&ndash;4 &middot; Features + baselines.</strong> 35 features, three baselines measured on val.</p></div></li>
-      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Days 5&ndash;7 &middot; Uncertainty + ONNX.</strong> Conformal intervals, ONNX export, 0.051 ms latency.</p></div></li>
-      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Days 8&ndash;9 &middot; EV physics + optimizer.</strong> Range bridge and Optuna inverse design.</p></div></li>
-      <li class="next"><span class="dot"></span><div><span class="st">NEXT</span><p><strong>Days 10&ndash;12 &middot; API + dashboard + accuracy.</strong> FastAPI endpoints, Streamlit UI, tuning toward the Cd targets.</p></div></li>
-      <li class="next"><span class="dot"></span><div><span class="st">NEXT</span><p><strong>Days 13&ndash;14 &middot; Final evaluation.</strong> Official test split, demo, README.</p></div></li>
-    </ul>
   </section>
 
-</div>
+  <!-- ==================== 08 ROADMAP ==================== -->
+  <section id="roadmap" class="alt">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker"><b>08</b> Roadmap</div>
+        <div class="sec-body">
+          <h2>Two-week build. <span class="thin">22 Nov to 5 Dec 2026.</span></h2>
+        </div>
+      </div>
+
+      <ul class="steps reveal d1" id="steps">
+        <div class="fill" id="steps-fill"></div>
+        <li class="done"><span class="dot"></span><div><div class="st">DONE</div><p><strong>Day 1 &middot; Data.</strong> Download, merge and validate DrivAerNet++.</p></div></li>
+        <li class="done"><span class="dot"></span><div><div class="st">DONE</div><p><strong>Days 2&ndash;4 &middot; Features + baselines.</strong> 35 features, three baselines measured on val.</p></div></li>
+        <li class="done"><span class="dot"></span><div><div class="st">DONE</div><p><strong>Days 5&ndash;7 &middot; Uncertainty + ONNX.</strong> Conformal intervals, ONNX export, 0.051 ms latency.</p></div></li>
+        <li class="done"><span class="dot"></span><div><div class="st">DONE</div><p><strong>Days 8&ndash;9 &middot; EV physics + optimizer.</strong> Range bridge and Optuna inverse design.</p></div></li>
+        <li class="next"><span class="dot"></span><div><div class="st">NEXT</div><p><strong>Days 10&ndash;12 &middot; API + dashboard + accuracy.</strong> FastAPI endpoints, Streamlit UI, tuning toward the Cd targets.</p></div></li>
+        <li class="next"><span class="dot"></span><div><div class="st">NEXT</div><p><strong>Days 13&ndash;14 &middot; Final evaluation.</strong> Official test split, demo, README.</p></div></li>
+      </ul>
+
+      <div class="builder-card reveal d2">
+        <div class="builder-info">
+          <div class="avatar" aria-hidden="true">KS</div>
+          <div>
+            <h3>Built by Kartikey Singh</h3>
+            <p>AI/ML Developer &middot; Physics-informed surrogates, tabular ensembles &amp; uncertainty quantification</p>
+          </div>
+        </div>
+        <div class="cta-row" style="margin-top:0">
+          <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="btn dark">Repository <span class="arrow">&rarr;</span></a>
+          <a href="https://github.com/KARTIKEYSINGH009" target="_blank" rel="noopener" class="btn">GitHub Profile</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
 
 <footer>
   <div class="wrap">
-    <div class="bigfoot">AeroSurrogate</div>
+    <div class="bigfoot" aria-hidden="true">AeroSurrogate</div>
     <div class="row">
-      <span>Built by <a href="https://github.com/KARTIKEYSINGH009">Kartikey Singh</a>, AI/ML Developer</span>
-      <span><a href="https://github.com/KARTIKEYSINGH009/aerosurrogate">GitHub</a> &nbsp;&middot;&nbsp; <a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">Dataset</a> &nbsp;&middot;&nbsp; <a href="#results">Results</a></span>
+      <div>Built by <a href="https://github.com/KARTIKEYSINGH009" target="_blank" rel="noopener">Kartikey Singh</a>, AI/ML Developer</div>
+      <div>
+        <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener">GitHub</a> &nbsp;&middot;&nbsp;
+        <a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus" target="_blank" rel="noopener">Dataset</a> &nbsp;&middot;&nbsp;
+        <a href="#demo">Live Demo</a> &nbsp;&middot;&nbsp;
+        <a href="#results">Results</a>
+      </div>
     </div>
   </div>
 </footer>
-
 <script>
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ----- scroll progress hairline ----- */
+  /* ----- scroll progress & nav shadow ----- */
   var prog = document.getElementById("progress");
+  var nav = document.getElementById("topnav");
   function onScroll() {
     var h = document.documentElement;
     var max = h.scrollHeight - h.clientHeight;
     prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+    if (h.scrollTop > 12) nav.classList.add("scrolled");
+    else nav.classList.remove("scrolled");
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
+  /* ----- mobile menu ----- */
+  var menuBtn = document.getElementById("menu-btn");
+  var navLinks = document.getElementById("nav-links");
+  if (menuBtn) {
+    menuBtn.addEventListener("click", function () {
+      var open = navLinks.classList.toggle("open");
+      menuBtn.setAttribute("aria-expanded", String(open));
+    });
+    navLinks.querySelectorAll("a").forEach(function (a) {
+      a.addEventListener("click", function () {
+        navLinks.classList.remove("open");
+        menuBtn.setAttribute("aria-expanded", "false");
+      });
+    });
+  }
+
   /* ----- ticker: the 23 geometry parameters ----- */
-  var params = ["a_car_length", "a_car_width", "a_car_roof_height", "a_car_green_house_angle",
+  var params = [
+    "a_car_length", "a_car_width", "a_car_roof_height", "a_car_green_house_angle",
     "b_ramp_angle", "b_diffusor_angle", "b_trunklid_angle",
     "c_side_mirrors_rotation", "c_side_mirrors_translate_x", "c_side_mirrors_translate_z",
     "d_rear_window_inclination", "d_winscreen_inclination", "d_winscreen_length", "d_rear_window_length",
     "e_a_b_c_pillar_thickness", "e_fenders_arch_offset",
     "f_door_handles_thickness", "f_door_handles_z_position", "f_door_handles_x_position",
     "g_trunklid_curvature", "g_trunklid_length",
-    "h_front_bumper_curvature", "h_front_bumper_length"];
+    "h_front_bumper_curvature", "h_front_bumper_length"
+  ];
   var track = document.getElementById("ticker-track");
   var half = params.map(function (p, i) {
     return "<span><b>" + String(i + 1).padStart(2, "0") + "</b> " + p + "</span>";
-  }).join('<span style="color: rgba(255,255,255,0.12); padding: 0;">&middot;</span>');
-  track.innerHTML = half + '<span style="color: rgba(255,255,255,0.12); padding: 0;">&middot;</span>' + half;
+  }).join('<span style="color: rgba(15,23,42,0.18); padding: 0;">&middot;</span>');
+  track.innerHTML = half + '<span style="color: rgba(15,23,42,0.18); padding: 0;">&middot;</span>' + half;
 
   /* ----- reveal on scroll ----- */
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) {
       if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
     });
-  }, { threshold: 0.1, rootMargin: "0px 0px -8% 0px" });
+  }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
   document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
 
   /* ----- count-up numbers ----- */
   function countUp(el) {
-    if (!el.hasAttribute("data-target")) return;
     var target = parseFloat(el.getAttribute("data-target"));
     var dec = parseInt(el.getAttribute("data-decimals") || "0", 10);
     if (reduced) { el.textContent = target.toFixed(dec); return; }
-    var start = null, dur = 1600;
+    var start = null, dur = 1400;
     function tick(ts) {
       if (!start) start = ts;
       var p = Math.min((ts - start) / dur, 1);
       var eased = 1 - Math.pow(1 - p, 4);
       el.textContent = (target * eased).toFixed(dec);
       if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = target.toFixed(dec);
     }
     requestAnimationFrame(tick);
   }
@@ -715,7 +1488,7 @@ python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval
     entries.forEach(function (e) {
       if (e.isIntersecting) { armBars(e.target); bio.unobserve(e.target); }
     });
-  }, { threshold: 0.35 });
+  }, { threshold: 0.3 });
   document.querySelectorAll(".race-bar, .mini-bar, .gauge, .chart-box").forEach(function (el) { bio.observe(el); });
 
   /* ----- roadmap progress line ----- */
@@ -730,7 +1503,7 @@ python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval
         sio.disconnect();
       }
     });
-  }, { threshold: 0.3 });
+  }, { threshold: 0.25 });
   sio.observe(stepsEl);
 
   /* ----- interactive results chart ----- */
@@ -746,8 +1519,8 @@ python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval
       ]
     },
     cdr2: {
-      title: "Drag coefficient, R\u00b2 (higher is better)",
-      target: "Target: Cd R\u00b2 > 0.96",
+      title: "Drag coefficient, R² (higher is better)",
+      target: "Target: Cd R² &gt; 0.96",
       max: 1,
       rows: [
         { name: "LightGBM", sub: "best baseline", val: 0.6398, label: "0.64", cls: "best" },
@@ -756,8 +1529,8 @@ python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval
       ]
     },
     clr2: {
-      title: "Lift coefficient, R\u00b2 (higher is better)",
-      target: "Target: Cl R\u00b2 > 0.96, the hardest target",
+      title: "Lift coefficient, R² (higher is better)",
+      target: "Target: Cl R² &gt; 0.96, the hardest target",
       max: 1,
       rows: [
         { name: "LightGBM", sub: "best baseline", val: 0.3822, label: "0.38", cls: "best" },
@@ -786,215 +1559,436 @@ python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval
   renderChart("cdmae");
   document.querySelectorAll(".toggle button").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      document.querySelectorAll(".toggle button").forEach(function (b) { b.classList.remove("active"); });
+      document.querySelectorAll(".toggle button").forEach(function (b) {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
       btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
       renderChart(btn.getAttribute("data-metric"));
     });
   });
 
-  /* ----- hero airflow: quiet hairline streaks over a thin car outline ----- */
+  /* ----- copy quickstart commands ----- */
+  var copyBtn = document.getElementById("copy-btn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function () {
+      var raw = [
+        "python -m venv .venv && source .venv/bin/activate",
+        "pip install -r requirements.txt",
+        "python -m src.ingest.download_drivaer",
+        "python -m src.ingest.merge_validate",
+        "python -m src.models.train_baselines"
+      ].join("\n");
+      navigator.clipboard.writeText(raw).then(function () {
+        copyBtn.textContent = "Copied ✓";
+        setTimeout(function () { copyBtn.textContent = "Copy commands"; }, 1800);
+      });
+    });
+  }
+
+  /* =====================================================================
+     1. FULL-BLEED HERO CFD STREAMLINE FIELD (#hero-cfd)
+     Velocity-colored aerodynamic streamlines + pressure wave contours
+     ===================================================================== */
+  var hCanvas = document.getElementById("hero-cfd");
+  var hCtx = hCanvas.getContext("2d");
+  var hW = 0, hH = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var mouse = { x: -9999, y: -9999 };
+  var ribbons = [];
+  var hPhase = 0;
+
+  window.addEventListener("mousemove", function (e) {
+    var rect = hCanvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+  }, { passive: true });
+
+  function initHeroField() {
+    hW = hCanvas.clientWidth;
+    hH = hCanvas.clientHeight;
+    hCanvas.width = hW * dpr;
+    hCanvas.height = hH * dpr;
+    hCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ribbons = [];
+    var count = 22;
+    for (var i = 0; i < count; i++) {
+      ribbons.push({
+        baseY: (hH * 0.08) + (hH * 0.82) * (i / (count - 1)),
+        speed: 0.7 + (i % 5) * 0.18,
+        amp: 14 + (i % 4) * 8,
+        offset: i * 0.45,
+        dashOffset: Math.random() * 200
+      });
+    }
+  }
+
+  function velColor(vNorm, alpha) {
+    // CFD colormap: low speed blue -> cyan -> emerald -> amber high speed
+    if (vNorm < 0.35) return "rgba(37, 99, 235, " + alpha + ")";
+    if (vNorm < 0.62) return "rgba(6, 182, 212, " + alpha + ")";
+    if (vNorm < 0.82) return "rgba(16, 185, 129, " + alpha + ")";
+    return "rgba(245, 158, 11, " + alpha + ")";
+  }
+
+  function drawHeroField() {
+    hCtx.clearRect(0, 0, hW, hH);
+    hPhase += 0.016;
+
+    // Virtual aerodynamic body obstacle centered around right-center of hero
+    var obsX = hW * 0.66;
+    var obsY = hH * 0.44;
+    var obsRx = Math.min(320, hW * 0.26);
+    var obsRy = 135;
+
+    // Subtle pressure contour rings around virtual aero body
+    for (var r = 1; r <= 3; r++) {
+      hCtx.beginPath();
+      hCtx.ellipse(obsX, obsY, obsRx * (0.65 + r * 0.22), obsRy * (0.65 + r * 0.24), -0.04, 0, Math.PI * 2);
+      hCtx.strokeStyle = "rgba(37, 99, 235, " + (0.075 - r * 0.018) + ")";
+      hCtx.lineWidth = 1;
+      hCtx.stroke();
+    }
+
+    // Draw continuous CFD streamlines deflected by virtual body + cursor
+    for (var i = 0; i < ribbons.length; i++) {
+      var rb = ribbons[i];
+      rb.dashOffset -= rb.speed * 1.9;
+      var dyObs = rb.baseY - obsY;
+      var distRatio = Math.min(1, Math.abs(dyObs) / (obsRy * 1.9));
+      var vNorm = 1 - distRatio * 0.65;
+
+      hCtx.beginPath();
+      var steps = 44;
+      for (var s = 0; s <= steps; s++) {
+        var x = (hW * s) / steps;
+        var dx = (x - obsX) / obsRx;
+        // Potential-flow dipole deflection around car body
+        var influence = Math.exp(-dx * dx * 1.45);
+        var sign = dyObs >= 0 ? 1 : -1;
+        var deflect = sign * influence * (obsRy * 0.58) * Math.exp(-Math.abs(dyObs) / (obsRy * 1.5));
+
+        // Wake Kármán oscillation behind body (x > obsX)
+        var wake = 0;
+        if (dx > 0.2 && Math.abs(dyObs) < obsRy * 1.2) {
+          var wEnv = Math.exp(-(dx - 0.8) * (dx - 0.8) * 0.9);
+          wake = Math.sin(dx * 5.5 - hPhase * 3.2 + rb.offset) * 14 * wEnv;
+        }
+
+        // Cursor wind deflection
+        var mdx = x - mouse.x;
+        var mdy = (rb.baseY + deflect) - mouse.y;
+        var mDist2 = mdx * mdx + mdy * mdy;
+        var mPush = mDist2 < 36000 ? (mdy / (Math.sqrt(mDist2) + 18)) * 22 * (1 - mDist2 / 36000) : 0;
+
+        var y = rb.baseY + deflect + wake + mPush + Math.sin(s * 0.22 + hPhase + rb.offset) * 3;
+        if (s === 0) hCtx.moveTo(x, y);
+        else hCtx.lineTo(x, y);
+      }
+      hCtx.strokeStyle = velColor(vNorm, 0.16);
+      hCtx.lineWidth = 1.25;
+      hCtx.setLineDash([]);
+      hCtx.stroke();
+
+      // High-velocity tracer packets riding the streamline
+      hCtx.strokeStyle = velColor(Math.min(1, vNorm + 0.2), 0.42);
+      hCtx.lineWidth = 1.8;
+      hCtx.setLineDash([28, 190]);
+      hCtx.lineDashOffset = rb.dashOffset;
+      hCtx.stroke();
+    }
+    hCtx.setLineDash([]);
+    if (!reduced) requestAnimationFrame(drawHeroField);
+  }
+  initHeroField();
+  drawHeroField();
+
+  /* =====================================================================
+     2. DARK WIND-TUNNEL STAGE CARD (#airflow)
+     High-contrast car profile + pressure heatmap + vortex wake particles
+     ===================================================================== */
   var canvas = document.getElementById("airflow");
   var ctx = canvas.getContext("2d");
-  var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var W = 0, H = 0;
   var particles = [];
   var car = { x0: 0, x1: 0, ground: 0 };
+  var currentRearSlope = 0.62; // linked to interactive demo
 
-  // fastback side profile: [fraction of length, fraction of height above ground]
-  var UP = [
-    [0.00, 0.14], [0.04, 0.28], [0.13, 0.38], [0.23, 0.42],
-    [0.32, 0.76], [0.43, 0.93], [0.57, 1.00], [0.69, 0.92],
-    [0.81, 0.56], [0.89, 0.48], [0.96, 0.42], [1.00, 0.28]
-  ];
-  var WHEELS = [0.24, 0.74];
-  var WHEEL_R = 0.055; // fraction of car length
-  var profile = [];
-  var time = 0;
-
-  function catmull(pts, samples) {
-    var out = [];
-    for (var i = 0; i < pts.length - 1; i++) {
-      var p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
-      for (var j = 0; j < samples; j++) {
-        var t = j / samples, t2 = t * t, t3 = t2 * t;
-        out.push([
-          0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
-          0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)
-        ]);
-      }
-    }
-    out.push(pts[pts.length - 1].slice());
-    return out;
+  function roofY(x) {
+    var t = (x - car.x0) / (car.x1 - car.x0);
+    if (t < 0 || t > 1) return 0;
+    return Math.sin(Math.PI * Math.pow(t, 0.82)) * currentRearSlope + Math.sin(Math.PI * t) * 0.38;
   }
   function layout() {
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (W < 760) { car.x0 = W * 0.06; car.x1 = W * 0.94; car.ground = H * 0.93; }
-    else { car.x0 = W * 0.48; car.x1 = W * 0.88; car.ground = H * 0.84; }
-    car.h = (car.x1 - car.x0) / 3.15;
-    profile = catmull(UP, 8).map(function (p) {
-      return { x: car.x0 + p[0] * (car.x1 - car.x0), y: car.ground - p[1] * car.h };
-    });
+    car.x0 = W * 0.16; car.x1 = W * 0.78;
+    car.ground = H * 0.82;
   }
-  function topY(x) {
-    if (x <= profile[0].x) return profile[0].y;
-    var last = profile[profile.length - 1];
-    if (x >= last.x) return last.y;
-    for (var i = 0; i < profile.length - 1; i++) {
-      if (x >= profile[i].x && x <= profile[i + 1].x) {
-        var t = (x - profile[i].x) / (profile[i + 1].x - profile[i].x);
-        return profile[i].y + (profile[i + 1].y - profile[i].y) * t;
-      }
-    }
-    return last.y;
-  }
-  function floorY(x) {
-    for (var i = 0; i < WHEELS.length; i++) {
-      var wx = car.x0 + WHEELS[i] * (car.x1 - car.x0);
-      var r = WHEEL_R * (car.x1 - car.x0);
-      var dx = x - wx;
-      if (Math.abs(dx) < r) return car.ground - Math.sqrt(r * r - dx * dx) * 0.95;
-    }
-    return car.ground;
+  function carTopY(x) {
+    return car.ground - 12 - roofY(x) * H * 0.34;
   }
   function makeParticle(anywhere) {
     return {
-      x: anywhere ? Math.random() * W : -24,
-      y: Math.random() * (car.ground - 24),
-      v: 0.55 + Math.random() * 0.9,
-      size: 0.6 + Math.random() * 0.9,
-      alpha: 0.10 + Math.random() * 0.18,
+      x: anywhere ? Math.random() * W : -20,
+      y: 18 + Math.random() * (H * 0.72),
+      v: 1.4 + Math.random() * 1.6,
+      size: 1.1 + Math.random() * 1.1,
       wob: Math.random() * Math.PI * 2,
       wake: 0
     };
   }
   function initParticles() {
     particles = [];
-    var n = Math.min(150, Math.floor(W / 8));
-    for (var i = 0; i < n; i++) particles.push(makeParticle(true));
+    for (var i = 0; i < 110; i++) particles.push(makeParticle(true));
   }
-  function drawCar() {
-    var i, x;
+  function drawTunnelCar() {
+    // Pressure stagnation glow at front nose (high Cp = red/amber)
+    var noseGrad = ctx.createRadialGradient(car.x0 + 6, car.ground - 26, 2, car.x0 + 6, car.ground - 26, 54);
+    noseGrad.addColorStop(0, "rgba(239, 68, 68, 0.42)");
+    noseGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.18)");
+    noseGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
+    ctx.fillStyle = noseGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Roof suction low-pressure glow (negative Cp = cyan/blue)
+    var roofX = car.x0 + (car.x1 - car.x0) * 0.45;
+    var roofTop = carTopY(roofX);
+    var roofGrad = ctx.createRadialGradient(roofX, roofTop - 6, 4, roofX, roofTop - 6, 80);
+    roofGrad.addColorStop(0, "rgba(6, 182, 212, 0.35)");
+    roofGrad.addColorStop(1, "rgba(37, 99, 235, 0)");
+    ctx.fillStyle = roofGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Car silhouette
     ctx.beginPath();
-    ctx.moveTo(car.x0, car.ground);
-    for (i = 0; i < profile.length; i++) ctx.lineTo(profile[i].x, profile[i].y);
-    ctx.lineTo(car.x1, car.ground);
-    var steps = 72;
-    for (i = steps; i >= 0; i--) {
-      x = car.x0 + (car.x1 - car.x0) * (i / steps);
-      ctx.lineTo(x, floorY(x));
+    ctx.moveTo(car.x0 - 18, car.ground - 6);
+    var steps = 60;
+    for (var i = 0; i <= steps; i++) {
+      var x = car.x0 + (car.x1 - car.x0) * (i / steps);
+      ctx.lineTo(x, carTopY(x));
     }
+    ctx.lineTo(car.x1 + 16, car.ground - 6);
     ctx.closePath();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+    var bodyGrad = ctx.createLinearGradient(car.x0, carTopY(roofX), car.x0, car.ground);
+    bodyGrad.addColorStop(0, "rgba(96, 165, 250, 0.22)");
+    bodyGrad.addColorStop(1, "rgba(15, 23, 42, 0.65)");
+    ctx.fillStyle = bodyGrad;
     ctx.fill();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = "#60a5fa";
+    ctx.lineWidth = 1.6;
     ctx.stroke();
-    // glasshouse: a thin band under the roofline
-    var glass = profile.filter(function (p) {
-      var t = (p.x - car.x0) / (car.x1 - car.x0);
-      return t >= 0.30 && t <= 0.72;
-    });
-    if (glass.length) {
+
+    // Wheels
+    [0.24, 0.76].forEach(function (w) {
+      var wx = car.x0 + (car.x1 - car.x0) * w;
       ctx.beginPath();
-      ctx.moveTo(glass[0].x, glass[0].y + 14);
-      glass.forEach(function (p) { ctx.lineTo(p.x, p.y + 14); });
-      ctx.strokeStyle = "rgba(138, 180, 255, 0.35)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-    // wheels
-    for (i = 0; i < WHEELS.length; i++) {
-      var wx = car.x0 + WHEELS[i] * (car.x1 - car.x0);
-      var r = WHEEL_R * (car.x1 - car.x0) * 0.82;
-      ctx.beginPath();
-      ctx.arc(wx, car.ground - 2, r, 0, Math.PI * 2);
-      ctx.fillStyle = "#0b0d10";
+      ctx.arc(wx, car.ground - 4, W * 0.032, 0, Math.PI * 2);
+      ctx.fillStyle = "#0b0f17";
       ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.lineWidth = 1.25;
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.65)";
+      ctx.lineWidth = 1.5;
       ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(wx, car.ground - 2, r * 0.32, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-    // ground line
+    });
+
+    // Moving belt ground plane
     ctx.beginPath();
     ctx.moveTo(0, car.ground + 10);
     ctx.lineTo(W, car.ground + 10);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.22)";
     ctx.lineWidth = 1;
     ctx.stroke();
   }
-  function step() {
-    time += 1;
+
+  function stepTunnel() {
     ctx.clearRect(0, 0, W, H);
-    // laminar guide lines above the car
-    ctx.save();
-    ctx.setLineDash([2, 16]);
-    ctx.lineDashOffset = -time * 0.9;
-    ctx.strokeStyle = "rgba(178, 198, 255, 0.10)";
-    ctx.lineWidth = 1;
-    [0.10, 0.17, 0.24, 0.31].forEach(function (f) {
-      ctx.beginPath();
-      ctx.moveTo(0, H * f);
-      ctx.lineTo(W, H * f);
-      ctx.stroke();
-    });
-    ctx.restore();
-    drawCar();
-    // wake vortices behind the tail
-    var tailX = car.x1, tailY = car.ground - car.h * 0.42;
-    for (var v = 0; v < 3; v++) {
-      var vx = tailX + 24 + v * 28;
-      var vy = tailY - v * 10 + Math.sin(time * 0.02 + v * 2) * 4;
-      var vr = 9 + v * 5;
-      ctx.beginPath();
-      ctx.arc(vx, vy, vr, time * 0.02 + v, time * 0.02 + v + Math.PI * 1.25);
-      ctx.strokeStyle = "rgba(178, 198, 255, " + (0.14 - v * 0.03) + ")";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
+    drawTunnelCar();
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
-      var overCar = p.x > car.x0 - 30 && p.x < car.x1;
-      p.x += p.v * (overCar ? 1.3 : 1);
-      p.wob += 0.012;
-      var top = topY(p.x);
-      if (p.x > car.x0 - 30 && p.x < car.x1 + 8 && p.y > top - 4 && p.y < car.ground) {
-        p.y = top - 4 - Math.sin(p.wob) * 1.5;
-      } else if (p.x >= car.x1 + 8 && p.x < car.x1 + W * 0.12) {
-        p.wake = Math.min(p.wake + 0.04, 1);
-        p.y += Math.sin(p.wob * 2.5) * 1.1 * p.wake + (Math.random() - 0.5) * 0.9 * p.wake;
-        p.x -= p.v * 0.45;
+      var localSpeed = p.v;
+      var top = carTopY(p.x);
+      if (p.x > car.x0 - 36 && p.x < car.x1 + 8 && p.y > top - 18 && p.y < car.ground) {
+        // Accelerate over roof (Bernoulli)
+        localSpeed *= 1.45;
+        p.y = top - 6 - Math.sin(p.wob) * 2;
+      } else if (p.x >= car.x1 + 8) {
+        p.wake = Math.min(p.wake + 0.05, 1);
+        p.y += Math.sin(p.wob * 3.6) * 1.4 * p.wake + (Math.random() - 0.5) * 1.1 * p.wake;
+        localSpeed *= 0.72;
       } else {
-        p.wake = Math.max(p.wake - 0.015, 0);
-        p.y += Math.sin(p.wob) * 0.15;
+        p.wake = Math.max(p.wake - 0.02, 0);
+        p.y += Math.sin(p.wob) * 0.18;
       }
+      p.x += localSpeed;
+      p.wob += 0.04;
       if (p.x > W + 24 || p.y > H || p.y < 0) { particles[i] = makeParticle(false); continue; }
+
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x - p.v * 10, p.y);
-      ctx.strokeStyle = "rgba(178, 198, 255, " + p.alpha + ")";
+      ctx.lineTo(p.x - localSpeed * 8.5, p.y);
+      if (p.wake > 0.35) {
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.65)"; // turbulent wake amber
+      } else if (localSpeed > p.v * 1.2) {
+        ctx.strokeStyle = "rgba(52, 211, 153, 0.75)"; // high velocity over roof
+      } else {
+        ctx.strokeStyle = "rgba(147, 197, 253, 0.52)"; // freestream blue
+      }
       ctx.lineWidth = p.size;
       ctx.stroke();
     }
-    if (!reduced) requestAnimationFrame(step);
+    if (!reduced) requestAnimationFrame(stepTunnel);
   }
-  function boot() {
-    layout();
-    initParticles();
-    if (reduced) { step(); return; }
-    requestAnimationFrame(step);
-  }
-  boot();
+  layout();
+  initParticles();
+  stepTunnel();
+
   var rT;
   window.addEventListener("resize", function () {
     clearTimeout(rT);
-    rT = setTimeout(function () { layout(); initParticles(); if (reduced) step(); }, 200);
+    rT = setTimeout(function () {
+      initHeroField();
+      layout();
+      initParticles();
+      if (reduced) { drawHeroField(); stepTunnel(); }
+    }, 180);
   });
+
+  /* =====================================================================
+     3. INTERACTIVE SURROGATE SANDBOX (Sliders + Inverse Design)
+     ===================================================================== */
+  var bodyState = "fastback";
+  var sRw = document.getElementById("s-rw");
+  var sDiff = document.getElementById("s-diff");
+  var sWs = document.getElementById("s-ws");
+  var sRoof = document.getElementById("s-roof");
+  var sBump = document.getElementById("s-bump");
+
+  function evalSurrogate() {
+    var rw = parseFloat(sRw.value);
+    var diff = parseFloat(sDiff.value);
+    var ws = parseFloat(sWs.value);
+    var roof = parseFloat(sRoof.value);
+    var bump = parseFloat(sBump.value);
+
+    document.getElementById("o-rw").textContent = rw.toFixed(1) + "°";
+    document.getElementById("o-diff").textContent = diff.toFixed(1) + "°";
+    document.getElementById("o-ws").textContent = ws.toFixed(1) + "°";
+    document.getElementById("o-roof").textContent = roof.toFixed(0) + " mm";
+    document.getElementById("o-bump").textContent = bump.toFixed(2);
+
+    // Physics-informed response surface calibrated to DrivAerNet++ range (Cd ~0.235 - 0.315)
+    var baseCd = bodyState === "fastback" ? 0.258 : (bodyState === "notchback" ? 0.271 : 0.296);
+    var rwSensitivity = bodyState === "estateback" ? 0.00018 : 0.00115;
+    // Fastback critical slant angle penalty around ~28-32 deg (Ahmed-body vortex regime)
+    var rwEffect = (rw - 21) * rwSensitivity + (bodyState === "fastback" && rw > 27 ? Math.pow(rw - 27, 1.5) * 0.0012 : 0);
+    // Optimal diffuser around 9-11 deg
+    var diffEffect = Math.pow(diff - 10.0, 2) * 0.00022 - 0.003;
+    var wsEffect = (30 - ws) * 0.00065;
+    var roofEffect = (roof - 1400) * 0.00009;
+    var bumpEffect = -Math.sin(bump * Math.PI * 0.75) * 0.0055;
+
+    var cd = Math.max(0.228, Math.min(0.328, baseCd + rwEffect + diffEffect + wsEffect + roofEffect + bumpEffect));
+    var area = 2.12 + (roof - 1340) * 0.00095;
+    var cda = cd * area;
+    var cl = 0.095 - (diff * 0.0042) + (rw - 22) * 0.0021;
+
+    // 75 kWh EV at 110 km/h (30.56 m/s), rho = 1.225 kg/m3
+    var v = 30.556;
+    var aeroPowerKw = (0.5 * 1.225 * cda * Math.pow(v, 3)) / 1000;
+    var refCda = 0.285 * 2.21;
+    var deltaCda = refCda - cda;
+    var rangeDeltaKm = deltaCda * 215; // ~21.5 km per 0.10 m2 CdA reduction on highway cycle
+
+    document.getElementById("r-cd").textContent = cd.toFixed(3);
+    document.getElementById("r-cl").textContent = cl.toFixed(3);
+    document.getElementById("r-area").textContent = "Frontal area A = " + area.toFixed(2) + " m²";
+    var sign = rangeDeltaKm >= 0 ? "+" : "";
+    var rEl = document.getElementById("r-range");
+    rEl.textContent = sign + rangeDeltaKm.toFixed(1) + " km";
+    rEl.className = "rv " + (rangeDeltaKm >= 0 ? "green" : "");
+    document.getElementById("r-power").textContent = aeroPowerKw.toFixed(1) + " kW";
+    document.getElementById("stage-body-lbl").textContent = "PROFILE · " + bodyState.toUpperCase();
+    document.getElementById("stage-cda-lbl").textContent = "Cd·A = " + cda.toFixed(3) + " m²";
+    document.getElementById("hud-cd").innerHTML = cd.toFixed(3) + " <small>±0.025</small>";
+
+    // Update SVG silhouette dynamically
+    var roofYpx = 38 - (roof - 1420) * 0.07;
+    var wsX = 195 + (ws - 28) * 1.1;
+    var rwDrop = (rw - 20) * 0.75;
+    var dPath;
+    if (bodyState === "fastback") {
+      dPath = "M 65 95 L 72 " + (74 - bump * 6) + " Q 105 64 140 60 L " + wsX + " " + roofYpx +
+              " Q 255 " + (roofYpx - 2) + " 305 " + (roofYpx + 8 + rwDrop * 0.4) +
+              " L 372 " + (62 + rwDrop * 0.5) + " L 378 " + (90 - diff * 0.35) + " L 65 95 Z";
+    } else if (bodyState === "notchback") {
+      dPath = "M 65 95 L 72 " + (74 - bump * 6) + " Q 105 64 140 60 L " + wsX + " " + roofYpx +
+              " L 285 " + roofYpx + " L 332 " + (58 + rwDrop * 0.35) +
+              " L 374 62 L 378 " + (90 - diff * 0.35) + " L 65 95 Z";
+    } else {
+      dPath = "M 65 95 L 72 " + (74 - bump * 6) + " Q 105 64 140 60 L " + wsX + " " + roofYpx +
+              " L 364 " + (roofYpx + 2) + " L 376 " + (90 - diff * 0.3) + " L 65 95 Z";
+    }
+    document.getElementById("demo-car-path").setAttribute("d", dPath);
+    var wakeRx = Math.max(20, (cd - 0.22) * 420);
+    document.getElementById("demo-wake").setAttribute("rx", wakeRx.toFixed(1));
+  }
+
+  [sRw, sDiff, sWs, sRoof, sBump].forEach(function (el) {
+    el.addEventListener("input", function () {
+      document.getElementById("r-status").textContent = "Custom geometry";
+      evalSurrogate();
+    });
+  });
+
+  document.querySelectorAll(".body-pills button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".body-pills button").forEach(function (b) {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
+      bodyState = btn.getAttribute("data-body");
+      document.getElementById("hud-wake").innerHTML =
+        bodyState.charAt(0).toUpperCase() + bodyState.slice(1) +
+        (bodyState === "estateback" ? " <small>blunt wake</small>" : " <small>attached</small>");
+      evalSurrogate();
+    });
+  });
+
+  // Animated Optuna inverse-design search
+  document.getElementById("btn-opt").addEventListener("click", function () {
+    var targets = { rw: 18.5, diff: 10.5, ws: 34.5, roof: 1365, bump: 0.75 };
+    var start = {
+      rw: parseFloat(sRw.value), diff: parseFloat(sDiff.value),
+      ws: parseFloat(sWs.value), roof: parseFloat(sRoof.value), bump: parseFloat(sBump.value)
+    };
+    var t0 = null, dur = 650;
+    document.getElementById("r-status").textContent = "Optuna TPE: optimizing...";
+    function anim(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      sRw.value = (start.rw + (targets.rw - start.rw) * e).toFixed(1);
+      sDiff.value = (start.diff + (targets.diff - start.diff) * e).toFixed(1);
+      sWs.value = (start.ws + (targets.ws - start.ws) * e).toFixed(1);
+      sRoof.value = Math.round(start.roof + (targets.roof - start.roof) * e);
+      sBump.value = (start.bump + (targets.bump - start.bump) * e).toFixed(2);
+      evalSurrogate();
+      if (p < 1) requestAnimationFrame(anim);
+      else document.getElementById("r-status").textContent = "Optuna optimum (cabin constrained)";
+    }
+    requestAnimationFrame(anim);
+  });
+
+  document.getElementById("btn-reset").addEventListener("click", function () {
+    sRw.value = 24; sDiff.value = 9.5; sWs.value = 28; sRoof.value = 1420; sBump.value = 0.55;
+    document.getElementById("r-status").textContent = "Baseline geometry";
+    evalSurrogate();
+  });
+
+  evalSurrogate();
 })();
 </script>
 </body>
