@@ -310,7 +310,7 @@
     content: ""; width: 6px; height: 6px; border-radius: 50%; background: #34d399;
     box-shadow: 0 0 8px #34d399;
   }
-  .tunnel-canvas-wrap { position: relative; height: 290px; width: 100%; }
+  .tunnel-canvas-wrap { position: relative; aspect-ratio: 2 / 1; width: 100%; }
   #airflow { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .tunnel-hud {
     display: grid; grid-template-columns: repeat(3, 1fr);
@@ -658,7 +658,7 @@
     box-shadow: var(--shadow-xs); transition: transform 0.25s var(--ease), box-shadow 0.25s ease;
   }
   .body-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .body-card svg { width: 100%; height: 58px; display: block; margin-bottom: 20px; }
+  .body-card .car-photo { width: 100%; height: auto; display: block; margin-bottom: 20px; border-radius: 8px; border: 1px solid var(--line); }
   .body-card h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.015em; }
   .body-card .count-lbl { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 3px; }
   .body-card .r2 { font-size: 38px; font-weight: 700; letter-spacing: -0.035em; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
@@ -1213,10 +1213,7 @@
 
       <div class="body-grid reveal d1">
         <div class="body-card">
-          <svg viewBox="0 0 240 56" fill="none" aria-hidden="true">
-            <path d="M18 44 L28 30 L74 26 L118 12 L182 14 L218 32 L222 44 Z" stroke="#059669" stroke-width="1.8" fill="rgba(5,150,105,0.08)"/>
-            <circle cx="58" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/><circle cx="184" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/>
-          </svg>
+          <img class="car-photo" src="fastback.jpg" alt="Fastback side profile" loading="lazy">
           <h3>Fastback</h3>
           <div class="count-lbl">177 designs in val</div>
           <div class="r2 good">0.67 <small>R&sup2;</small></div>
@@ -1225,10 +1222,7 @@
         </div>
 
         <div class="body-card">
-          <svg viewBox="0 0 240 56" fill="none" aria-hidden="true">
-            <path d="M18 44 L28 30 L74 26 L116 12 L162 12 L182 28 L216 30 L222 44 Z" stroke="#059669" stroke-width="1.8" fill="rgba(5,150,105,0.08)"/>
-            <circle cx="58" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/><circle cx="184" cy="44" r="7" stroke="#059669" stroke-width="1.5" fill="#fff"/>
-          </svg>
+          <img class="car-photo" src="notchback.jpg" alt="Notchback side profile" loading="lazy">
           <h3>Notchback</h3>
           <div class="count-lbl">163 designs in val</div>
           <div class="r2 good">0.60 <small>R&sup2;</small></div>
@@ -1237,10 +1231,7 @@
         </div>
 
         <div class="body-card">
-          <svg viewBox="0 0 240 56" fill="none" aria-hidden="true">
-            <path d="M18 44 L28 30 L74 26 L114 12 L212 12 L220 44 Z" stroke="#d97706" stroke-width="1.8" fill="rgba(217,119,6,0.08)"/>
-            <circle cx="58" cy="44" r="7" stroke="#d97706" stroke-width="1.5" fill="#fff"/><circle cx="184" cy="44" r="7" stroke="#d97706" stroke-width="1.5" fill="#fff"/>
-          </svg>
+          <img class="car-photo" src="estateback.jpg" alt="Estateback side profile" loading="lazy">
           <h3>Estateback</h3>
           <div class="count-lbl">215 designs in val</div>
           <div class="r2 warn">0.17 <small>R&sup2;</small></div>
@@ -1712,22 +1703,24 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   var W = 0, H = 0;
   var particles = [];
   var car = { x0: 0, x1: 0, ground: 0 };
-  var currentRearSlope = 0.62; // linked to interactive demo
-
-  function roofY(x) {
-    var t = (x - car.x0) / (car.x1 - car.x0);
-    if (t < 0 || t > 1) return 0;
-    return Math.sin(Math.PI * Math.pow(t, 0.82)) * currentRearSlope + Math.sin(Math.PI * t) * 0.38;
-  }
+  /* Real 3D car photo: roofline measured from tunnel-car.jpg (fractions of image size) */
+  var CAR = { x0: 0.065, x1: 0.935, ground: 0.8817, roof: [0.6682, 0.6624, 0.6565, 0.6457, 0.6345, 0.6232, 0.6135, 0.6051, 0.5976, 0.5912, 0.5856, 0.5809, 0.5768, 0.5732, 0.5694, 0.5649, 0.5588, 0.5509, 0.5407, 0.5287, 0.5156, 0.5023, 0.4892, 0.4771, 0.4662, 0.4565, 0.4479, 0.4407, 0.4346, 0.4297, 0.426, 0.4231, 0.4211, 0.4197, 0.4189, 0.4185, 0.4188, 0.4195, 0.4207, 0.4224, 0.4245, 0.4271, 0.4302, 0.4339, 0.4383, 0.4433, 0.4491, 0.4557, 0.4629, 0.4707, 0.4791, 0.4881, 0.4974, 0.5069, 0.5165, 0.5259, 0.5402, 0.555, 0.571, 0.5798, 0.5918] };
+  var tunnelImg = new Image();
+  tunnelImg.src = "tunnel-car.jpg";
   function layout() {
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    car.x0 = W * 0.16; car.x1 = W * 0.78;
-    car.ground = H * 0.82;
+    car.x0 = W * CAR.x0; car.x1 = W * CAR.x1;
+    car.ground = H * CAR.ground;
   }
   function carTopY(x) {
-    return car.ground - 12 - roofY(x) * H * 0.34;
+    var t = (x - car.x0) / (car.x1 - car.x0);
+    if (t < 0 || t > 1) return car.ground;
+    var f = t * (CAR.roof.length - 1);
+    var i = Math.floor(f), fr = f - i;
+    var y = CAR.roof[i] * (1 - fr) + CAR.roof[Math.min(i + 1, CAR.roof.length - 1)] * fr;
+    return y * H;
   }
   function makeParticle(anywhere) {
     return {
@@ -1761,44 +1754,12 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     ctx.fillStyle = roofGrad;
     ctx.fillRect(0, 0, W, H);
 
-    // Car silhouette
-    ctx.beginPath();
-    ctx.moveTo(car.x0 - 18, car.ground - 6);
-    var steps = 60;
-    for (var i = 0; i <= steps; i++) {
-      var x = car.x0 + (car.x1 - car.x0) * (i / steps);
-      ctx.lineTo(x, carTopY(x));
+    // Real 3D car photo (2:1, same aspect as the canvas wrap)
+    ctx.fillStyle = "#0b0f17";
+    ctx.fillRect(0, 0, W, H);
+    if (tunnelImg.complete && tunnelImg.naturalWidth) {
+      ctx.drawImage(tunnelImg, 0, 0, W, H);
     }
-    ctx.lineTo(car.x1 + 16, car.ground - 6);
-    ctx.closePath();
-    var bodyGrad = ctx.createLinearGradient(car.x0, carTopY(roofX), car.x0, car.ground);
-    bodyGrad.addColorStop(0, "rgba(96, 165, 250, 0.22)");
-    bodyGrad.addColorStop(1, "rgba(15, 23, 42, 0.65)");
-    ctx.fillStyle = bodyGrad;
-    ctx.fill();
-    ctx.strokeStyle = "#60a5fa";
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-
-    // Wheels
-    [0.24, 0.76].forEach(function (w) {
-      var wx = car.x0 + (car.x1 - car.x0) * w;
-      ctx.beginPath();
-      ctx.arc(wx, car.ground - 4, W * 0.032, 0, Math.PI * 2);
-      ctx.fillStyle = "#0b0f17";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(148, 163, 184, 0.65)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    });
-
-    // Moving belt ground plane
-    ctx.beginPath();
-    ctx.moveTo(0, car.ground + 10);
-    ctx.lineTo(W, car.ground + 10);
-    ctx.strokeStyle = "rgba(148, 163, 184, 0.22)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
   }
 
   function stepTunnel() {
