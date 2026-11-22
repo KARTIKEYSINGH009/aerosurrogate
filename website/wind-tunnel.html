@@ -1303,7 +1303,7 @@ input[type="range"]::-moz-range-thumb {
     const pmrem = new THREE.PMREMGenerator(renderer);
     pmrem.compileEquirectangularShader();
     const envScene = new THREE.Scene();
-    envScene.background = new THREE.Color(0x0a101d);
+    envScene.background = new THREE.Color(0x5b6b82);
 
     const addStrip = (w, h, d, x, y, z, color, rx, ry, rz) => {
       const m = new THREE.Mesh(
@@ -1320,10 +1320,10 @@ input[type="range"]::-moz-range-thumb {
     addStrip(16, 0.2, 2.4, 0, 7.5, 0, 0xffffff);
     addStrip(14, 0.2, 1.4, 0, 6.2, 4.6, 0xdbeafe, 0.45, 0, 0);
     addStrip(14, 0.2, 1.4, 0, 6.2, -4.6, 0xdbeafe, -0.45, 0, 0);
-    addStrip(14, 2.6, 0.2, 0, 2.4, 9.2, 0x4b5c75);
-    addStrip(14, 2.6, 0.2, 0, 2.4, -9.2, 0x3b4d68);
-    addStrip(0.2, 3.2, 12, -10, 2.8, 0, 0x64748b);
-    addStrip(0.2, 2.4, 12, 10, 2.5, 0, 0x334155);
+    addStrip(14, 2.6, 0.2, 0, 2.4, 9.2, 0x8fa3c0);
+    addStrip(14, 2.6, 0.2, 0, 2.4, -9.2, 0x7c8fae);
+    addStrip(0.2, 3.2, 12, -10, 2.8, 0, 0x9db1cc);
+    addStrip(0.2, 2.4, 12, 10, 2.5, 0, 0x8ba0bd);
     addStrip(24, 0.2, 24, 0, -4.0, 0, 0x0f172a);
 
     const envRT = pmrem.fromScene(envScene, 0.04);
@@ -1409,7 +1409,7 @@ input[type="range"]::-moz-range-thumb {
     // Wind-tunnel floor & turntable balance ring
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
-      new THREE.MeshStandardMaterial({ color: 0x0f1520, roughness: 0.85, metalness: 0.1 })
+      new THREE.MeshStandardMaterial({ color: 0x3a4658, roughness: 0.85, metalness: 0.1 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -1452,8 +1452,8 @@ input[type="range"]::-moz-range-thumb {
     // Authentic Porsche 911 GT3 RS (992) PBR Materials
     const paintMat = new THREE.MeshPhysicalMaterial({
       color: 0xd4dce8, // Porsche GT Silver Metallic
-      metalness: 0.78,
-      roughness: 0.19,
+      metalness: 0.45,
+      roughness: 0.28,
       clearcoat: 1.0,
       clearcoatRoughness: 0.05,
       reflectivity: 0.94,
