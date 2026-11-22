@@ -1618,376 +1618,465 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   initHeroField();
   drawHeroField();
 
-  /* =====================================================================
+    /* =====================================================================
      2. DARK WIND-TUNNEL STAGE CARD (#airflow)
-     High-contrast car profile + pressure heatmap + streamline field + vortex wake
+     Continuous smoke streamlines conforming to CAR.roof + diffusing turbulent wake
+     (Gemini-generated animation, integrated from the preview file)
      ===================================================================== */
-  var canvas = document.getElementById("airflow");
-  var ctx = canvas.getContext("2d");
-  var W = 0, H = 0;
-  var car = { x0: 0, x1: 0, ground: 0 };
-  /* 3D sample car render: roofline measured from tunnel-car.jpg (fractions of image size) */
-  var CAR = { x0: 0.115, x1: 0.735, ground: 0.8817, roof: [0.6916, 0.6791, 0.6697, 0.6532, 0.6387, 0.6256, 0.6187, 0.613, 0.6081, 0.6038, 0.6, 0.5967, 0.5947, 0.5939, 0.5938, 0.594, 0.5939, 0.5913, 0.586, 0.5782, 0.5685, 0.5575, 0.5459, 0.5345, 0.5233, 0.5127, 0.5027, 0.4948, 0.4887, 0.4844, 0.4817, 0.4803, 0.4793, 0.4788, 0.4786, 0.4787, 0.479, 0.4797, 0.4809, 0.4826, 0.4848, 0.488, 0.4922, 0.4974, 0.5037, 0.5109, 0.5184, 0.5259, 0.5335, 0.5405, 0.547, 0.5529, 0.5582, 0.5625, 0.5663, 0.5711, 0.5812, 0.5926, 0.6069, 0.6154, 0.6262] };
-  var tunnelImg = new Image();
-  tunnelImg.src = "tunnel-car.jpg";
-  function layout() {
-    W = canvas.clientWidth; H = canvas.clientHeight;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    car.x0 = W * CAR.x0; car.x1 = W * CAR.x1;
-    car.ground = H * CAR.ground;
-    car.maxBody = car.ground - carTopY(car.x0 + (car.x1 - car.x0) * 0.55);
-    buildStreamlines();
+var showRoofOverlay = false;
+
+/* ===================================================================
+   2. DARK WIND-TUNNEL STAGE CARD (#airflow)
+   Continuous smoke streamlines conforming to CAR.roof + diffusing turbulent wake
+   =================================================================== */
+var canvas = document.getElementById("airflow");
+var ctx = canvas.getContext("2d");
+var W = 0, H = 0;
+var car = { x0: 0, x1: 0, ground: 0 };
+/* 3D sample car render: roofline measured from tunnel-car.jpg (fractions of image size) */
+var CAR = { x0: 0.115, x1: 0.735, ground: 0.8817, roof: [0.6916, 0.6791, 0.6697, 0.6532, 0.6387, 0.6256, 0.6187, 0.613, 0.6081, 0.6038, 0.6, 0.5967, 0.5947, 0.5939, 0.5938, 0.594, 0.5939, 0.5913, 0.586, 0.5782, 0.5685, 0.5575, 0.5459, 0.5345, 0.5233, 0.5127, 0.5027, 0.4948, 0.4887, 0.4844, 0.4817, 0.4803, 0.4793, 0.4788, 0.4786, 0.4787, 0.479, 0.4797, 0.4809, 0.4826, 0.4848, 0.488, 0.4922, 0.4974, 0.5037, 0.5109, 0.5184, 0.5259, 0.5335, 0.5405, 0.547, 0.5529, 0.5582, 0.5625, 0.5663, 0.5711, 0.5812, 0.5926, 0.6069, 0.6154, 0.6262] };
+var tunnelImg = new Image();
+
+function buildFallbackClayCar() {
+  var off = document.createElement("canvas");
+  off.width = 720; off.height = 360;
+  var octx = off.getContext("2d");
+  octx.fillStyle = "#0b0f17";
+  octx.fillRect(0, 0, 720, 360);
+  var fg = octx.createLinearGradient(0, 360 * CAR.ground - 8, 0, 360);
+  fg.addColorStop(0, "#151c28");
+  fg.addColorStop(1, "#0b0f17");
+  octx.fillStyle = fg;
+  octx.fillRect(0, 360 * CAR.ground, 720, 360 * (1 - CAR.ground));
+  var g = octx.createLinearGradient(0, 360 * 0.47, 0, 360 * CAR.ground);
+  g.addColorStop(0, "#64748b");
+  g.addColorStop(0.55, "#475569");
+  g.addColorStop(1, "#1e293b");
+  octx.fillStyle = g;
+  octx.beginPath();
+  octx.moveTo(720 * CAR.x0, 360 * CAR.ground);
+  for (var i = 0; i < CAR.roof.length; i++) {
+    var x = 720 * (CAR.x0 + (CAR.x1 - CAR.x0) * (i / (CAR.roof.length - 1)));
+    var y = 360 * CAR.roof[i];
+    octx.lineTo(x, y);
   }
-  function carTopY(x) {
-    var t = (x - car.x0) / (car.x1 - car.x0);
-    if (t < 0 || t > 1) return car.ground;
-    var f = t * (CAR.roof.length - 1);
-    var i = Math.floor(f), fr = f - i;
-    var y = CAR.roof[i] * (1 - fr) + CAR.roof[Math.min(i + 1, CAR.roof.length - 1)] * fr;
-    return y * H;
+  octx.lineTo(720 * CAR.x1, 360 * CAR.ground);
+  octx.closePath();
+  octx.fill();
+  return off.toDataURL("image/png");
+}
+
+tunnelImg.onerror = function () {
+  tunnelImg.onerror = null;
+  tunnelImg.src = buildFallbackClayCar();
+};
+tunnelImg.src = "tunnel-car.jpg";
+
+var streamlines = [];
+var wakePuffs = [];
+var wakeRibbons = [];
+var tunnelTime = 0;
+var tunnelLastMs = 0;
+var tunnelRafId = 0;
+var tunnelVisible = true;
+
+function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+function smoothstep(v) { var t = clamp01(v); return t * t * (3 - 2 * t); }
+
+/* Exact Catmull-Rom interpolation through the measured CAR.roof samples */
+function carTopY(x) {
+  var t = (x - car.x0) / (car.x1 - car.x0);
+  if (t < 0 || t > 1) return car.ground;
+  var r = CAR.roof;
+  var n = r.length - 1;
+  var f = t * n;
+  var i = Math.floor(f);
+  var u = f - i;
+  var p0 = r[Math.max(0, i - 1)];
+  var p1 = r[i];
+  var p2 = r[Math.min(n, i + 1)];
+  var p3 = r[Math.min(n, i + 2)];
+  var u2 = u * u, u3 = u2 * u;
+  var y = 0.5 * (
+    (2 * p1) +
+    (-p0 + p2) * u +
+    (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 +
+    (-p0 + 3 * p1 - 3 * p2 + p3) * u3
+  );
+  return y * H;
+}
+
+/* Effective aerodynamic upper boundary */
+function effectiveRoofY(x) {
+  var yNose = CAR.roof[0] * H;
+  var yTail = CAR.roof[CAR.roof.length - 1] * H;
+  var yStag = H * 0.755;
+  var bowLen = Math.min(car.x0 * 0.92, (car.x1 - car.x0) * 0.22);
+
+  if (x <= car.x0 - bowLen) return yStag;
+  if (x < car.x0) {
+    var u = (x - (car.x0 - bowLen)) / bowLen;
+    return yStag + (yNose - yStag) * smoothstep(u);
   }
-  /* Roofline with a smooth linear bow-wave ramp ahead of the nose, so
-     streamlines curve up the nose at a constant gentle slope instead of
-     snapping to the roofline or plunging steeply */
-  function roofTopAt(x) {
-    if (x < car.x0) {
-      var r = Math.max(0, Math.min(1, (x - (car.x0 - 110)) / 110));
-      return car.ground + (carTopY(car.x0) - car.ground) * r;
-    }
-    return carTopY(x);
-  }
-  /* Precomputed streamlines: every line is one fixed smooth curve through the
-     measured roofline (roof-rise lift, bow ramp, slow wake relax), so the flow
-     can never snap, jump or drop vertically. The animation is only the bright
-     flow marks travelling along the lines. */
-  var streamlines = [];
-  function buildStreamlines() {
-    streamlines = [];
-    var noseTop = carTopY(car.x0);
-    var n = 16;
-    for (var s = 0; s < n; s++) {
-      var y0 = H * (0.06 + 0.88 * s / (n - 1));
-      var pts = [];
-      var liftTail = null, lastY = y0;
-      for (var x = -20; x <= W + 20; x += 6) {
-        var y;
-        if (x >= car.x1) {
-          if (liftTail === null) liftTail = y0 - lastY;
-          y = y0 - liftTail * Math.exp(-(x - car.x1) / 320);
-        } else if (x < car.x0 - 110) {
-          y = y0;
-        } else {
-          var top = roofTopAt(x);
-          if (y0 >= car.ground) {
-            y = y0;
-          } else {
-            var rise = Math.max(0, noseTop - top);
-            var lift = rise * Math.exp(-Math.max(0, top - y0) / 55);
-            y = Math.min(y0 - lift, top - 5);
-          }
-        }
-        pts.push({ x: x, y: y });
-        if (x < car.x1) lastY = y;
+  if (x <= car.x1) return carTopY(x);
+
+  var dxTail = (car.x1 - car.x0) / (CAR.roof.length - 1);
+  var slopeTail = ((CAR.roof[CAR.roof.length - 1] - CAR.roof[CAR.roof.length - 2]) * H) / dxTail;
+  var relaxLen = W * 0.022;
+  return yTail + slopeTail * relaxLen * (1 - Math.exp(-(x - car.x1) / relaxLen));
+}
+
+function buildStreamlines() {
+  streamlines = [];
+  var yCeiling = H * 0.065;
+  var yStag = H * 0.755;
+  var channelH = yStag - yCeiling;
+  var clearance = Math.max(3.5, H * 0.0115);
+  var decayExp = 1.55;
+  var baseSpeed = W * 0.34;
+  var n = 15;
+  var stepX = Math.max(4, Math.round(W / 150));
+
+  for (var s = 0; s < n; s++) {
+    var eta = Math.pow(s / (n - 1), 1.18);
+    var u = 1 - eta;
+    var y0 = yCeiling + channelH * u;
+    var dispWeight = Math.pow(u, decayExp);
+    var speedWeight = Math.pow(u, decayExp - 1);
+    var pts = [];
+    var tau = 0;
+
+    for (var x = -12; x <= W + 12; x += stepX) {
+      var yEff = effectiveRoofY(x);
+      var disp = Math.max(0, yStag - yEff);
+      var y = y0 - clearance * (u * u) - disp * dispWeight;
+
+      var dYdu = Math.max(channelH * 0.40, channelH - decayExp * disp * speedWeight);
+      var vRel = Math.min(1.85, channelH / dYdu);
+
+      var wakeFactor = 0;
+      if (x > car.x1) {
+        var dx = (x - car.x1) / Math.max(1, W - car.x1);
+        var shearBand = smoothstep((u - 0.50) / 0.50);
+        wakeFactor = smoothstep(dx / 0.16) * shearBand;
+        vRel = vRel * (1 - 0.56 * wakeFactor);
       }
-      var overRoof = y0 < noseTop;
-      streamlines.push({
-        pts: pts, y0: y0, overRoof: overRoof,
-        speed: overRoof ? 0.55 : 0.38,
-        marks: [Math.random() * 50, 30 + Math.random() * 50]
-      });
+
+      if (pts.length > 0) {
+        var prev = pts[pts.length - 1];
+        var segLen = Math.hypot(x - prev.x, y - prev.y);
+        tau += segLen / Math.max(20, vRel * baseSpeed);
+      }
+
+      pts.push({ x: x, y: y, v: vRel, tau: tau, wake: wakeFactor });
     }
+
+    streamlines.push({
+      pts: pts,
+      u: u,
+      eta: eta,
+      phase1: s * 1.37 + 0.4,
+      phase2: s * 2.41 + 1.1
+    });
   }
-  function drawPathPart(pts, a, b, style, width) {
-    if (b - a < 2) return;
+}
+
+function buildWakeField() {
+  wakePuffs = [];
+  wakeRibbons = [];
+  var yTail = CAR.roof[CAR.roof.length - 1] * H;
+  var wakeH = Math.max(20, car.ground - yTail - 6);
+  var wakeW = Math.max(40, W - car.x1 + 30);
+
+  var puffCount = 32;
+  for (var i = 0; i < puffCount; i++) {
+    var f = (i + 0.5) / puffCount;
+    var h1 = Math.sin(i * 12.9898 + 1.7) * 43758.5453;
+    var r1 = h1 - Math.floor(h1);
+    var h2 = Math.sin(i * 78.233 + 3.1) * 43758.5453;
+    var r2 = h2 - Math.floor(h2);
+    wakePuffs.push({
+      phase: f,
+      yFrac: 0.12 + 0.74 * r1,
+      speed: 0.12 + 0.13 * r2,
+      baseR: H * (0.048 + 0.032 * r1),
+      growR: H * (0.125 + 0.085 * r2),
+      driftAmp: H * (0.014 + 0.018 * r2),
+      driftFreq: 1.0 + 1.3 * r1,
+      warmth: 0.30 + 0.50 * (1 - r1),
+      wakeW: wakeW,
+      yTail: yTail,
+      wakeH: wakeH
+    });
+  }
+
+  var ribbonCount = 5;
+  for (var k = 0; k < ribbonCount; k++) {
+    var rf = (k + 0.5) / ribbonCount;
+    wakeRibbons.push({
+      yBase: yTail + wakeH * (0.14 + 0.72 * rf),
+      amp: H * (0.015 + 0.014 * (1 - Math.abs(rf - 0.5) * 1.4)),
+      freq: 0.024 + k * 0.004,
+      speed: 1.15 + k * 0.16,
+      phase: k * 1.65,
+      warm: k < 3 ? 0.55 : 0.25
+    });
+  }
+}
+
+function layout() {
+  var _dpr = (typeof dpr !== "undefined") ? dpr : Math.min(window.devicePixelRatio || 1, 2);
+  W = canvas.clientWidth;
+  H = canvas.clientHeight;
+  if (!W || !H) return;
+  canvas.width = Math.round(W * _dpr);
+  canvas.height = Math.round(H * _dpr);
+  ctx.setTransform(_dpr, 0, 0, _dpr, 0, 0);
+  car.x0 = W * CAR.x0;
+  car.x1 = W * CAR.x1;
+  car.ground = H * CAR.ground;
+  car.maxBody = car.ground - carTopY(car.x0 + (car.x1 - car.x0) * 0.55);
+  buildStreamlines();
+  buildWakeField();
+}
+
+function drawTunnelCar() {
+  ctx.fillStyle = "#0b0f17";
+  ctx.fillRect(0, 0, W, H);
+  if (tunnelImg.complete && tunnelImg.naturalWidth) {
+    ctx.drawImage(tunnelImg, 0, 0, W, H);
+  }
+}
+
+function drawWakeZone(t) {
+  var yTail = CAR.roof[CAR.roof.length - 1] * H;
+  var wakeH = Math.max(20, car.ground - yTail);
+  var wakeW = Math.max(40, W - car.x1);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(car.x1 - 2, 0, wakeW + 40, car.ground + 1);
+  ctx.clip();
+
+  var plumeX = car.x1 + wakeW * 0.26;
+  var plumeY = yTail + wakeH * 0.46;
+  var plumeR = Math.max(wakeH * 0.95, wakeW * 0.52);
+  var baseGrad = ctx.createRadialGradient(plumeX, plumeY, 4, plumeX + wakeW * 0.14, plumeY, plumeR);
+  baseGrad.addColorStop(0, "rgba(251, 191, 36, 0.085)");
+  baseGrad.addColorStop(0.45, "rgba(190, 178, 152, 0.045)");
+  baseGrad.addColorStop(1, "rgba(148, 163, 184, 0)");
+  ctx.fillStyle = baseGrad;
+  ctx.beginPath();
+  ctx.arc(plumeX + wakeW * 0.14, plumeY, plumeR, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (var i = 0; i < wakePuffs.length; i++) {
+    var p = wakePuffs[i];
+    var age = (p.phase + t * p.speed) % 1;
+    var px = car.x1 + 6 + age * p.wakeW;
+    var spreadY = (p.yFrac - 0.48) * age * H * 0.14;
+    var py = p.yTail + p.yFrac * p.wakeH + spreadY +
+      Math.sin(t * p.driftFreq + p.phase * 14 + age * 4.5) * p.driftAmp * (0.35 + age);
+    var rad = p.baseR + age * p.growR;
+
+    var env = smoothstep(age / 0.18) * Math.pow(1 - age, 1.45);
+    var alpha = 0.082 * env;
+    if (alpha < 0.002) continue;
+
+    var warmMix = p.warmth * (1 - age * 0.72);
+    var rCol = Math.round(148 + (245 - 148) * warmMix);
+    var gCol = Math.round(163 + (192 - 163) * warmMix);
+    var bCol = Math.round(184 + (72 - 184) * warmMix);
+
+    var g = ctx.createRadialGradient(px, py, 0, px, py, rad);
+    g.addColorStop(0, "rgba(" + rCol + "," + gCol + "," + bCol + "," + alpha.toFixed(3) + ")");
+    g.addColorStop(0.50, "rgba(" + rCol + "," + gCol + "," + bCol + "," + (alpha * 0.38).toFixed(3) + ")");
+    g.addColorStop(1, "rgba(" + rCol + "," + gCol + "," + bCol + ",0)");
+    ctx.fillStyle = g;
     ctx.beginPath();
-    for (var j = a; j < b; j++) {
-      var p = pts[j];
-      var y = p.y;
-      if (p.x >= car.x1) {
-        var wEnv = Math.max(0, Math.min(1, (p.x - car.x1) / 90)) * Math.exp(-Math.max(0, p.x - car.x1 - 120) / 260);
-        y += Math.sin(p.x * 0.045 - tPhase * 2.2) * 3 * wEnv;
-      }
-      if (j === a) ctx.moveTo(p.x, y); else ctx.lineTo(p.x, y);
+    ctx.arc(px, py, rad, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (var k = 0; k < wakeRibbons.length; k++) {
+    var rb = wakeRibbons[k];
+    var steps = 28;
+    ctx.beginPath();
+    for (var j = 0; j <= steps; j++) {
+      var f = j / steps;
+      var rx = car.x1 + f * wakeW;
+      var ry = rb.yBase +
+        Math.sin(rx * rb.freq - t * rb.speed + rb.phase) * rb.amp * (0.20 + f * 1.25) +
+        Math.sin(rx * rb.freq * 1.85 - t * rb.speed * 0.72 + rb.phase * 2.1) * rb.amp * 0.38 * f;
+      if (j === 0) ctx.moveTo(rx, ry);
+      else ctx.lineTo(rx, ry);
     }
-    ctx.strokeStyle = style;
-    ctx.lineWidth = width || 1.1;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
+
+    var wm = rb.warm;
+    var rr = Math.round(156 + (242 - 156) * wm);
+    var gg = Math.round(170 + (190 - 170) * wm);
+    var bb = Math.round(188 + (78 - 188) * wm);
+
+    var rGrad = ctx.createLinearGradient(car.x1, 0, W, 0);
+    rGrad.addColorStop(0, "rgba(" + rr + "," + gg + "," + bb + ",0)");
+    rGrad.addColorStop(0.16, "rgba(" + rr + "," + gg + "," + bb + ",0.068)");
+    rGrad.addColorStop(0.55, "rgba(" + rr + "," + gg + "," + bb + ",0.036)");
+    rGrad.addColorStop(1, "rgba(" + rr + "," + gg + "," + bb + ",0)");
+    ctx.strokeStyle = rGrad;
+    ctx.lineWidth = 11;
+    ctx.stroke();
+
+    var rCore = ctx.createLinearGradient(car.x1, 0, W, 0);
+    rCore.addColorStop(0, "rgba(" + rr + "," + gg + "," + bb + ",0)");
+    rCore.addColorStop(0.14, "rgba(" + rr + "," + gg + "," + bb + ",0.085)");
+    rCore.addColorStop(0.50, "rgba(" + rr + "," + gg + "," + bb + ",0.042)");
+    rCore.addColorStop(1, "rgba(" + rr + "," + gg + "," + bb + ",0)");
+    ctx.strokeStyle = rCore;
+    ctx.lineWidth = 4.2;
     ctx.stroke();
   }
-  /* Blend a streamline colour into amber across the tail, so there is no
-     vertical colour seam where the wake begins */
-  function blendCol(front, t) {
-    var r = Math.round(front[0] + (251 - front[0]) * t);
-    var g = Math.round(front[1] + (191 - front[1]) * t);
-    var b = Math.round(front[2] + (36 - front[2]) * t);
-    return r + "," + g + "," + b;
-  }
-  /* Visible wake vortices: rotating spiral eddies shed directly behind the
-     tail, at tail height, so they read as the wake, not decoration */
-  var tPhase = 0;
-  function drawWakeVortices() {
-    for (var k = 0; k < 3; k++) {
-      var cx = car.x1 + 40 + k * 36;
-      var cy = car.ground - 55 - k * 12 + Math.sin(tPhase * 1.4 + k * 2.1) * 5;
-      ctx.beginPath();
-      for (var a = 0; a <= Math.PI * 6; a += 0.25) {
-        var r = 2 + (a / (Math.PI * 6)) * 18;
-        var px = cx + Math.cos(a + tPhase * 0.9 + k) * r;
-        var py = cy + Math.sin(a + tPhase * 0.9 + k) * r;
-        if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+
+  ctx.restore();
+}
+
+function drawSmokeStreamlines(t) {
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  var stopCount = 26;
+
+  for (var s = 0; s < streamlines.length; s++) {
+    var sl = streamlines[s];
+    var pts = sl.pts;
+    var u = sl.u;
+    var bodyFocus = 0.48 + 0.52 * Math.pow(u, 0.72);
+
+    var haloGrad = ctx.createLinearGradient(0, 0, W, 0);
+    var coreGrad = ctx.createLinearGradient(0, 0, W, 0);
+
+    for (var g = 0; g <= stopCount; g++) {
+      var frac = g / stopCount;
+      var idx = Math.min(pts.length - 1, Math.round(frac * (pts.length - 1)));
+      var pm = pts[idx];
+
+      var w1 = Math.sin(pm.tau * 4.8 - t * 6.4 + sl.phase1);
+      var w2 = Math.sin(pm.tau * 8.6 - t * 9.8 + sl.phase2);
+      var wisp = 0.64 + 0.36 * (0.64 * w1 + 0.36 * w2);
+
+      var roofBoost = clamp01((pm.v - 1.04) / 0.60);
+      var wakeDim = pm.wake;
+
+      var rC = 148 + (228 - 148) * roofBoost;
+      var gC = 202 + (249 - 202) * roofBoost;
+      var bC = 250 + (255 - 250) * roofBoost;
+      if (wakeDim > 0.01) {
+        rC = rC + (226 - rC) * wakeDim * 0.62;
+        gC = gC + (186 - gC) * wakeDim * 0.62;
+        bC = bC + (120 - bC) * wakeDim * 0.72;
       }
-      ctx.strokeStyle = "rgba(251, 191, 36, 0.5)";
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
+      var rgb = Math.round(rC) + "," + Math.round(gC) + "," + Math.round(bC);
+
+      var edgeFade = smoothstep(frac / 0.06) * smoothstep((1 - frac) / 0.07);
+      var hA = (0.062 + 0.115 * roofBoost) * wisp * bodyFocus * edgeFade * (1 - 0.50 * wakeDim);
+      var cA = (0.16 + 0.44 * roofBoost) * wisp * bodyFocus * edgeFade * (1 - 0.68 * wakeDim);
+
+      haloGrad.addColorStop(frac, "rgba(" + rgb + "," + hA.toFixed(3) + ")");
+      coreGrad.addColorStop(frac, "rgba(" + rgb + "," + cA.toFixed(3) + ")");
     }
-  }
-  function drawTunnelCar() {
-    // Pressure stagnation glow at front nose (high Cp = red/amber)
-    var noseGrad = ctx.createRadialGradient(car.x0 + 6, car.ground - 26, 2, car.x0 + 6, car.ground - 26, 54);
-    noseGrad.addColorStop(0, "rgba(239, 68, 68, 0.42)");
-    noseGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.18)");
-    noseGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
-    ctx.fillStyle = noseGrad;
-    ctx.fillRect(0, 0, W, H);
 
-    // Roof suction low-pressure glow (negative Cp = cyan/blue)
-    var roofX = car.x0 + (car.x1 - car.x0) * 0.45;
-    var roofTop = carTopY(roofX);
-    var roofGrad = ctx.createRadialGradient(roofX, roofTop - 6, 4, roofX, roofTop - 6, 80);
-    roofGrad.addColorStop(0, "rgba(6, 182, 212, 0.35)");
-    roofGrad.addColorStop(1, "rgba(37, 99, 235, 0)");
-    ctx.fillStyle = roofGrad;
-    ctx.fillRect(0, 0, W, H);
-
-    // 3D sample car render (2:1, same aspect as the canvas wrap)
-    ctx.fillStyle = "#0b0f17";
-    ctx.fillRect(0, 0, W, H);
-    if (tunnelImg.complete && tunnelImg.naturalWidth) {
-      ctx.drawImage(tunnelImg, 0, 0, W, H);
-    }
-  }
-
-  function stepTunnel() {
-    ctx.clearRect(0, 0, W, H);
-    drawTunnelCar();
-    drawWakeVortices();
-    tPhase += 0.016;
-    for (var s = 0; s < streamlines.length; s++) {
-      var sl = streamlines[s];
-      var pts = sl.pts;
-      var front = sl.overRoof ? [52, 211, 153] : [147, 197, 253];
-      var f0 = "rgba(" + front[0] + "," + front[1] + "," + front[2] + ",0.20)";
-      var a0 = "rgba(251,191,36,0.16)";
-      var grad = ctx.createLinearGradient(-20, 0, W + 20, 0);
-      var s1 = Math.min((car.x1 + 20) / (W + 40), 1);
-      var s2 = Math.min((car.x1 + 70) / (W + 40), 1);
-      grad.addColorStop(0, f0);
-      grad.addColorStop(s1, f0);
-      grad.addColorStop(s2, a0);
-      grad.addColorStop(1, a0);
-      drawPathPart(pts, 0, pts.length, grad, 1.1);
-      for (var m = 0; m < sl.marks.length; m++) {
-        sl.marks[m] += sl.speed;
-        if (sl.marks[m] > pts.length - 7) sl.marks[m] = 0;
-        var i0 = Math.floor(sl.marks[m]);
-        var t = Math.max(0, Math.min(1, (pts[i0].x - car.x1) / 60));
-        var col = blendCol(front, t);
-        drawPathPart(pts, i0, Math.min(i0 + 6, pts.length), "rgba(" + col + ",0.85)", 2);
+    ctx.beginPath();
+    for (var j = 0; j < pts.length; j++) {
+      var p = pts[j];
+      var py = p.y;
+      if (p.wake > 0.004) {
+        var dxW = p.x - car.x1;
+        py += (
+          Math.sin(dxW * 0.038 - t * 2.0 + sl.phase1) * 0.7 +
+          Math.sin(dxW * 0.078 - t * 1.35 + sl.phase2) * 0.3
+        ) * (3.2 + dxW * 0.016) * p.wake;
       }
+      if (j === 0) ctx.moveTo(p.x, py);
+      else ctx.lineTo(p.x, py);
     }
-    if (!reduced) requestAnimationFrame(stepTunnel);
+
+    ctx.strokeStyle = haloGrad;
+    ctx.lineWidth = 4.6 + 1.4 * u;
+    ctx.stroke();
+
+    ctx.strokeStyle = coreGrad;
+    ctx.lineWidth = 1.1 + 0.45 * u;
+    ctx.stroke();
   }
-  layout();
-  stepTunnel();
+}
 
-  var rT;
-  window.addEventListener("resize", function () {
-    clearTimeout(rT);
-    rT = setTimeout(function () {
-      initHeroField();
-      layout();
-      if (reduced) { drawHeroField(); stepTunnel(); }
-    }, 180);
-  });
+function drawRoofOverlay() {
+  if (!showRoofOverlay) return;
+  ctx.save();
+  ctx.strokeStyle = "#f43f5e";
+  ctx.lineWidth = 1.6;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  for (var i = 0; i < CAR.roof.length; i++) {
+    var x = car.x0 + (car.x1 - car.x0) * (i / (CAR.roof.length - 1));
+    var y = CAR.roof[i] * H;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
 
-  
-  if (document.getElementById("s-rw")) {
-/* =====================================================================
-     3. INTERACTIVE SURROGATE SANDBOX (Sliders + Inverse Design)
-     ===================================================================== */
-  var bodyState = "fastback";
-  var sRw = document.getElementById("s-rw");
-  var sDiff = document.getElementById("s-diff");
-  var sWs = document.getElementById("s-ws");
-  var sRoof = document.getElementById("s-roof");
-  var sBump = document.getElementById("s-bump");
+function renderTunnelFrame() {
+  if (!W || !H) return;
+  ctx.clearRect(0, 0, W, H);
+  drawTunnelCar();
+  drawWakeZone(tunnelTime);
+  drawSmokeStreamlines(tunnelTime);
+  drawRoofOverlay();
+}
 
-  // Per-body demo overlay: measured rooflines (viewBox 460x150) from the 3D
-  // sample renders. All three cars were reframed to the same nose/tail/ground
-  // so one overlay geometry fits each. st-2 hugs the roof (offset -5), st-1
-  // rides higher (offset -29), st-3 is the ground line, and the wake ellipse
-  // sits behind the tail, not on the rear wheel.
-  var DEMO_OVERLAY = {
-    fastback: {
-      ground: 145.8, noseX: 53.7, tailX: 339.6,
-      roof: [[53.7,98.6],[68.0,95.9],[82.3,94.0],[96.6,89.4],[110.9,86.7],[125.2,84.4],[139.5,81.7],[153.8,78.3],[168.1,74.8],[182.4,71.0],[196.6,67.5],[210.9,65.6],[225.2,65.2],[239.5,66.0],[253.8,67.5],[268.1,69.4],[282.4,72.5],[296.7,75.6],[311.0,83.6],[325.3,86.7],[339.6,90.2]]
-    },
-    notchback: {
-      ground: 146.9, noseX: 53.3, tailX: 338.1,
-      roof: [[53.3,94.0],[67.5,90.5],[81.8,88.2],[96.0,82.1],[110.2,79.0],[124.5,75.6],[138.7,71.4],[153.0,66.4],[167.2,61.8],[181.5,57.2],[195.7,54.5],[209.9,53.3],[224.2,53.3],[238.4,54.5],[252.7,56.4],[266.9,59.8],[281.1,63.7],[295.4,67.5],[309.6,77.1],[323.9,80.6],[338.1,84.4]]
-    },
-    estateback: {
-      ground: 146.5, noseX: 56.4, tailX: 341.2,
-      roof: [[56.4,94.0],[70.6,91.3],[84.8,89.0],[99.1,83.6],[113.3,80.9],[127.6,77.5],[141.8,73.3],[156.0,68.3],[170.3,62.9],[184.5,57.9],[198.8,54.5],[213.0,52.2],[227.2,51.4],[241.5,51.4],[255.7,51.4],[270.0,52.6],[284.2,53.7],[298.4,58.7],[312.7,69.8],[326.9,74.4],[341.2,80.6]]
+function stepTunnel(now) {
+  tunnelRafId = 0;
+  var isReduced = (typeof reduced !== "undefined") && reduced;
+  if (typeof now === "number") {
+    if (!tunnelLastMs) tunnelLastMs = now;
+    var dt = Math.min(Math.max(0, (now - tunnelLastMs) / 1000), 1 / 30);
+    tunnelLastMs = now;
+    if (!isReduced) tunnelTime += dt;
+  }
+  renderTunnelFrame();
+  if (!isReduced && tunnelVisible) {
+    tunnelRafId = requestAnimationFrame(stepTunnel);
+  }
+}
+
+layout();
+stepTunnel();
+
+if (typeof IntersectionObserver !== "undefined") {
+  var tunnelObserver = new IntersectionObserver(function (entries) {
+    tunnelVisible = entries[0] && entries[0].isIntersecting;
+    var isReduced = (typeof reduced !== "undefined") && reduced;
+    if (tunnelVisible && !isReduced && !tunnelRafId) {
+      tunnelLastMs = 0;
+      tunnelRafId = requestAnimationFrame(stepTunnel);
     }
-  };
+  }, { threshold: 0.05 });
+  tunnelObserver.observe(canvas);
+}
 
-  function demoStreamline(roof, offset) {
-    // Polyline through the measured roofline, offset upward, with an upstream
-    // approach and a downstream wake run so the line reads as one smooth flow.
-    var pts = [];
-    var y0 = roof[0][1] + offset;
-    var yT = roof[roof.length - 1][1] + offset;
-    pts.push([8, y0 + 16]);
-    pts.push([roof[0][0] - 22, y0 + 5]);
-    for (var i = 0; i < roof.length; i++) pts.push([roof[i][0], roof[i][1] + offset]);
-    pts.push([roof[roof.length - 1][0] + 42, yT + 7]);
-    pts.push([452, yT + 13]);
-    return pts.map(function (p, i) { return (i === 0 ? "M " : "L ") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
-  }
 
-  function applyDemoOverlay(body) {
-    var ov = DEMO_OVERLAY[body] || DEMO_OVERLAY.fastback;
-    document.getElementById("st-2").setAttribute("d", demoStreamline(ov.roof, -5));
-    document.getElementById("st-1").setAttribute("d", demoStreamline(ov.roof, -14));
-    document.getElementById("st-3").setAttribute("d", "M 8 " + ov.ground.toFixed(1) + " L 452 " + ov.ground.toFixed(1));
-    var tailRoofY = ov.roof[ov.roof.length - 1][1];
-    var wake = document.getElementById("demo-wake");
-    wake.setAttribute("cy", ((tailRoofY + ov.ground) / 2).toFixed(1));
-  }
+var rT;
+window.addEventListener("resize", function () {
+  clearTimeout(rT);
+  rT = setTimeout(function () {
+    initHeroField();
+    layout();
+    if (reduced) { drawHeroField(); renderTunnelFrame(); }
+  }, 180);
+});
 
-  function evalSurrogate() {
-    var rw = parseFloat(sRw.value);
-    var diff = parseFloat(sDiff.value);
-    var ws = parseFloat(sWs.value);
-    var roof = parseFloat(sRoof.value);
-    var bump = parseFloat(sBump.value);
-
-    document.getElementById("o-rw").textContent = rw.toFixed(1) + "°";
-    document.getElementById("o-diff").textContent = diff.toFixed(1) + "°";
-    document.getElementById("o-ws").textContent = ws.toFixed(1) + "°";
-    document.getElementById("o-roof").textContent = roof.toFixed(0) + " mm";
-    document.getElementById("o-bump").textContent = bump.toFixed(2);
-
-    // Physics-informed response surface calibrated to DrivAerNet++ range (Cd ~0.235 - 0.315)
-    var baseCd = bodyState === "fastback" ? 0.258 : (bodyState === "notchback" ? 0.271 : 0.296);
-    var rwSensitivity = bodyState === "estateback" ? 0.00018 : 0.00115;
-    // Fastback critical slant angle penalty around ~28-32 deg (Ahmed-body vortex regime)
-    var rwEffect = (rw - 21) * rwSensitivity + (bodyState === "fastback" && rw > 27 ? Math.pow(rw - 27, 1.5) * 0.0012 : 0);
-    // Optimal diffuser around 9-11 deg
-    var diffEffect = Math.pow(diff - 10.0, 2) * 0.00022 - 0.003;
-    var wsEffect = (30 - ws) * 0.00065;
-    var roofEffect = (roof - 1400) * 0.00009;
-    var bumpEffect = -Math.sin(bump * Math.PI * 0.75) * 0.0055;
-
-    var cd = Math.max(0.228, Math.min(0.328, baseCd + rwEffect + diffEffect + wsEffect + roofEffect + bumpEffect));
-    var area = 2.12 + (roof - 1340) * 0.00095;
-    var cda = cd * area;
-    var cl = 0.095 - (diff * 0.0042) + (rw - 22) * 0.0021;
-
-    // 75 kWh EV at 110 km/h (30.56 m/s), rho = 1.225 kg/m3
-    var v = 30.556;
-    var aeroPowerKw = (0.5 * 1.225 * cda * Math.pow(v, 3)) / 1000;
-    var refCda = 0.285 * 2.21;
-    var deltaCda = refCda - cda;
-    var rangeDeltaKm = deltaCda * 215; // ~21.5 km per 0.10 m2 CdA reduction on highway cycle
-
-    document.getElementById("r-cd").textContent = cd.toFixed(3);
-    document.getElementById("r-cl").textContent = cl.toFixed(3);
-    document.getElementById("r-area").textContent = "Frontal area A = " + area.toFixed(2) + " m²";
-    var sign = rangeDeltaKm >= 0 ? "+" : "";
-    var rEl = document.getElementById("r-range");
-    rEl.textContent = sign + rangeDeltaKm.toFixed(1) + " km";
-    rEl.className = "rv " + (rangeDeltaKm >= 0 ? "green" : "");
-    document.getElementById("r-power").textContent = aeroPowerKw.toFixed(1) + " kW";
-    document.getElementById("stage-body-lbl").textContent = "PROFILE · " + bodyState.toUpperCase();
-    document.getElementById("stage-cda-lbl").textContent = "Cd·A = " + cda.toFixed(3) + " m²";
-    document.getElementById("hud-cd").innerHTML = cd.toFixed(3) + " <small>±0.025</small>";
-
-    // Swap the 3D sample car render for the selected body type, and swap the
-    // overlay streamlines + wake to that body's measured roofline
-    var demoImg = document.getElementById("demo-car-img");
-    demoImg.src = "demo-" + bodyState + ".jpg";
-    demoImg.alt = "3D sample " + bodyState + " side profile";
-    applyDemoOverlay(bodyState);
-    var wakeRx = Math.max(28, (cd - 0.22) * 600);
-    // Wake sits clear behind the tail: its left edge is tailX + 10, so a big
-    // Cd (estateback) pushes the whole ellipse back instead of over the bumper
-    var ov = DEMO_OVERLAY[bodyState] || DEMO_OVERLAY.fastback;
-    var wakeEl = document.getElementById("demo-wake");
-    wakeEl.setAttribute("rx", wakeRx.toFixed(1));
-    wakeEl.setAttribute("cx", (ov.tailX + wakeRx + 10).toFixed(1));
-  }
-
-  [sRw, sDiff, sWs, sRoof, sBump].forEach(function (el) {
-    el.addEventListener("input", function () {
-      document.getElementById("r-status").textContent = "Custom geometry";
-      evalSurrogate();
-    });
-  });
-
-  document.querySelectorAll(".body-pills button").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      document.querySelectorAll(".body-pills button").forEach(function (b) {
-        b.classList.remove("active");
-        b.setAttribute("aria-selected", "false");
-      });
-      btn.classList.add("active");
-      btn.setAttribute("aria-selected", "true");
-      bodyState = btn.getAttribute("data-body");
-      document.getElementById("hud-wake").innerHTML =
-        bodyState.charAt(0).toUpperCase() + bodyState.slice(1) +
-        (bodyState === "estateback" ? " <small>blunt wake</small>" : " <small>attached</small>");
-      evalSurrogate();
-    });
-  });
-
-  // Animated Optuna inverse-design search
-  document.getElementById("btn-opt").addEventListener("click", function () {
-    var targets = { rw: 18.5, diff: 10.5, ws: 34.5, roof: 1365, bump: 0.75 };
-    var start = {
-      rw: parseFloat(sRw.value), diff: parseFloat(sDiff.value),
-      ws: parseFloat(sWs.value), roof: parseFloat(sRoof.value), bump: parseFloat(sBump.value)
-    };
-    var t0 = null, dur = 650;
-    document.getElementById("r-status").textContent = "Optuna TPE: optimizing...";
-    function anim(ts) {
-      if (!t0) t0 = ts;
-      var p = Math.min(1, (ts - t0) / dur);
-      var e = 1 - Math.pow(1 - p, 3);
-      sRw.value = (start.rw + (targets.rw - start.rw) * e).toFixed(1);
-      sDiff.value = (start.diff + (targets.diff - start.diff) * e).toFixed(1);
-      sWs.value = (start.ws + (targets.ws - start.ws) * e).toFixed(1);
-      sRoof.value = Math.round(start.roof + (targets.roof - start.roof) * e);
-      sBump.value = (start.bump + (targets.bump - start.bump) * e).toFixed(2);
-      evalSurrogate();
-      if (p < 1) requestAnimationFrame(anim);
-      else document.getElementById("r-status").textContent = "Optuna optimum (cabin constrained)";
-    }
-    requestAnimationFrame(anim);
-  });
-
-  document.getElementById("btn-reset").addEventListener("click", function () {
-    sRw.value = 24; sDiff.value = 9.5; sWs.value = 28; sRoof.value = 1420; sBump.value = 0.55;
-    document.getElementById("r-status").textContent = "Baseline geometry";
-    evalSurrogate();
-  });
-
-  }
-
-  evalSurrogate();
 })();
 </script>
 </body>
