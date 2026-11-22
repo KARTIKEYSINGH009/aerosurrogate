@@ -1724,17 +1724,34 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   }
   function makeParticle(anywhere) {
     return {
-      x: anywhere ? Math.random() * W : -20,
-      y: 18 + Math.random() * (H * 0.72),
+      x: anywhere ? Math.random() * W : -70,
+      y: 10 + Math.random() * (H * 0.78),
       v: 1.4 + Math.random() * 1.6,
-      size: 1.1 + Math.random() * 1.1,
+      size: 1 + Math.random() * 1.1,
       wob: Math.random() * Math.PI * 2,
-      wake: 0
+      wake: 0,
+      hist: []
     };
   }
   function initParticles() {
     particles = [];
-    for (var i = 0; i < 110; i++) particles.push(makeParticle(true));
+    for (var i = 0; i < 150; i++) particles.push(makeParticle(true));
+  }
+
+  /* Wake vortices: spinning eddies shed behind the tail */
+  function vortexPush(p) {
+    for (var k = 0; k < 3; k++) {
+      var vx = car.x1 + 46 + k * 52;
+      var vy = car.ground - 34 - k * 10 + Math.sin(hPhase * 1.4 + k * 2.1) * 6;
+      var dx = p.x - vx, dy = p.y - vy;
+      var d2 = dx * dx + dy * dy, r = 30;
+      if (d2 < r * r && d2 > 4) {
+        var d = Math.sqrt(d2);
+        var swirl = (1 - d / r) * 1.6 * (k % 2 === 0 ? 1 : -1);
+        p.x += (-dy / d) * swirl;
+        p.y += (dx / d) * swirl;
+      }
+    }
   }
   function drawTunnelCar() {
     // Pressure stagnation glow at front nose (high Cp = red/amber)
@@ -1777,25 +1794,35 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
         p.wake = Math.min(p.wake + 0.05, 1);
         p.y += Math.sin(p.wob * 3.6) * 1.4 * p.wake + (Math.random() - 0.5) * 1.1 * p.wake;
         localSpeed *= 0.72;
+        vortexPush(p);
       } else {
         p.wake = Math.max(p.wake - 0.02, 0);
         p.y += Math.sin(p.wob) * 0.18;
+        // Ground boundary layer: slow air hugging the floor
+        if (p.y > car.ground - 14) localSpeed *= 0.62;
       }
       p.x += localSpeed;
       p.wob += 0.04;
+      p.hist.push({ x: p.x, y: p.y });
+      if (p.hist.length > 14) p.hist.shift();
       if (p.x > W + 24 || p.y > H || p.y < 0) { particles[i] = makeParticle(false); continue; }
 
+      var col;
+      if (p.wake > 0.35) col = "251, 191, 36"; // turbulent wake amber
+      else if (localSpeed > p.v * 1.2) col = "52, 211, 153"; // high velocity over roof
+      else col = "147, 197, 253"; // freestream blue
+      // Continuous wind trail: gradient from faded tail to bright head
+      var h0 = p.hist[0], h1 = p.hist[p.hist.length - 1];
+      var grad = ctx.createLinearGradient(h0.x, h0.y, h1.x, h1.y);
+      grad.addColorStop(0, "rgba(" + col + ", 0)");
+      grad.addColorStop(1, "rgba(" + col + ", 0.75)");
       ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x - localSpeed * 8.5, p.y);
-      if (p.wake > 0.35) {
-        ctx.strokeStyle = "rgba(251, 191, 36, 0.65)"; // turbulent wake amber
-      } else if (localSpeed > p.v * 1.2) {
-        ctx.strokeStyle = "rgba(52, 211, 153, 0.75)"; // high velocity over roof
-      } else {
-        ctx.strokeStyle = "rgba(147, 197, 253, 0.52)"; // freestream blue
-      }
+      ctx.moveTo(h0.x, h0.y);
+      for (var j = 1; j < p.hist.length; j++) ctx.lineTo(p.hist[j].x, p.hist[j].y);
+      ctx.strokeStyle = grad;
       ctx.lineWidth = p.size;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
       ctx.stroke();
     }
     if (!reduced) requestAnimationFrame(stepTunnel);
