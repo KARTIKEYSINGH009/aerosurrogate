@@ -93,7 +93,7 @@
   #airflow { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .hero-fade {
     position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(180deg, rgba(8,9,11,0.6) 0%, rgba(8,9,11,0) 28%, rgba(8,9,11,0) 58%, rgba(8,9,11,0.95) 90%);
+    background: linear-gradient(180deg, rgba(8,9,11,0.6) 0%, rgba(8,9,11,0) 25%, rgba(8,9,11,0) 62%, rgba(8,9,11,0.55) 82%, rgba(8,9,11,0.92) 100%);
   }
   .hero-content { position: relative; z-index: 2; padding-bottom: 56px; }
   .eyebrow {
@@ -281,9 +281,9 @@
   @media (max-width: 760px) { .body-grid { grid-template-columns: 1fr; } }
   .body-card { background: var(--surface); padding: 32px; transition: background 0.3s ease; }
   .body-card:hover { background: var(--surface-2); }
-  .body-card svg { width: 100%; height: 56px; display: block; margin-bottom: 22px; }
+  .body-card svg { width: 100%; height: 64px; display: block; margin-bottom: 22px; }
   .body-card h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
-  .body-card .count { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 3px; }
+  .body-card .bcount { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 3px; }
   .body-card .r2 { font-size: 36px; font-weight: 600; letter-spacing: -0.03em; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
   .body-card .r2 small { font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
   .body-card .r2.good { color: var(--green); }
@@ -315,9 +315,9 @@
 
   /* ---------- roadmap ---------- */
   .steps { list-style: none; margin-top: 56px; position: relative; }
-  .steps::before { content: ""; position: absolute; left: 7px; top: 10px; bottom: 10px; width: 1px; background: var(--line); }
+  .steps::before { content: ""; position: absolute; left: 11px; top: 10px; bottom: 10px; width: 1px; background: var(--line); }
   .steps .fill {
-    position: absolute; left: 7px; top: 10px; width: 1px; height: 0;
+    position: absolute; left: 11px; top: 10px; width: 1px; height: 0;
     background: var(--accent);
     transition: height 1.8s var(--ease);
   }
@@ -530,25 +530,25 @@
 
     <div class="body-grid">
       <div class="body-card reveal">
-        <svg viewBox="0 0 200 56" aria-hidden="true"><path d="M8 46 Q40 44 62 38 Q92 10 128 12 Q168 14 192 34 Q196 40 192 46 Z" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.25"/><circle cx="52" cy="46" r="7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.25"/><circle cx="152" cy="46" r="7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.25"/></svg>
+        <svg viewBox="0 0 220 64" aria-hidden="true"><path d="M10 54 L12 46 Q24 41 38 39 L62 37 Q74 26 88 18 Q104 12 124 13 Q140 14 150 19 Q172 29 190 37 L204 41 L206 54 Z" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.55)" stroke-width="1.25"/><path d="M68 36 L90 20 Q104 14 122 15 Q136 16 144 20 L134 36 Z" fill="rgba(138,180,255,0.07)" stroke="rgba(138,180,255,0.4)" stroke-width="1"/><circle cx="56" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="56" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><circle cx="158" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="158" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/></svg>
         <h3>Fastback</h3>
-        <div class="count">177 designs in val</div>
+        <div class="bcount">177 designs in val</div>
         <div class="r2 good">0.67 <small>R&sup2;</small></div>
         <div class="mini-bar"><i class="good" data-w="67"></i></div>
         <p>Sloping rear window, separation point moves with the angles. Geometry explains most of the drag.</p>
       </div>
       <div class="body-card reveal d1">
-        <svg viewBox="0 0 200 56" aria-hidden="true"><path d="M8 46 Q40 44 60 40 Q88 8 122 10 Q158 12 168 28 L192 34 Q196 40 192 46 Z" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.25"/><circle cx="52" cy="46" r="7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.25"/><circle cx="152" cy="46" r="7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.25"/></svg>
+        <svg viewBox="0 0 220 64" aria-hidden="true"><path d="M10 54 L12 46 Q24 41 38 39 L62 37 Q74 26 88 18 Q104 12 124 13 L138 15 Q148 19 152 29 L156 33 L192 35 L204 39 L206 54 Z" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.55)" stroke-width="1.25"/><path d="M68 36 L90 20 Q104 14 122 15 L136 17 L132 36 Z" fill="rgba(138,180,255,0.07)" stroke="rgba(138,180,255,0.4)" stroke-width="1"/><circle cx="56" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="56" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><circle cx="158" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="158" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/></svg>
         <h3>Notchback</h3>
-        <div class="count">163 designs in val</div>
+        <div class="bcount">163 designs in val</div>
         <div class="r2 good">0.60 <small>R&sup2;</small></div>
         <div class="mini-bar"><i class="good" data-w="60"></i></div>
         <p>Distinct boot lid, trunk and rear-window angles still steer the wake. Solid, not great.</p>
       </div>
       <div class="body-card reveal d2">
-        <svg viewBox="0 0 200 56" aria-hidden="true"><path d="M8 46 Q40 44 62 38 Q96 8 150 8 L192 10 L192 46 Z" fill="none" stroke="rgba(232,179,75,0.8)" stroke-width="1.25"/><circle cx="52" cy="46" r="7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.25"/><circle cx="152" cy="46" r="7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.25"/></svg>
+        <svg viewBox="0 0 220 64" aria-hidden="true"><path d="M10 54 L12 46 Q24 41 38 39 L62 37 Q74 26 88 18 Q104 12 124 13 L196 13 L206 17 L206 54 Z" fill="rgba(255,255,255,0.02)" stroke="rgba(232,179,75,0.85)" stroke-width="1.25"/><path d="M68 36 L90 20 Q104 14 122 15 L196 15 L196 36 Z" fill="rgba(138,180,255,0.07)" stroke="rgba(138,180,255,0.4)" stroke-width="1"/><circle cx="56" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="56" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><circle cx="158" cy="54" r="8" fill="#0b0d10" stroke="rgba(255,255,255,0.4)" stroke-width="1.25"/><circle cx="158" cy="54" r="2.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/></svg>
         <h3>Estateback</h3>
-        <div class="count">215 designs in val</div>
+        <div class="bcount">215 designs in val</div>
         <div class="r2 warn">0.17 <small>R&sup2;</small></div>
         <div class="mini-bar"><i class="warn" data-w="17"></i></div>
         <p>Blunt squared tail. Wake separation barely responds to the parameters, so the model has almost nothing to learn from. The fix is body-type stratified trees or explicit estateback interaction terms.</p>
@@ -684,6 +684,7 @@ python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval
 
   /* ----- count-up numbers ----- */
   function countUp(el) {
+    if (!el.hasAttribute("data-target")) return;
     var target = parseFloat(el.getAttribute("data-target"));
     var dec = parseInt(el.getAttribute("data-decimals") || "0", 10);
     if (reduced) { el.textContent = target.toFixed(dec); return; }
@@ -798,88 +799,184 @@ python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval
   var particles = [];
   var car = { x0: 0, x1: 0, ground: 0 };
 
-  function roofY(x) {
-    var t = (x - car.x0) / (car.x1 - car.x0);
-    if (t < 0 || t > 1) return 0;
-    return Math.sin(Math.PI * Math.pow(t, 0.85)) * 0.62 + Math.sin(Math.PI * t) * 0.38;
+  // fastback side profile: [fraction of length, fraction of height above ground]
+  var UP = [
+    [0.00, 0.14], [0.04, 0.28], [0.13, 0.38], [0.23, 0.42],
+    [0.32, 0.76], [0.43, 0.93], [0.57, 1.00], [0.69, 0.92],
+    [0.81, 0.56], [0.89, 0.48], [0.96, 0.42], [1.00, 0.28]
+  ];
+  var WHEELS = [0.24, 0.74];
+  var WHEEL_R = 0.055; // fraction of car length
+  var profile = [];
+  var time = 0;
+
+  function catmull(pts, samples) {
+    var out = [];
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+      for (var j = 0; j < samples; j++) {
+        var t = j / samples, t2 = t * t, t3 = t2 * t;
+        out.push([
+          0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+          0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)
+        ]);
+      }
+    }
+    out.push(pts[pts.length - 1].slice());
+    return out;
   }
   function layout() {
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    car.x0 = W * 0.20; car.x1 = W * 0.80;
-    car.ground = H * 0.87;
+    if (W < 760) { car.x0 = W * 0.06; car.x1 = W * 0.94; car.ground = H * 0.93; }
+    else { car.x0 = W * 0.48; car.x1 = W * 0.88; car.ground = H * 0.84; }
+    car.h = (car.x1 - car.x0) / 3.15;
+    profile = catmull(UP, 8).map(function (p) {
+      return { x: car.x0 + p[0] * (car.x1 - car.x0), y: car.ground - p[1] * car.h };
+    });
   }
-  function carTopY(x) {
-    return car.ground - 12 - roofY(x) * H * 0.28;
+  function topY(x) {
+    if (x <= profile[0].x) return profile[0].y;
+    var last = profile[profile.length - 1];
+    if (x >= last.x) return last.y;
+    for (var i = 0; i < profile.length - 1; i++) {
+      if (x >= profile[i].x && x <= profile[i + 1].x) {
+        var t = (x - profile[i].x) / (profile[i + 1].x - profile[i].x);
+        return profile[i].y + (profile[i + 1].y - profile[i].y) * t;
+      }
+    }
+    return last.y;
+  }
+  function floorY(x) {
+    for (var i = 0; i < WHEELS.length; i++) {
+      var wx = car.x0 + WHEELS[i] * (car.x1 - car.x0);
+      var r = WHEEL_R * (car.x1 - car.x0);
+      var dx = x - wx;
+      if (Math.abs(dx) < r) return car.ground - Math.sqrt(r * r - dx * dx) * 0.95;
+    }
+    return car.ground;
   }
   function makeParticle(anywhere) {
     return {
       x: anywhere ? Math.random() * W : -24,
-      y: Math.random() * H * 0.8,
+      y: Math.random() * (car.ground - 24),
       v: 0.55 + Math.random() * 0.9,
-      size: 0.6 + Math.random() * 0.8,
-      alpha: 0.08 + Math.random() * 0.16,
+      size: 0.6 + Math.random() * 0.9,
+      alpha: 0.10 + Math.random() * 0.18,
       wob: Math.random() * Math.PI * 2,
       wake: 0
     };
   }
   function initParticles() {
     particles = [];
-    var n = Math.min(120, Math.floor(W / 9));
+    var n = Math.min(150, Math.floor(W / 8));
     for (var i = 0; i < n; i++) particles.push(makeParticle(true));
   }
   function drawCar() {
+    var i, x;
     ctx.beginPath();
-    ctx.moveTo(car.x0 - 34, car.ground);
-    var steps = 56;
-    for (var i = 0; i <= steps; i++) {
-      var x = car.x0 + (car.x1 - car.x0) * (i / steps);
-      ctx.lineTo(x, carTopY(x));
+    ctx.moveTo(car.x0, car.ground);
+    for (i = 0; i < profile.length; i++) ctx.lineTo(profile[i].x, profile[i].y);
+    ctx.lineTo(car.x1, car.ground);
+    var steps = 72;
+    for (i = steps; i >= 0; i--) {
+      x = car.x0 + (car.x1 - car.x0) * (i / steps);
+      ctx.lineTo(x, floorY(x));
     }
-    ctx.lineTo(car.x1 + 34, car.ground);
     ctx.closePath();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.025)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
     ctx.fill();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1.25;
     ctx.stroke();
-    [[0.30], [0.72]].forEach(function (w) {
-      var wx = car.x0 + (car.x1 - car.x0) * w[0];
+    // glasshouse: a thin band under the roofline
+    var glass = profile.filter(function (p) {
+      var t = (p.x - car.x0) / (car.x1 - car.x0);
+      return t >= 0.30 && t <= 0.72;
+    });
+    if (glass.length) {
       ctx.beginPath();
-      ctx.arc(wx, car.ground - 3, W * 0.024, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
+      ctx.moveTo(glass[0].x, glass[0].y + 14);
+      glass.forEach(function (p) { ctx.lineTo(p.x, p.y + 14); });
+      ctx.strokeStyle = "rgba(138, 180, 255, 0.35)";
       ctx.lineWidth = 1;
       ctx.stroke();
-    });
+    }
+    // wheels
+    for (i = 0; i < WHEELS.length; i++) {
+      var wx = car.x0 + WHEELS[i] * (car.x1 - car.x0);
+      var r = WHEEL_R * (car.x1 - car.x0) * 0.82;
+      ctx.beginPath();
+      ctx.arc(wx, car.ground - 2, r, 0, Math.PI * 2);
+      ctx.fillStyle = "#0b0d10";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.lineWidth = 1.25;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(wx, car.ground - 2, r * 0.32, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // ground line
     ctx.beginPath();
-    ctx.moveTo(0, car.ground + 9);
-    ctx.lineTo(W, car.ground + 9);
+    ctx.moveTo(0, car.ground + 10);
+    ctx.lineTo(W, car.ground + 10);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
     ctx.lineWidth = 1;
     ctx.stroke();
   }
   function step() {
+    time += 1;
     ctx.clearRect(0, 0, W, H);
+    // laminar guide lines above the car
+    ctx.save();
+    ctx.setLineDash([2, 16]);
+    ctx.lineDashOffset = -time * 0.9;
+    ctx.strokeStyle = "rgba(178, 198, 255, 0.10)";
+    ctx.lineWidth = 1;
+    [0.10, 0.17, 0.24, 0.31].forEach(function (f) {
+      ctx.beginPath();
+      ctx.moveTo(0, H * f);
+      ctx.lineTo(W, H * f);
+      ctx.stroke();
+    });
+    ctx.restore();
     drawCar();
+    // wake vortices behind the tail
+    var tailX = car.x1, tailY = car.ground - car.h * 0.42;
+    for (var v = 0; v < 3; v++) {
+      var vx = tailX + 24 + v * 28;
+      var vy = tailY - v * 10 + Math.sin(time * 0.02 + v * 2) * 4;
+      var vr = 9 + v * 5;
+      ctx.beginPath();
+      ctx.arc(vx, vy, vr, time * 0.02 + v, time * 0.02 + v + Math.PI * 1.25);
+      ctx.strokeStyle = "rgba(178, 198, 255, " + (0.14 - v * 0.03) + ")";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
-      p.x += p.v;
+      var overCar = p.x > car.x0 - 30 && p.x < car.x1;
+      p.x += p.v * (overCar ? 1.3 : 1);
       p.wob += 0.012;
-      var top = carTopY(p.x);
-      if (p.x > car.x0 - 44 && p.x < car.x1 + 10 && p.y > top - 5 && p.y < car.ground) {
-        p.y = top - 5 - Math.sin(p.wob) * 1.5;
-      } else if (p.x >= car.x1 + 10 && p.x < car.x1 + W * 0.2) {
+      var top = topY(p.x);
+      if (p.x > car.x0 - 30 && p.x < car.x1 + 8 && p.y > top - 4 && p.y < car.ground) {
+        p.y = top - 4 - Math.sin(p.wob) * 1.5;
+      } else if (p.x >= car.x1 + 8 && p.x < car.x1 + W * 0.12) {
         p.wake = Math.min(p.wake + 0.04, 1);
-        p.y += Math.sin(p.wob * 3) * 0.9 * p.wake + (Math.random() - 0.5) * 0.8 * p.wake;
+        p.y += Math.sin(p.wob * 2.5) * 1.1 * p.wake + (Math.random() - 0.5) * 0.9 * p.wake;
+        p.x -= p.v * 0.45;
       } else {
         p.wake = Math.max(p.wake - 0.015, 0);
         p.y += Math.sin(p.wob) * 0.15;
       }
-      if (p.x > W + 24 || p.y > H) { particles[i] = makeParticle(false); continue; }
+      if (p.x > W + 24 || p.y > H || p.y < 0) { particles[i] = makeParticle(false); continue; }
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x - p.v * 9, p.y);
+      ctx.lineTo(p.x - p.v * 10, p.y);
       ctx.strokeStyle = "rgba(178, 198, 255, " + p.alpha + ")";
       ctx.lineWidth = p.size;
       ctx.stroke();
