@@ -3,169 +3,471 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AeroSurrogate — Car aerodynamics in milliseconds, not hours</title>
+<title>AeroSurrogate: Car aerodynamics in milliseconds, not hours</title>
 <meta name="description" content="A physics-informed ML surrogate that predicts a car's drag, lift and EV highway range from geometry in under 2 ms, replacing hours of CFD.">
 <style>
   :root {
-    --bg: #0c0e12;
-    --surface: #14171d;
-    --surface-2: #1a1e26;
-    --border: #262c38;
-    --text: #e8eaed;
-    --muted: #9aa3af;
+    --bg: #0a0c10;
+    --bg-2: #0d1015;
+    --surface: #12161d;
+    --surface-2: #171c25;
+    --border: #232a36;
+    --border-soft: #1a2029;
+    --text: #eef1f4;
+    --muted: #98a2b0;
+    --faint: #6b7684;
     --accent: #d4a437;
+    --accent-2: #f0c75e;
     --accent-soft: rgba(212, 164, 55, 0.12);
     --green: #4ade80;
     --amber: #fbbf24;
     --red: #f87171;
+    --blue: #6ea8fe;
     --mono: "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
   body {
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
-  header { padding: 72px 0 8px; }
+  ::selection { background: rgba(212, 164, 55, 0.35); }
+
+  /* ---------- nav ---------- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background: rgba(10, 12, 16, 0.72);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .nav-inner {
+    max-width: 1120px; margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; gap: 28px;
+  }
+  .logo { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .logo:hover { text-decoration: none; }
+  .nav-links { display: flex; gap: 22px; margin-left: auto; font-size: 14px; }
+  .nav-links a { color: var(--muted); }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  .nav-cta {
+    font-size: 13.5px; font-weight: 600; color: #14100a !important;
+    background: var(--accent); padding: 8px 16px; border-radius: 8px;
+  }
+  .nav-cta:hover { filter: brightness(1.1); text-decoration: none; }
+  @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative; min-height: 100vh; min-height: 100svh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 120px 0 0; overflow: hidden;
+  }
+  #airflow {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    display: block;
+  }
+  .hero-fade {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(10,12,16,0.55) 0%, rgba(10,12,16,0) 30%, rgba(10,12,16,0) 55%, rgba(10,12,16,0.92) 88%),
+      radial-gradient(ellipse 90% 55% at 50% 108%, rgba(212,164,55,0.16), rgba(10,12,16,0) 60%);
+  }
+  .hero-content { position: relative; z-index: 2; padding-bottom: 64px; }
   .eyebrow {
-    font-family: var(--mono); font-size: 13px; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 10px;
   }
-  h1 { font-size: 52px; line-height: 1.05; letter-spacing: -0.02em; font-weight: 700; }
-  h1 .thin { color: var(--muted); font-weight: 400; }
-  .lede { font-size: 19px; color: var(--muted); margin-top: 20px; max-width: 640px; }
-  .lede strong { color: var(--text); font-weight: 600; }
-  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+  .eyebrow::before {
+    content: ""; width: 28px; height: 1px; background: var(--accent);
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: clamp(46px, 8.2vw, 96px); line-height: 0.98;
+    letter-spacing: -0.035em; font-weight: 800; max-width: 900px;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(92deg, var(--accent-2) 0%, var(--accent) 45%, #b9821f 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero h1 .thin { color: var(--muted); font-weight: 300; }
+  .hero .lede {
+    font-size: clamp(17px, 2vw, 21px); color: var(--muted);
+    margin-top: 24px; max-width: 640px;
+  }
+  .hero .lede strong { color: var(--text); font-weight: 600; }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 34px; }
   .btn {
-    display: inline-block; padding: 12px 22px; border-radius: 8px;
-    font-weight: 600; font-size: 15px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--text);
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 24px; border-radius: 10px; font-weight: 600; font-size: 15px;
+    border: 1px solid var(--border); background: rgba(18, 22, 29, 0.85);
+    color: var(--text); transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  .btn:hover { text-decoration: none; border-color: var(--accent); }
+  .btn:hover { text-decoration: none; border-color: var(--accent); transform: translateY(-2px); }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #14100a; }
-  .btn.primary:hover { filter: brightness(1.08); }
-  .stat-strip {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
-    background: var(--border); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden; margin: 56px 0 8px;
+  .btn.primary:hover { filter: brightness(1.08); box-shadow: 0 8px 28px rgba(212, 164, 55, 0.35); }
+  .btn .arrow { transition: transform 0.2s ease; }
+  .btn:hover .arrow { transform: translateX(3px); }
+
+  .hero-stats {
+    position: relative; z-index: 2;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    margin-top: 56px;
   }
-  .stat { background: var(--surface); padding: 20px 18px; }
-  .stat .num { font-family: var(--mono); font-size: 26px; font-weight: 700; }
-  .stat .num .unit { font-size: 14px; color: var(--muted); font-weight: 400; }
-  .stat .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .stat .tag { font-size: 11px; font-family: var(--mono); margin-top: 8px; display: inline-block; padding: 2px 8px; border-radius: 20px; }
-  .tag.met { background: rgba(74, 222, 128, 0.12); color: var(--green); }
-  .tag.gap { background: rgba(251, 191, 36, 0.12); color: var(--amber); }
-  section { padding: 48px 0; border-top: 1px solid var(--border); }
-  h2 { font-size: 26px; letter-spacing: -0.01em; margin-bottom: 8px; }
-  .sub { color: var(--muted); margin-bottom: 28px; max-width: 640px; }
-  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
-  .card h3 { font-size: 17px; margin-bottom: 6px; }
-  .card h3 .k { font-family: var(--mono); font-size: 12px; color: var(--accent); display: block; margin-bottom: 6px; letter-spacing: 0.08em; }
+  .hstat { padding: 22px 22px 26px 0; border-right: 1px solid var(--border-soft); }
+  .hstat + .hstat { padding-left: 22px; }
+  .hstat:last-child { border-right: none; }
+  .hstat .num { font-family: var(--mono); font-size: clamp(24px, 3vw, 34px); font-weight: 700; letter-spacing: -0.02em; }
+  .hstat .num .unit { font-size: 15px; color: var(--muted); font-weight: 400; }
+  .hstat .lbl { font-size: 13.5px; color: var(--muted); margin-top: 5px; line-height: 1.45; }
+  @media (max-width: 760px) {
+    .hero-stats { grid-template-columns: 1fr 1fr; }
+    .hstat:nth-child(2) { border-right: none; }
+    .hstat:nth-child(n+3) { border-top: 1px solid var(--border-soft); }
+    .hstat:nth-child(even) { padding-left: 22px; }
+    .hstat:nth-child(odd) { padding-left: 0; }
+  }
+
+  /* ---------- marquee ---------- */
+  .ticker {
+    border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft);
+    background: var(--bg-2); overflow: hidden; padding: 13px 0; position: relative;
+  }
+  .ticker-track {
+    display: flex; gap: 0; white-space: nowrap; width: max-content;
+    animation: tick 46s linear infinite;
+  }
+  .ticker:hover .ticker-track { animation-play-state: paused; }
+  .ticker span {
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.06em;
+    color: var(--faint); padding: 0 18px;
+  }
+  .ticker span b { color: var(--accent); font-weight: 600; }
+  @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ---------- sections ---------- */
+  section { padding: 96px 0; position: relative; }
+  section + section { border-top: 1px solid var(--border-soft); }
+  .kicker {
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+  }
+  h2 { font-size: clamp(30px, 4.4vw, 44px); letter-spacing: -0.025em; line-height: 1.08; font-weight: 750; max-width: 720px; }
+  h2 .thin { color: var(--muted); font-weight: 350; }
+  .sub { color: var(--muted); margin-top: 16px; max-width: 660px; font-size: 17px; }
+  .sub strong { color: var(--text); font-weight: 600; }
+
+  /* reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal.d1 { transition-delay: 0.08s; }
+  .reveal.d2 { transition-delay: 0.16s; }
+  .reveal.d3 { transition-delay: 0.24s; }
+
+  /* ---------- CFD vs surrogate ---------- */
+  .race { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 44px; }
+  @media (max-width: 760px) { .race { grid-template-columns: 1fr; } }
+  .race-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px; position: relative; overflow: hidden;
+  }
+  .race-card.fast { border-color: rgba(212, 164, 55, 0.45); background: linear-gradient(160deg, rgba(212,164,55,0.1), var(--surface) 55%); }
+  .race-card .tag {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .race-card .big { font-family: var(--mono); font-size: clamp(38px, 5vw, 54px); font-weight: 700; letter-spacing: -0.03em; margin: 10px 0 4px; }
+  .race-card .big .unit { font-size: 20px; color: var(--muted); font-weight: 400; }
+  .race-card.fast .big { color: var(--accent-2); }
+  .race-card p { color: var(--muted); font-size: 15px; }
+  .race-bar { height: 8px; border-radius: 99px; background: var(--surface-2); margin-top: 22px; overflow: hidden; }
+  .race-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1); }
+  .race-card.slow .race-bar i { background: linear-gradient(90deg, #5b6472, #98a2b0); }
+  .race-card.fast .race-bar i { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .race-bar-lbl { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-top: 8px; }
+  .flow-line {
+    margin-top: 16px; font-family: var(--mono); font-size: 14px; line-height: 2;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 26px;
+  }
+  .flow-line .dim { color: var(--muted); }
+  .flow-line .hl { color: var(--accent); font-weight: 700; }
+  .flow-line .arr { color: var(--faint); padding: 0 6px; animation: nudge 1.6s ease-in-out infinite; display: inline-block; }
+  @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+
+  /* ---------- cards ---------- */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 44px; }
+  @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    position: relative; overflow: hidden;
+  }
+  .card::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(420px 180px at 20% -10%, rgba(212,164,55,0.14), transparent 70%);
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  .card:hover { transform: translateY(-4px); border-color: rgba(212, 164, 55, 0.5); box-shadow: 0 18px 40px rgba(0,0,0,0.35); }
+  .card:hover::after { opacity: 1; }
+  .card .k { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; display: block; margin-bottom: 10px; }
+  .card h3 { font-size: 20px; margin-bottom: 8px; letter-spacing: -0.01em; }
   .card p { color: var(--muted); font-size: 15px; }
-  .card .soon { display: inline-block; margin-top: 10px; font-size: 12px; font-family: var(--mono); color: var(--amber); }
-  table { width: 100%; border-collapse: collapse; font-size: 15px; }
-  th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); }
-  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .card .soon { display: inline-block; margin-top: 14px; font-size: 12px; font-family: var(--mono); color: var(--amber); letter-spacing: 0.08em; }
+  .card .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .chip {
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 99px; padding: 4px 10px; background: var(--surface-2);
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+
+  /* ---------- results chart ---------- */
+  .chart-box {
+    margin-top: 44px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+  }
+  .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .chart-head h3 { font-size: 18px; }
+  .chart-head .hint { font-size: 13px; color: var(--faint); }
+  .toggle { display: inline-flex; gap: 6px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 99px; padding: 4px; }
+  .toggle button {
+    font-family: var(--mono); font-size: 12.5px; color: var(--muted); background: none;
+    border: none; cursor: pointer; padding: 7px 14px; border-radius: 99px; transition: all 0.2s ease;
+  }
+  .toggle button.active { background: var(--accent); color: #14100a; font-weight: 700; }
+  .toggle button:hover:not(.active) { color: var(--text); }
+  .bars { margin-top: 28px; display: flex; flex-direction: column; gap: 18px; }
+  .bar-row { display: grid; grid-template-columns: 170px 1fr 84px; align-items: center; gap: 14px; }
+  @media (max-width: 640px) { .bar-row { grid-template-columns: 110px 1fr 64px; } }
+  .bar-row .name { font-size: 14.5px; font-weight: 600; }
+  .bar-row .name small { display: block; font-weight: 400; color: var(--faint); font-size: 12px; }
+  .bar-track { height: 26px; background: var(--surface-2); border-radius: 8px; overflow: hidden; position: relative; }
+  .bar-fill {
+    height: 100%; width: 0; border-radius: 8px;
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
+    font-family: var(--mono); font-size: 12px; font-weight: 700; color: #14100a; white-space: nowrap;
+  }
+  .bar-fill.gold { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .bar-fill.slate { background: linear-gradient(90deg, #4b5563, #8b98a9); }
+  .bar-fill.blue { background: linear-gradient(90deg, #3b6ea5, var(--blue)); }
+  .bar-row .val { font-family: var(--mono); font-size: 15px; text-align: right; font-weight: 700; }
+  .target-line { position: relative; margin-top: 10px; border-top: 1px dashed rgba(74, 222, 128, 0.5); padding-top: 10px; font-size: 13px; color: var(--green); font-family: var(--mono); }
+  .chart-note { margin-top: 18px; font-size: 13.5px; color: var(--faint); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 28px; }
+  th, td { text-align: left; padding: 12px 12px; border-bottom: 1px solid var(--border); }
+  th { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
   td.num, th.num { font-family: var(--mono); text-align: right; }
-  td .pill { font-size: 12px; font-family: var(--mono); padding: 2px 8px; border-radius: 20px; }
+  td .pill { font-size: 12px; font-family: var(--mono); padding: 3px 9px; border-radius: 20px; }
   .pill.met { background: rgba(74, 222, 128, 0.12); color: var(--green); }
   .pill.gap { background: rgba(251, 191, 36, 0.12); color: var(--amber); }
   .note {
     background: var(--accent-soft); border: 1px solid rgba(212, 164, 55, 0.35);
-    border-radius: 12px; padding: 18px 20px; font-size: 15px; color: var(--text);
+    border-radius: 16px; padding: 22px 24px; font-size: 15.5px; color: var(--text); margin-top: 28px;
   }
   .note strong { color: var(--accent); }
-  .flow { font-family: var(--mono); font-size: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; overflow-x: auto; white-space: nowrap; }
-  .flow .dim { color: var(--muted); }
-  .flow .hl { color: var(--accent); }
-  .steps { list-style: none; }
-  .steps li { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-  .steps li:last-child { border-bottom: none; }
-  .steps .n { font-family: var(--mono); color: var(--accent); font-weight: 700; min-width: 44px; }
-  .steps .done { color: var(--green); }
-  .steps .todo { color: var(--muted); }
-  .steps p { color: var(--muted); font-size: 15px; }
+
+  /* ---------- body type breakdown ---------- */
+  .body-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
+  @media (max-width: 760px) { .body-grid { grid-template-columns: 1fr; } }
+  .body-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+  }
+  .body-card:hover { transform: translateY(-4px); }
+  .body-card.warn { border-color: rgba(251, 191, 36, 0.45); }
+  .body-card svg { width: 100%; height: 64px; display: block; margin-bottom: 18px; }
+  .body-card h3 { font-size: 18px; }
+  .body-card .count { font-family: var(--mono); font-size: 12.5px; color: var(--faint); margin-top: 2px; }
+  .body-card .r2 { font-family: var(--mono); font-size: 34px; font-weight: 700; margin: 14px 0 4px; }
+  .body-card .r2 small { font-size: 14px; color: var(--muted); font-weight: 400; }
+  .body-card .r2.good { color: var(--green); }
+  .body-card .r2.warn { color: var(--amber); }
+  .body-card p { font-size: 14px; color: var(--muted); }
+  .mini-bar { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 12px 0 4px; }
+  .mini-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+  .mini-bar i.good { background: var(--green); }
+  .mini-bar i.warn { background: var(--amber); }
+
+  /* ---------- uncertainty ---------- */
+  .conf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 44px; }
+  @media (max-width: 760px) { .conf-grid { grid-template-columns: 1fr; } }
+  .conf-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
+  .conf-card .lvl { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 0.08em; }
+  .conf-card .cov { font-family: var(--mono); font-size: 40px; font-weight: 700; margin: 8px 0 2px; }
+  .conf-card .cov small { font-size: 16px; color: var(--muted); font-weight: 400; }
+  .conf-card p { color: var(--muted); font-size: 14.5px; }
+  .gauge { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 18px 0 8px; position: relative; }
+  .gauge i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 99px; transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1); }
+  .gauge-lbl { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
+
+  /* ---------- data ---------- */
+  .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 44px; }
+  @media (max-width: 760px) { .data-grid { grid-template-columns: 1fr 1fr; } }
+  .data-cell { background: var(--surface); padding: 24px 20px; }
+  .data-cell .num { font-family: var(--mono); font-size: 28px; font-weight: 700; }
+  .data-cell .lbl { font-size: 13.5px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+  /* ---------- roadmap ---------- */
+  .steps { list-style: none; margin-top: 44px; position: relative; }
+  .steps::before {
+    content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px;
+    background: var(--border);
+  }
+  .steps .fill {
+    position: absolute; left: 7px; top: 8px; width: 2px; height: 0;
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    transition: height 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .steps li { display: flex; gap: 20px; padding: 18px 0 18px 4px; position: relative; }
+  .steps .dot {
+    width: 16px; height: 16px; border-radius: 50%; flex: none; margin-top: 5px;
+    border: 2px solid var(--border); background: var(--bg); position: relative; z-index: 1;
+  }
+  .steps li.done .dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px rgba(212, 164, 55, 0.18); }
+  .steps li.next .dot { border-color: var(--accent); }
+  .steps .st { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; }
+  .steps li.done .st { color: var(--green); }
+  .steps li.next .st { color: var(--accent); }
+  .steps p { color: var(--muted); font-size: 15px; margin-top: 2px; }
   .steps p strong { color: var(--text); }
+
   code { font-family: var(--mono); font-size: 13px; background: var(--surface-2); padding: 2px 7px; border-radius: 5px; }
-  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; overflow-x: auto; }
-  pre code { background: none; padding: 0; font-size: 13.5px; line-height: 1.7; }
-  footer { border-top: 1px solid var(--border); padding: 32px 0 56px; color: var(--muted); font-size: 14px; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px; overflow-x: auto; margin-top: 28px; }
+  pre code { background: none; padding: 0; font-size: 13.5px; line-height: 1.8; }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 0 60px; color: var(--muted); font-size: 14px; }
   footer .row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  @media (max-width: 640px) {
-    h1 { font-size: 38px; }
-    .stat-strip { grid-template-columns: 1fr 1fr; }
-    .cards { grid-template-columns: 1fr; }
-    .flow { white-space: normal; }
+  footer .bigfoot { font-size: clamp(40px, 8vw, 88px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--surface-2); margin-bottom: 28px; user-select: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .ticker-track { animation: none; }
+    .flow-line .arr { animation: none; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .bar-fill, .mini-bar i, .gauge i, .race-bar i, .steps .fill { transition: none; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#">Aero<span>Surrogate</span>.</a>
+    <div class="nav-links">
+      <a href="#problem">Problem</a>
+      <a href="#results">Results</a>
+      <a href="#data">Data</a>
+      <a href="#roadmap">Roadmap</a>
+      <a class="nav-cta" href="https://github.com/KARTIKEYSINGH009/aerosurrogate">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <canvas id="airflow" aria-hidden="true"></canvas>
+  <div class="hero-fade"></div>
+  <div class="wrap hero-content">
     <div class="eyebrow">Automotive AI &middot; ML Surrogate &middot; DrivAerNet++</div>
-    <h1>AeroSurrogate<span class="thin">.</span></h1>
-    <p class="lede">Car aerodynamics in <strong>milliseconds, not hours</strong>. A physics-informed ML surrogate that predicts a car's drag, lift and EV highway range from its shape, and finds the lowest-drag shape under your constraints.</p>
+    <h1>Car aero in <span class="grad">milliseconds</span>,<br>not hours<span class="thin">.</span></h1>
+    <p class="lede">A physics-informed ML surrogate that predicts a car's <strong>drag, lift and EV highway range</strong> from its shape, and finds the lowest-drag shape under your constraints. The air above is simulated live, in your browser.</p>
     <div class="cta-row">
-      <a class="btn primary" href="https://github.com/KARTIKEYSINGH009/aerosurrogate">View on GitHub</a>
+      <a class="btn primary" href="https://github.com/KARTIKEYSINGH009/aerosurrogate">View on GitHub <span class="arrow">&rarr;</span></a>
       <a class="btn" href="#results">Measured results</a>
       <a class="btn" href="#quickstart">Quick start</a>
     </div>
-    <div class="stat-strip">
-      <div class="stat">
-        <div class="num">0.051 <span class="unit">ms</span></div>
-        <div class="lbl">Single prediction, joint MLP on CPU</div>
-        <span class="tag met">TARGET MET</span>
+  </div>
+  <div class="wrap" style="position: relative; z-index: 2; width: 100%;">
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="num"><span class="count" data-target="0.051" data-decimals="3">0</span> <span class="unit">ms</span></div>
+        <div class="lbl">One prediction, joint MLP on CPU</div>
       </div>
-      <div class="stat">
-        <div class="num">0.0103</div>
-        <div class="lbl">Cd MAE, best baseline (LightGBM), val</div>
-        <span class="tag gap">TARGET 0.005</span>
-      </div>
-      <div class="stat">
-        <div class="num">4,051</div>
+      <div class="hstat">
+        <div class="num"><span class="count" data-target="4051">0</span></div>
         <div class="lbl">Usable designs, DrivAerNet++ merged set</div>
-        <span class="tag met">VERIFIED</span>
       </div>
-      <div class="stat">
-        <div class="num">&lt; 1.5 <span class="unit">s</span></div>
-        <div class="lbl">Constrained inverse design, Optuna</div>
-        <span class="tag met">BY DESIGN</span>
+      <div class="hstat">
+        <div class="num"><span class="count" data-target="0.0103" data-decimals="4">0</span></div>
+        <div class="lbl">Cd MAE, best baseline (LightGBM), val</div>
+      </div>
+      <div class="hstat">
+        <div class="num"><span class="count" data-target="35">0</span></div>
+        <div class="lbl">Features: 23 geometry params, 12 engineered</div>
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
-  <section>
-    <h2>The problem</h2>
-    <p class="sub">Designing a car body means running CFD. One design takes hours, so engineers cannot iterate, and they definitely cannot ask "what shape is best?" in real time.</p>
-    <div class="flow"><span class="dim">shape (23 params)</span> &nbsp;&rarr;&nbsp; <span class="hl">AeroSurrogate</span> &nbsp;&rarr;&nbsp; <span class="dim">Cd, Cl, frontal area, EV range</span> &nbsp;in&nbsp; <span class="hl">0.051 ms</span><br><span class="dim">target Cd + constraints</span> &nbsp;&rarr;&nbsp; <span class="hl">inverse design</span> &nbsp;&rarr;&nbsp; <span class="dim">lowest-drag geometry</span> &nbsp;in&nbsp; <span class="hl">&lt; 1.5 s</span></div>
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="ticker-track"></div>
+</div>
+
+<div class="wrap">
+
+  <section id="problem">
+    <div class="kicker reveal">01 &middot; The problem</div>
+    <h2 class="reveal">CFD takes hours.<br><span class="thin">Designers need answers now.</span></h2>
+    <p class="sub reveal d1">One car shape, one high-fidelity CFD run, hours of compute. Engineers cannot iterate, and they definitely cannot ask "what shape is best?" in real time. AeroSurrogate learns the map from shape to aero numbers, then answers in a blink.</p>
+
+    <div class="race reveal d1">
+      <div class="race-card slow">
+        <div class="tag">High-fidelity CFD</div>
+        <div class="big">2&ndash;8 <span class="unit">hours</span></div>
+        <p>One design, one run. A mesh, a solver, a wait. Exploring 100 shapes means weeks.</p>
+        <div class="race-bar"><i data-w="96"></i></div>
+        <div class="race-bar-lbl"><span>per design</span><span>hours</span></div>
+      </div>
+      <div class="race-card fast">
+        <div class="tag">AeroSurrogate, joint MLP on CPU</div>
+        <div class="big">0.051 <span class="unit">ms</span></div>
+        <p>Same question, answered before you finish blinking. Ten thousand shapes in half a second.</p>
+        <div class="race-bar"><i data-w="2"></i></div>
+        <div class="race-bar-lbl"><span>per design</span><span>milliseconds</span></div>
+      </div>
+    </div>
+
+    <div class="flow-line reveal d2">
+      <span class="dim">shape (23 params)</span><span class="arr">&rarr;</span><span class="hl">AeroSurrogate</span><span class="arr">&rarr;</span><span class="dim">Cd, Cl, frontal area, EV range</span> in <span class="hl">0.051 ms</span><br>
+      <span class="dim">target Cd + constraints</span><span class="arr">&rarr;</span><span class="hl">inverse design</span><span class="arr">&rarr;</span><span class="dim">lowest-drag geometry</span> in <span class="hl">&lt; 1.5 s</span>
+    </div>
   </section>
 
   <section>
-    <h2>What it does</h2>
-    <p class="sub">Four parts. Three are built and measured, the fourth is in progress.</p>
+    <div class="kicker reveal">02 &middot; What it does</div>
+    <h2 class="reveal">Four parts.<br><span class="thin">Three built and measured.</span></h2>
     <div class="cards">
-      <div class="card">
-        <h3><span class="k">01 / SURROGATE ENGINE</span>Predict the aero numbers</h3>
+      <div class="card reveal">
+        <span class="k">01 / SURROGATE ENGINE</span>
+        <h3>Predict the aero numbers</h3>
         <p>LightGBM, CatBoost and a PyTorch Residual MLP ensemble predicting Cd, Cl and frontal area from 23 geometric parameters, served as ONNX on CPU, with calibrated 95% conformal prediction intervals.</p>
+        <div class="meta"><span class="chip"><b>3</b> models</span><span class="chip"><b>35</b> features</span><span class="chip">ONNX on CPU</span></div>
       </div>
-      <div class="card">
-        <h3><span class="k">02 / EV RANGE BRIDGE</span>Turn drag into kilometres</h3>
+      <div class="card reveal d1">
+        <span class="k">02 / EV RANGE BRIDGE</span>
+        <h3>Turn drag into kilometres</h3>
         <p>Drag area (Cd&middot;A) and aero power converted into EV highway range delta in km, for a reference 75 kWh EV at 110 km/h. A drag cut becomes a range number you can feel.</p>
+        <div class="meta"><span class="chip"><b>75 kWh</b> reference EV</span><span class="chip"><b>110 km/h</b></span><span class="chip">range in km</span></div>
       </div>
-      <div class="card">
-        <h3><span class="k">03 / INVERSE DESIGN</span>Ask for the shape, not the number</h3>
+      <div class="card reveal d2">
+        <span class="k">03 / INVERSE DESIGN</span>
+        <h3>Ask for the shape, not the number</h3>
         <p>An Optuna optimizer that returns the lowest-drag geometry under practical constraints: cabin space, ground clearance, diffuser limits and frontal-area bounds.</p>
+        <div class="meta"><span class="chip">Optuna</span><span class="chip"><b>&lt; 1.5 s</b></span><span class="chip">constrained</span></div>
       </div>
-      <div class="card">
-        <h3><span class="k">04 / DASHBOARD</span>Drive it with sliders</h3>
+      <div class="card reveal d3">
+        <span class="k">04 / DASHBOARD</span>
+        <h3>Drive it with sliders</h3>
         <p>FastAPI <code>/predict</code> and <code>/optimize</code> endpoints behind a Streamlit UI: geometry sliders, live Cd, Cl and range gauges, a SHAP waterfall and one-click optimization.</p>
         <span class="soon">IN PROGRESS</span>
       </div>
@@ -173,9 +475,25 @@
   </section>
 
   <section id="results">
-    <h2>Measured results</h2>
-    <p class="sub">Measured 22 Nov 2026, laptop CPU only, on MIT's official validation split (555 designs). The test split (559 designs) stays untouched until final evaluation. Every number below is measured, none is claimed.</p>
-    <table>
+    <div class="kicker reveal">03 &middot; Measured results</div>
+    <h2 class="reveal">Every number is measured.<br><span class="thin">None is claimed.</span></h2>
+    <p class="sub reveal d1">Measured 22 Nov 2026, laptop CPU only, on MIT's official validation split (555 designs). The test split (559 designs) stays untouched until final evaluation. Switch the metric and watch the bars move.</p>
+
+    <div class="chart-box reveal d1">
+      <div class="chart-head">
+        <h3 id="chart-title">Drag coefficient, MAE (lower is better)</h3>
+        <div class="toggle" role="group" aria-label="Choose metric">
+          <button class="active" data-metric="cdmae">Cd MAE</button>
+          <button data-metric="cdr2">Cd R&sup2;</button>
+          <button data-metric="clr2">Cl R&sup2;</button>
+        </div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="target-line" id="target-line">Target: Cd MAE &lt; 0.005</div>
+      <p class="chart-note">LightGBM trains in about 10 seconds on CPU. CatBoost is close behind and leads on frontal area. The Residual MLP trails the tree ensembles on this tabular geometry.</p>
+    </div>
+
+    <table class="reveal d2">
       <tr><th>Metric</th><th class="num">Target</th><th class="num">Measured</th><th>Status</th></tr>
       <tr><td>Cd MAE, LightGBM baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0103</td><td><span class="pill gap">GAP</span></td></tr>
       <tr><td>Cd R&sup2;, LightGBM baseline</td><td class="num">&gt; 0.96</td><td class="num">0.64</td><td><span class="pill gap">GAP</span></td></tr>
@@ -187,45 +505,369 @@
       <tr><td>Conformal coverage, 90% nominal, Cd</td><td class="num">90%</td><td class="num">90&ndash;94%</td><td><span class="pill met">MET</span></td></tr>
       <tr><td>Conformal coverage, 95% nominal, Cd</td><td class="num">95%</td><td class="num">95&ndash;97%</td><td><span class="pill met">MET</span></td></tr>
     </table>
-    <div style="height: 20px"></div>
-    <div class="note"><strong>Honest read.</strong> Latency is met and the uncertainty calibration is sound, but the accuracy targets are not. Baselines sit at Cd MAE 0.0103 and R&sup2; 0.64, lift is hard to predict from geometry alone, and estateback drag is the weakest subgroup (within-group R&sup2; 0.01&ndash;0.18). Closing that gap is the remaining work. Full breakdowns live in <code>benchmarks/</code> in the repo.</div>
+
+    <div class="note reveal d2"><strong>Honest read.</strong> Latency is met and the uncertainty calibration is sound, but the accuracy targets are not. Baselines sit at Cd MAE 0.0103 and R&sup2; 0.64, lift is hard to predict from geometry alone, and estateback drag is the weakest subgroup (within-group R&sup2; 0.01&ndash;0.18). Closing that gap is the remaining work. Full breakdowns live in <code>benchmarks/</code> in the repo.</div>
   </section>
 
   <section>
-    <h2>Data</h2>
-    <p class="sub"><a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">DrivAerNet++</a> (MIT, NeurIPS 2024): 8,150 car designs with high-fidelity CFD, fastback, notchback and estateback, ICE and EV underbodies. This project uses only the lightweight tabular files, not the 39 TB of volumetric CFD. Dataset license: CC BY-NC 4.0, non-commercial research and education only.</p>
-    <p class="sub">One verified correction to the headline number: the parametric CSV covers 4,165 designs with 23 geometric parameters, and the full join (parameters + Cd + Cl + frontal area + official split) is 4,051 designs. The other ~4,000 designs exist in the Cd file and the splits but have no lightweight parametric row.</p>
+    <div class="kicker reveal">04 &middot; Where it struggles</div>
+    <h2 class="reveal">Same model, three bodies.<br><span class="thin">One of them breaks it.</span></h2>
+    <p class="sub reveal d1">Cd R&sup2; by body type, LightGBM, validation split. Fastback and notchback behave. Estateback has a blunt, squared rear end where the wake separates at the trailing edge no matter how you tweak the slant, so geometry alone barely explains its drag.</p>
+
+    <div class="body-grid">
+      <div class="body-card reveal">
+        <svg viewBox="0 0 200 64" aria-hidden="true"><path d="M8 52 Q40 50 62 44 Q92 14 128 16 Q168 18 192 40 Q196 46 192 52 Z" fill="none" stroke="#4ade80" stroke-width="2"/><circle cx="52" cy="52" r="8" fill="none" stroke="#98a2b0" stroke-width="2"/><circle cx="152" cy="52" r="8" fill="none" stroke="#98a2b0" stroke-width="2"/></svg>
+        <h3>Fastback</h3>
+        <div class="count">177 designs in val</div>
+        <div class="r2 good">0.67 <small>R&sup2;</small></div>
+        <div class="mini-bar"><i class="good" data-w="67"></i></div>
+        <p>Sloping rear window, separation point moves with the angles. Geometry explains most of the drag.</p>
+      </div>
+      <div class="body-card reveal d1">
+        <svg viewBox="0 0 200 64" aria-hidden="true"><path d="M8 52 Q40 50 60 46 Q88 12 122 14 Q158 16 168 34 L192 40 Q196 46 192 52 Z" fill="none" stroke="#6ea8fe" stroke-width="2"/><circle cx="52" cy="52" r="8" fill="none" stroke="#98a2b0" stroke-width="2"/><circle cx="152" cy="52" r="8" fill="none" stroke="#98a2b0" stroke-width="2"/></svg>
+        <h3>Notchback</h3>
+        <div class="count">163 designs in val</div>
+        <div class="r2 good">0.60 <small>R&sup2;</small></div>
+        <div class="mini-bar"><i class="good" data-w="60"></i></div>
+        <p>Distinct boot lid, trunk and rear-window angles still steer the wake. Solid, not great.</p>
+      </div>
+      <div class="body-card warn reveal d2">
+        <svg viewBox="0 0 200 64" aria-hidden="true"><path d="M8 52 Q40 50 62 44 Q96 12 150 12 L192 14 L192 52 Z" fill="none" stroke="#fbbf24" stroke-width="2"/><circle cx="52" cy="52" r="8" fill="none" stroke="#98a2b0" stroke-width="2"/><circle cx="152" cy="52" r="8" fill="none" stroke="#98a2b0" stroke-width="2"/></svg>
+        <h3>Estateback</h3>
+        <div class="count">215 designs in val</div>
+        <div class="r2 warn">0.17 <small>R&sup2;</small></div>
+        <div class="mini-bar"><i class="warn" data-w="17"></i></div>
+        <p>Blunt squared tail. Wake separation barely responds to the parameters, so the model has almost nothing to learn from. The fix is body-type stratified trees or explicit estateback interaction terms.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker reveal">05 &middot; Uncertainty</div>
+    <h2 class="reveal">It knows how unsure it is.<br><span class="thin">And it is right about that.</span></h2>
+    <p class="sub reveal d1">Split conformal prediction (CV+) on the training set gives distribution-free intervals for every Cd prediction. A 90% interval really does cover the truth about 93% of the time.</p>
+
+    <div class="conf-grid">
+      <div class="conf-card reveal">
+        <div class="lvl">90% NOMINAL &middot; LIGHTGBM &middot; Cd</div>
+        <div class="cov"><span class="count" data-target="93.15" data-decimals="2">0</span><small>% empirical coverage</small></div>
+        <div class="gauge"><i data-w="93.15"></i></div>
+        <div class="gauge-lbl"><span>nominal 90%</span><span>interval &plusmn;0.0245</span></div>
+        <p style="margin-top: 12px;">The interval is honest: slightly conservative, never overconfident. Group-conditional coverage stays above 92% on every body type.</p>
+      </div>
+      <div class="conf-card reveal d1">
+        <div class="lvl">95% NOMINAL &middot; LIGHTGBM &middot; Cd</div>
+        <div class="cov"><span class="count" data-target="96.76" data-decimals="2">0</span><small>% empirical coverage</small></div>
+        <div class="gauge"><i data-w="96.76"></i></div>
+        <div class="gauge-lbl"><span>nominal 95%</span><span>interval &plusmn;0.0301</span></div>
+        <p style="margin-top: 12px;">Widen the interval a little and coverage follows. Calibration holds, so the intervals are safe to plan around, not just to quote.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="data">
+    <div class="kicker reveal">06 &middot; Data</div>
+    <h2 class="reveal">Real CFD. Real cars.<br><span class="thin">One honest correction.</span></h2>
+    <p class="sub reveal d1"><a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">DrivAerNet++</a> (MIT, NeurIPS 2024): 8,150 car designs with high-fidelity CFD, fastback, notchback and estateback, ICE and EV underbodies. This project uses only the lightweight tabular files, not the 39 TB of volumetric CFD. Dataset license: CC BY-NC 4.0, non-commercial research and education only.</p>
+
+    <div class="data-grid reveal d1">
+      <div class="data-cell"><div class="num"><span class="count" data-target="4051">0</span></div><div class="lbl">Usable designs after the full join</div></div>
+      <div class="data-cell"><div class="num"><span class="count" data-target="4165">0</span></div><div class="lbl">Designs in the parametric CSV, 23 params each</div></div>
+      <div class="data-cell"><div class="num">2,937 / 555 / 559</div><div class="lbl">Train / val / test, MIT's official split</div></div>
+      <div class="data-cell"><div class="num">0</div><div class="lbl">Test rows read before final evaluation</div></div>
+    </div>
+    <p class="sub reveal d2" style="margin-top: 24px;">One verified correction to the headline number: the parametric CSV covers 4,165 designs with 23 geometric parameters, and the full join (parameters + Cd + Cl + frontal area + official split) is 4,051 designs. The other ~4,000 designs exist in the Cd file and the splits but have no lightweight parametric row.</p>
   </section>
 
   <section id="quickstart">
-    <h2>Quick start</h2>
-    <pre><code>python -m venv .venv &amp;&amp; source .venv/bin/activate
+    <div class="kicker reveal">07 &middot; Quick start</div>
+    <h2 class="reveal">Clone it. Run it.<br><span class="thin">Ten minutes, CPU only.</span></h2>
+    <pre class="reveal d1"><code>python -m venv .venv &amp;&amp; source .venv/bin/activate
 pip install -r requirements.txt
 python -m src.ingest.download_drivaer   # 6 lightweight files, ~2 MB
 python -m src.ingest.merge_validate     # merged Parquet + manifest
 python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval on val</code></pre>
   </section>
 
-  <section>
-    <h2>Status &amp; roadmap</h2>
-    <p class="sub">Two-week build, 22 Nov &ndash; 5 Dec 2026.</p>
-    <ul class="steps">
-      <li><span class="n done">DONE</span><p><strong>Day 1 &middot; Data.</strong> Download, merge and validate DrivAerNet++.</p></li>
-      <li><span class="n done">DONE</span><p><strong>Days 2&ndash;4 &middot; Features + baselines.</strong> 35 features, three baselines measured on val.</p></li>
-      <li><span class="n done">DONE</span><p><strong>Days 5&ndash;7 &middot; Uncertainty + ONNX.</strong> Conformal intervals, ONNX export, 0.051 ms latency.</p></li>
-      <li><span class="n done">DONE</span><p><strong>Days 8&ndash;9 &middot; EV physics + optimizer.</strong> Range bridge and Optuna inverse design.</p></li>
-      <li><span class="n todo">NEXT</span><p><strong>Days 10&ndash;12 &middot; API + dashboard + accuracy.</strong> FastAPI endpoints, Streamlit UI, tuning toward the Cd targets.</p></li>
-      <li><span class="n todo">NEXT</span><p><strong>Days 13&ndash;14 &middot; Final evaluation.</strong> Official test split, demo, README.</p></li>
+  <section id="roadmap">
+    <div class="kicker reveal">08 &middot; Status &amp; roadmap</div>
+    <h2 class="reveal">Two-week build.<br><span class="thin">22 Nov to 5 Dec 2026.</span></h2>
+    <ul class="steps" id="steps">
+      <span class="fill" id="steps-fill"></span>
+      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Day 1 &middot; Data.</strong> Download, merge and validate DrivAerNet++.</p></div></li>
+      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Days 2&ndash;4 &middot; Features + baselines.</strong> 35 features, three baselines measured on val.</p></div></li>
+      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Days 5&ndash;7 &middot; Uncertainty + ONNX.</strong> Conformal intervals, ONNX export, 0.051 ms latency.</p></div></li>
+      <li class="done"><span class="dot"></span><div><span class="st">DONE</span><p><strong>Days 8&ndash;9 &middot; EV physics + optimizer.</strong> Range bridge and Optuna inverse design.</p></div></li>
+      <li class="next"><span class="dot"></span><div><span class="st">NEXT</span><p><strong>Days 10&ndash;12 &middot; API + dashboard + accuracy.</strong> FastAPI endpoints, Streamlit UI, tuning toward the Cd targets.</p></div></li>
+      <li class="next"><span class="dot"></span><div><span class="st">NEXT</span><p><strong>Days 13&ndash;14 &middot; Final evaluation.</strong> Official test split, demo, README.</p></div></li>
     </ul>
   </section>
 
-  <footer>
-    <div class="row">
-      <span>AeroSurrogate &middot; built by <a href="https://github.com/KARTIKEYSINGH009">Kartikey Singh</a>, AI/ML Developer</span>
-      <span><a href="https://github.com/KARTIKEYSINGH009/aerosurrogate">GitHub</a> &middot; <a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">Dataset</a></span>
-    </div>
-  </footer>
-
 </div>
+
+<footer>
+  <div class="wrap">
+    <div class="bigfoot">AeroSurrogate.</div>
+    <div class="row">
+      <span>Built by <a href="https://github.com/KARTIKEYSINGH009">Kartikey Singh</a>, AI/ML Developer</span>
+      <span><a href="https://github.com/KARTIKEYSINGH009/aerosurrogate">GitHub</a> &middot; <a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">Dataset</a> &middot; <a href="#results">Results</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ----- ticker: the 23 geometry parameters ----- */
+  var params = ["a_car_length", "a_car_width", "a_car_roof_height", "a_car_green_house_angle",
+    "b_ramp_angle", "b_diffusor_angle", "b_trunklid_angle",
+    "c_side_mirrors_rotation", "c_side_mirrors_translate_x", "c_side_mirrors_translate_z",
+    "d_rear_window_inclination", "d_winscreen_inclination", "d_winscreen_length", "d_rear_window_length",
+    "e_a_b_c_pillar_thickness", "e_fenders_arch_offset",
+    "f_door_handles_thickness", "f_door_handles_z_position", "f_door_handles_x_position",
+    "g_trunklid_curvature", "g_trunklid_length",
+    "h_front_bumper_curvature", "h_front_bumper_length"];
+  var track = document.getElementById("ticker-track");
+  var half = params.map(function (p, i) {
+    return "<span><b>" + String(i + 1).padStart(2, "0") + "</b> " + p + "</span>";
+  }).join('<span style="color: var(--border); padding: 0;">&middot;</span>');
+  track.innerHTML = half + '<span style="color: var(--border); padding: 0;">&middot;</span>' + half;
+
+  /* ----- reveal on scroll ----- */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+  /* ----- count-up numbers ----- */
+  function countUp(el) {
+    var target = parseFloat(el.getAttribute("data-target"));
+    var dec = parseInt(el.getAttribute("data-decimals") || "0", 10);
+    if (reduced) { el.textContent = target.toFixed(dec); return; }
+    var start = null, dur = 1400;
+    function tick(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = (target * eased).toFixed(dec);
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  var cio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { countUp(e.target); cio.unobserve(e.target); }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll(".count").forEach(function (el) { cio.observe(el); });
+
+  /* ----- width bars animate when visible ----- */
+  function armBars(scope) {
+    (scope || document).querySelectorAll("[data-w]").forEach(function (el) {
+      var w = el.getAttribute("data-w");
+      requestAnimationFrame(function () { el.style.width = w + "%"; });
+    });
+  }
+  var bio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { armBars(e.target); bio.unobserve(e.target); }
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll(".race-bar, .mini-bar, .gauge, .chart-box").forEach(function (el) { bio.observe(el); });
+
+  /* ----- roadmap progress line ----- */
+  var stepsEl = document.getElementById("steps");
+  var fillEl = document.getElementById("steps-fill");
+  var sio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        var done = stepsEl.querySelectorAll("li.done").length;
+        var total = stepsEl.querySelectorAll("li").length;
+        fillEl.style.height = ((done - 0.5) / (total - 1) * 100) + "%";
+        sio.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  sio.observe(stepsEl);
+
+  /* ----- interactive results chart ----- */
+  var chartData = {
+    cdmae: {
+      title: "Drag coefficient, MAE (lower is better)",
+      target: "Target: Cd MAE < 0.005",
+      max: 0.014,
+      rows: [
+        { name: "LightGBM", sub: "trains in ~10 s", val: 0.0103, label: "0.0103", cls: "gold" },
+        { name: "CatBoost", sub: "trains in ~18 s", val: 0.0110, label: "0.0110", cls: "slate" },
+        { name: "Residual MLP", sub: "trains in ~40 s", val: 0.0126, label: "0.0126", cls: "blue" }
+      ]
+    },
+    cdr2: {
+      title: "Drag coefficient, R\u00b2 (higher is better)",
+      target: "Target: Cd R\u00b2 > 0.96",
+      max: 1,
+      rows: [
+        { name: "LightGBM", sub: "best baseline", val: 0.6398, label: "0.64", cls: "gold" },
+        { name: "CatBoost", sub: "close second", val: 0.6207, label: "0.62", cls: "slate" },
+        { name: "Residual MLP", sub: "trails on tabular data", val: 0.5341, label: "0.53", cls: "blue" }
+      ]
+    },
+    clr2: {
+      title: "Lift coefficient, R\u00b2 (higher is better)",
+      target: "Target: Cl R\u00b2 > 0.96, the hardest target",
+      max: 1,
+      rows: [
+        { name: "LightGBM", sub: "best baseline", val: 0.3822, label: "0.38", cls: "gold" },
+        { name: "CatBoost", sub: "close second", val: 0.3685, label: "0.37", cls: "slate" },
+        { name: "Residual MLP", sub: "weakest on lift", val: 0.2969, label: "0.30", cls: "blue" }
+      ]
+    }
+  };
+  var barsEl = document.getElementById("bars");
+  var titleEl = document.getElementById("chart-title");
+  var targetEl = document.getElementById("target-line");
+  function renderChart(key) {
+    var d = chartData[key];
+    titleEl.textContent = d.title;
+    targetEl.textContent = d.target;
+    barsEl.innerHTML = d.rows.map(function (r) {
+      var pct = Math.max(4, (r.val / d.max) * 100);
+      return '<div class="bar-row"><div class="name">' + r.name + '<small>' + r.sub + '</small></div>' +
+        '<div class="bar-track"><div class="bar-fill ' + r.cls + '" data-w="' + pct.toFixed(1) + '"></div></div>' +
+        '<div class="val">' + r.label + '</div></div>';
+    }).join("");
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { armBars(barsEl); });
+    });
+  }
+  renderChart("cdmae");
+  document.querySelectorAll(".toggle button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".toggle button").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      renderChart(btn.getAttribute("data-metric"));
+    });
+  });
+
+  /* ----- hero airflow: particles stream over a car silhouette ----- */
+  var canvas = document.getElementById("airflow");
+  var ctx = canvas.getContext("2d");
+  var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var particles = [];
+  var car = { x0: 0, x1: 0, ground: 0 };
+
+  function roofY(x) {
+    // smooth fastback roofline between car.x0 and car.x1, 0 at the ends, 1 at the roof peak
+    var t = (x - car.x0) / (car.x1 - car.x0);
+    if (t < 0 || t > 1) return 0;
+    var roof = Math.sin(Math.PI * Math.pow(t, 0.85)) * 0.62 + Math.sin(Math.PI * t) * 0.38;
+    return roof;
+  }
+  function layout() {
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    car.x0 = W * 0.18; car.x1 = W * 0.82;
+    car.ground = H * 0.86;
+  }
+  function carTopY(x) {
+    var h = H * 0.30;
+    return car.ground - 14 - roofY(x) * h;
+  }
+  function makeParticle(anywhere) {
+    return {
+      x: anywhere ? Math.random() * W : -20,
+      y: Math.random() * H * 0.82,
+      v: 0.9 + Math.random() * 1.6,
+      size: 0.7 + Math.random() * 1.6,
+      alpha: 0.12 + Math.random() * 0.3,
+      wob: Math.random() * Math.PI * 2,
+      wake: 0
+    };
+  }
+  function initParticles() {
+    particles = [];
+    var n = Math.min(170, Math.floor(W / 7));
+    for (var i = 0; i < n; i++) particles.push(makeParticle(true));
+  }
+  function drawCar() {
+    ctx.beginPath();
+    ctx.moveTo(car.x0 - 30, car.ground);
+    var steps = 48;
+    for (var i = 0; i <= steps; i++) {
+      var x = car.x0 + (car.x1 - car.x0) * (i / steps);
+      ctx.lineTo(x, carTopY(x));
+    }
+    ctx.lineTo(car.x1 + 30, car.ground);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(23, 28, 37, 0.9)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(212, 164, 55, 0.55)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // wheels
+    [[0.30, 0.16], [0.72, 0.16]].forEach(function (w) {
+      var wx = car.x0 + (car.x1 - car.x0) * w[0];
+      ctx.beginPath();
+      ctx.arc(wx, car.ground - 4, W * 0.028, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(152, 162, 176, 0.7)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+    // ground line
+    ctx.beginPath();
+    ctx.moveTo(0, car.ground + 8);
+    ctx.lineTo(W, car.ground + 8);
+    ctx.strokeStyle = "rgba(35, 42, 54, 0.9)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  function step() {
+    ctx.clearRect(0, 0, W, H);
+    drawCar();
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.x += p.v;
+      p.wob += 0.02;
+      var top = carTopY(p.x);
+      if (p.x > car.x0 - 40 && p.x < car.x1 + 10 && p.y > top - 6 && p.y < car.ground) {
+        // flow hugs the roofline
+        p.y = top - 6 - Math.sin(p.wob) * 2;
+      } else if (p.x >= car.x1 + 10 && p.x < car.x1 + W * 0.22) {
+        // turbulent wake behind the car
+        p.wake = Math.min(p.wake + 0.06, 1);
+        p.y += Math.sin(p.wob * 3) * 1.4 * p.wake + (Math.random() - 0.5) * 1.2 * p.wake;
+      } else {
+        p.wake = Math.max(p.wake - 0.02, 0);
+        p.y += Math.sin(p.wob) * 0.25;
+      }
+      if (p.x > W + 20 || p.y > H) { particles[i] = makeParticle(false); continue; }
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.v * 7, p.y);
+      ctx.strokeStyle = "rgba(212, 164, 55, " + p.alpha + ")";
+      ctx.lineWidth = p.size;
+      ctx.stroke();
+    }
+    if (!reduced) requestAnimationFrame(step);
+  }
+  function boot() {
+    layout();
+    initParticles();
+    if (reduced) { step(); return; }
+    requestAnimationFrame(step);
+  }
+  layout();
+  boot();
+  var rT;
+  window.addEventListener("resize", function () {
+    clearTimeout(rT);
+    rT = setTimeout(function () { layout(); initParticles(); if (reduced) step(); }, 200);
+  });
+})();
+</script>
 </body>
 </html>
