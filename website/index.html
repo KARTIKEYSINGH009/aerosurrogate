@@ -979,11 +979,11 @@
                 <img id="demo-car-img" class="demo-car-img" src="demo-fastback.jpg" alt="3D sample fastback side profile" loading="lazy">
                 <svg id="demo-svg" viewBox="0 0 460 150" fill="none" aria-label="Airflow streamlines and wake over a 3D sample car">
                   <!-- streamlines over the 3D car -->
-                  <path id="st-1" d="M 8 52 Q 150 26 250 24 T 452 46" stroke="rgba(96,165,250,0.45)" stroke-width="1.3" stroke-dasharray="5 4"/>
-                  <path id="st-2" d="M 8 74 Q 150 50 250 48 T 452 70" stroke="rgba(56,189,248,0.65)" stroke-width="1.5"/>
-                  <path id="st-3" d="M 8 146 L 452 146" stroke="rgba(52,211,153,0.4)" stroke-width="1.2"/>
+                  <path id="st-1" d="M 8.0 85.6 L 31.7 74.6 L 53.7 69.6 L 68.0 66.9 L 82.3 65.0 L 96.6 60.4 L 110.9 57.7 L 125.2 55.4 L 139.5 52.7 L 153.8 49.3 L 168.1 45.8 L 182.4 42.0 L 196.6 38.5 L 210.9 36.6 L 225.2 36.2 L 239.5 37.0 L 253.8 38.5 L 268.1 40.4 L 282.4 43.5 L 296.7 46.6 L 311.0 54.6 L 325.3 57.7 L 339.6 61.2 L 381.6 68.2 L 452.0 74.2" stroke="rgba(96,165,250,0.45)" stroke-width="1.3" stroke-dasharray="5 4"/>
+                  <path id="st-2" d="M 8.0 109.6 L 31.7 98.6 L 53.7 93.6 L 68.0 90.9 L 82.3 89.0 L 96.6 84.4 L 110.9 81.7 L 125.2 79.4 L 139.5 76.7 L 153.8 73.3 L 168.1 69.8 L 182.4 66.0 L 196.6 62.5 L 210.9 60.6 L 225.2 60.2 L 239.5 61.0 L 253.8 62.5 L 268.1 64.4 L 282.4 67.5 L 296.7 70.6 L 311.0 78.6 L 325.3 81.7 L 339.6 85.2 L 381.6 92.2 L 452.0 98.2" stroke="rgba(56,189,248,0.65)" stroke-width="1.5"/>
+                  <path id="st-3" d="M 8 134.3 L 452 134.3" stroke="rgba(52,211,153,0.4)" stroke-width="1.2"/>
                   <!-- wake zone -->
-                  <ellipse id="demo-wake" cx="392" cy="105" rx="34" ry="14" fill="rgba(245,158,11,0.16)" stroke="rgba(245,158,11,0.45)" stroke-dasharray="3 3"/>
+                  <ellipse id="demo-wake" cx="375.6" cy="112.3" rx="34" ry="14" fill="rgba(245,158,11,0.16)" stroke="rgba(245,158,11,0.45)" stroke-dasharray="3 3"/>
                 </svg>
               </div>
             </div>
@@ -1899,6 +1899,51 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   var sRoof = document.getElementById("s-roof");
   var sBump = document.getElementById("s-bump");
 
+  // Per-body demo overlay: measured rooflines (viewBox 460x150) from the 3D
+  // sample renders. All three cars were reframed to the same nose/tail/ground
+  // so one overlay geometry fits each. st-2 hugs the roof (offset -5), st-1
+  // rides higher (offset -29), st-3 is the ground line, and the wake ellipse
+  // sits behind the tail, not on the rear wheel.
+  var DEMO_OVERLAY = {
+    fastback: {
+      ground: 134.3, noseX: 53.7, tailX: 339.6,
+      roof: [[53.7,98.6],[68.0,95.9],[82.3,94.0],[96.6,89.4],[110.9,86.7],[125.2,84.4],[139.5,81.7],[153.8,78.3],[168.1,74.8],[182.4,71.0],[196.6,67.5],[210.9,65.6],[225.2,65.2],[239.5,66.0],[253.8,67.5],[268.1,69.4],[282.4,72.5],[296.7,75.6],[311.0,83.6],[325.3,86.7],[339.6,90.2]]
+    },
+    notchback: {
+      ground: 134.7, noseX: 53.3, tailX: 338.1,
+      roof: [[53.3,94.0],[67.5,90.5],[81.8,88.2],[96.0,82.1],[110.2,79.0],[124.5,75.6],[138.7,71.4],[153.0,66.4],[167.2,61.8],[181.5,57.2],[195.7,54.5],[209.9,53.3],[224.2,53.3],[238.4,54.5],[252.7,56.4],[266.9,59.8],[281.1,63.7],[295.4,67.5],[309.6,77.1],[323.9,80.6],[338.1,84.4]]
+    },
+    estateback: {
+      ground: 133.1, noseX: 56.4, tailX: 341.2,
+      roof: [[56.4,94.0],[70.6,91.3],[84.8,89.0],[99.1,83.6],[113.3,80.9],[127.6,77.5],[141.8,73.3],[156.0,68.3],[170.3,62.9],[184.5,57.9],[198.8,54.5],[213.0,52.2],[227.2,51.4],[241.5,51.4],[255.7,51.4],[270.0,52.6],[284.2,53.7],[298.4,58.7],[312.7,69.8],[326.9,74.4],[341.2,80.6]]
+    }
+  };
+
+  function demoStreamline(roof, offset) {
+    // Polyline through the measured roofline, offset upward, with an upstream
+    // approach and a downstream wake run so the line reads as one smooth flow.
+    var pts = [];
+    var y0 = roof[0][1] + offset;
+    var yT = roof[roof.length - 1][1] + offset;
+    pts.push([8, y0 + 16]);
+    pts.push([roof[0][0] - 22, y0 + 5]);
+    for (var i = 0; i < roof.length; i++) pts.push([roof[i][0], roof[i][1] + offset]);
+    pts.push([roof[roof.length - 1][0] + 42, yT + 7]);
+    pts.push([452, yT + 13]);
+    return pts.map(function (p, i) { return (i === 0 ? "M " : "L ") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+  }
+
+  function applyDemoOverlay(body) {
+    var ov = DEMO_OVERLAY[body] || DEMO_OVERLAY.fastback;
+    document.getElementById("st-2").setAttribute("d", demoStreamline(ov.roof, -5));
+    document.getElementById("st-1").setAttribute("d", demoStreamline(ov.roof, -29));
+    document.getElementById("st-3").setAttribute("d", "M 8 " + ov.ground.toFixed(1) + " L 452 " + ov.ground.toFixed(1));
+    var tailRoofY = ov.roof[ov.roof.length - 1][1];
+    var wake = document.getElementById("demo-wake");
+    wake.setAttribute("cx", (ov.tailX + 36).toFixed(1));
+    wake.setAttribute("cy", ((tailRoofY + ov.ground) / 2).toFixed(1));
+  }
+
   function evalSurrogate() {
     var rw = parseFloat(sRw.value);
     var diff = parseFloat(sDiff.value);
@@ -1947,11 +1992,12 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     document.getElementById("stage-cda-lbl").textContent = "Cd·A = " + cda.toFixed(3) + " m²";
     document.getElementById("hud-cd").innerHTML = cd.toFixed(3) + " <small>±0.025</small>";
 
-    // Swap the 3D sample car render for the selected body type; the wake
-    // ellipse still grows with Cd
+    // Swap the 3D sample car render for the selected body type, and swap the
+    // overlay streamlines + wake to that body's measured roofline
     var demoImg = document.getElementById("demo-car-img");
     demoImg.src = "demo-" + bodyState + ".jpg";
     demoImg.alt = "3D sample " + bodyState + " side profile";
+    applyDemoOverlay(bodyState);
     var wakeRx = Math.max(28, (cd - 0.22) * 600);
     document.getElementById("demo-wake").setAttribute("rx", wakeRx.toFixed(1));
   }
