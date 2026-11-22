@@ -1703,8 +1703,8 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   var W = 0, H = 0;
   var particles = [];
   var car = { x0: 0, x1: 0, ground: 0 };
-  /* Real 3D car photo: roofline measured from tunnel-car.jpg (fractions of image size) */
-  var CAR = { x0: 0.0558, x1: 0.7942, ground: 0.8833, roof: [0.7002, 0.6954, 0.6904, 0.6813, 0.672, 0.6624, 0.6542, 0.6471, 0.6409, 0.6355, 0.6309, 0.6269, 0.6235, 0.6204, 0.6171, 0.6133, 0.6081, 0.6014, 0.5929, 0.5829, 0.5719, 0.5606, 0.5496, 0.5393, 0.5299, 0.5215, 0.5141, 0.5077, 0.5025, 0.4984, 0.4952, 0.4929, 0.4912, 0.4901, 0.4895, 0.4893, 0.4895, 0.4901, 0.4911, 0.4926, 0.4945, 0.4967, 0.4993, 0.5025, 0.5061, 0.5104, 0.5153, 0.521, 0.5272, 0.5339, 0.5409, 0.5485, 0.5561, 0.564, 0.572, 0.5799, 0.5921, 0.6046, 0.6181, 0.6257, 0.6358] };
+  /* 3D sample car render: roofline measured from tunnel-car.jpg (fractions of image size) */
+  var CAR = { x0: 0.115, x1: 0.735, ground: 0.8817, roof: [0.6916, 0.6791, 0.6697, 0.6532, 0.6387, 0.6256, 0.6187, 0.613, 0.6081, 0.6038, 0.6, 0.5967, 0.5947, 0.5939, 0.5938, 0.594, 0.5939, 0.5913, 0.586, 0.5782, 0.5685, 0.5575, 0.5459, 0.5345, 0.5233, 0.5127, 0.5027, 0.4948, 0.4887, 0.4844, 0.4817, 0.4803, 0.4793, 0.4788, 0.4786, 0.4787, 0.479, 0.4797, 0.4809, 0.4826, 0.4848, 0.488, 0.4922, 0.4974, 0.5037, 0.5109, 0.5184, 0.5259, 0.5335, 0.5405, 0.547, 0.5529, 0.5582, 0.5625, 0.5663, 0.5711, 0.5812, 0.5926, 0.6069, 0.6154, 0.6262] };
   var tunnelImg = new Image();
   tunnelImg.src = "tunnel-car.jpg";
   function layout() {
@@ -1713,6 +1713,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     car.x0 = W * CAR.x0; car.x1 = W * CAR.x1;
     car.ground = H * CAR.ground;
+    car.maxBody = car.ground - carTopY(car.x0 + (car.x1 - car.x0) * 0.55);
   }
   function carTopY(x) {
     var t = (x - car.x0) / (car.x1 - car.x0);
@@ -1722,14 +1723,44 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     var y = CAR.roof[i] * (1 - fr) + CAR.roof[Math.min(i + 1, CAR.roof.length - 1)] * fr;
     return y * H;
   }
+  /* Roofline with a smooth bow-wave ramp ahead of the nose */
+  function roofTopAt(x) {
+    if (x < car.x0) {
+      var r = Math.max(0, Math.min(1, (x - (car.x0 - 70)) / 70));
+      return car.ground + (carTopY(car.x0) - car.ground) * r * r;
+    }
+    return carTopY(x);
+  }
+  /* True streamline: every particle keeps its undisturbed height y0 and is
+     deflected smoothly around the body. Lift is strongest close to the roof
+     and fades with height, so the flow bends over the car instead of arcing
+     over it. Floor air runs under the car, and the wake relaxes back to
+     freestream behind the tail. */
+  function streamY(p) {
+    var x = p.x, y0 = p.y0;
+    if (x < car.x0 - 70) return y0;
+    if (x >= car.x1) {
+      var dx = x - car.x1;
+      return y0 - p.liftTail * Math.exp(-dx / 170);
+    }
+    var top = roofTopAt(x);
+    var ground = car.ground;
+    if (y0 >= ground) return y0;
+    var bodyH = ground - top;
+    var lift = bodyH * Math.exp(-Math.max(0, top - y0) / 130);
+    return Math.min(y0 - lift, top - 5);
+  }
   function makeParticle(anywhere) {
+    var y0 = 10 + Math.random() * (H * 0.92);
     return {
       x: anywhere ? Math.random() * W : -70,
-      y: 10 + Math.random() * (H * 0.78),
+      y: y0,
+      y0: y0,
       v: 1.4 + Math.random() * 1.6,
       size: 1 + Math.random() * 1.1,
       wob: Math.random() * Math.PI * 2,
       wake: 0,
+      liftTail: null,
       hist: []
     };
   }
@@ -1771,7 +1802,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     ctx.fillStyle = roofGrad;
     ctx.fillRect(0, 0, W, H);
 
-    // Real 3D car photo (2:1, same aspect as the canvas wrap)
+    // 3D sample car render (2:1, same aspect as the canvas wrap)
     ctx.fillStyle = "#0b0f17";
     ctx.fillRect(0, 0, W, H);
     if (tunnelImg.complete && tunnelImg.naturalWidth) {
@@ -1785,24 +1816,29 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
       var localSpeed = p.v;
-      var top = carTopY(p.x);
-      if (p.x > car.x0 - 36 && p.x < car.x1 + 8 && p.y > top - 18 && p.y < car.ground) {
-        // Accelerate over roof (Bernoulli)
-        localSpeed *= 1.45;
-        p.y = top - 6 - Math.sin(p.wob) * 2;
-      } else if (p.x >= car.x1 + 8) {
+      var top = roofTopAt(p.x);
+      var bodyH = car.ground - top;
+      if (p.x >= car.x1 && p.liftTail === null) p.liftTail = p.y0 - p.y;
+      if (p.x >= car.x1) {
+        // Turbulent wake: slow, amber, swirling
         p.wake = Math.min(p.wake + 0.08, 1);
-        p.y += Math.sin(p.wob * 3.6) * 1.4 * p.wake + (Math.random() - 0.5) * 1.1 * p.wake;
         localSpeed *= 0.6;
-        vortexPush(p);
+      } else if (p.x > car.x0 - 70 && p.y0 < car.ground) {
+        // Accelerate over the roof (Bernoulli), faster where the body is tall
+        localSpeed *= 1 + 0.5 * Math.max(0, bodyH) / car.maxBody;
+        p.wake = Math.max(p.wake - 0.02, 0);
       } else {
         p.wake = Math.max(p.wake - 0.02, 0);
-        p.y += Math.sin(p.wob) * 0.18;
         // Ground boundary layer: slow air hugging the floor
-        if (p.y > car.ground - 14) localSpeed *= 0.62;
+        if (p.y0 > car.ground - 14) localSpeed *= 0.62;
       }
       p.x += localSpeed;
       p.wob += 0.04;
+      p.y = streamY(p);
+      if (p.x >= car.x1) {
+        p.y += Math.sin(p.wob * 3.6) * 1.4 * p.wake + (Math.random() - 0.5) * 1.1 * p.wake;
+        vortexPush(p);
+      }
       p.hist.push({ x: p.x, y: p.y });
       if (p.hist.length > 22) p.hist.shift();
       if (p.x > W + 24 || p.y > H || p.y < 0) { particles[i] = makeParticle(false); continue; }
