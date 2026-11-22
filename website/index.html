@@ -775,6 +775,22 @@
     .reveal { opacity: 1; transform: none; transition: none; }
     .bar-fill, .mini-bar i, .gauge i, .race-bar i, .steps .fill { transition: none; }
   }
+
+  /* ---------- how-it-works pipeline ---------- */
+  .pipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
+  @media (max-width: 920px) { .pipe-grid { grid-template-columns: 1fr; } }
+  .pipe-step { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 14px; padding: 22px 22px 20px; box-shadow: var(--shadow-xs); position: relative; }
+  .pipe-num { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.08em; }
+  .pipe-step h3 { font-size: 19px; margin: 10px 0 8px; letter-spacing: -0.01em; }
+  .pipe-step p { font-size: 14.5px; line-height: 1.6; color: var(--muted); margin: 0; }
+  .pipe-stat { font-family: var(--mono); font-size: 12.5px; color: var(--text); margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .pipe-stat b { color: var(--accent); }
+  .pipe-out { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+  @media (max-width: 920px) { .pipe-out { grid-template-columns: 1fr 1fr; } }
+  .pipe-out-cell { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; text-align: center; }
+  .pipe-out-cell .k { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+  .pipe-out-cell .v { font-size: 22px; font-weight: 700; margin-top: 4px; letter-spacing: -0.02em; }
+  .pipe-out-cell .v small { font-size: 12px; color: var(--muted); font-weight: 500; }
 </style>
 </head>
 <body>
@@ -896,19 +912,60 @@
   </div>
   
   <!-- ==================== INTERACTIVE WIND TUNNEL FIGURE ==================== -->
-  <section id="wind-tunnel" class="alt">
+  <section id="how-it-works" class="alt">
     <div class="wrap">
       <div class="sec-head reveal">
-        <div class="kicker"><b>INTERACTIVE</b> Wind Tunnel</div>
+        <div class="kicker"><b>HOW IT WORKS</b> Pipeline</div>
         <div class="sec-body">
-          <h2>Explore the airflow. <span class="thin">Change the case, body, streamlines and sliders yourself.</span></h2>
+          <h2>From geometry to a drag number in <span class="thin">0.051 ms.</span></h2>
           <p class="sub">
-            A 1:18 scale fastback model on a turntable balance in a wind tunnel. Switch between the three test cases, change the body style, toggle streamlines and the tour, and move the sliders to see the wake and the readouts respond.
+            No CFD, no mesh, no hours of compute. A car shape goes in as numbers, the surrogate ensemble predicts its aerodynamics, and the optimiser searches for a better shape, all on CPU.
           </p>
         </div>
       </div>
-      <div class="reveal d1">
-        <iframe src="hero-wind-tunnel.html" title="Interactive isometric wind-tunnel figure: airflow over a 1:18 scale fastback model" style="width:100%;height:980px;border:1px solid var(--line);border-radius:14px;background:#0b0f17;" loading="lazy"></iframe>
+      <div class="pipe-grid reveal d1">
+        <div class="pipe-step">
+          <div class="pipe-num">STEP 01</div>
+          <h3>Geometry in</h3>
+          <p>A car is described by 23 DrivAerNet++ geometric parameters, roof height, rear window angle, diffuser, windscreen, bumper curvature and 18 more, measured from 4,051 real designs.</p>
+          <div class="pipe-stat"><b>23</b> parameters &middot; <b>4,051</b> designs</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">STEP 02</div>
+          <h3>Features</h3>
+          <p>The 23 raw parameters are expanded into 35 features, adding engineered quantities the physics cares about, like frontal area, roof slope and rear taper.</p>
+          <div class="pipe-stat"><b>35</b> features &middot; 23 raw + 12 engineered</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">STEP 03</div>
+          <h3>Ensemble predicts</h3>
+          <p>LightGBM, CatBoost and a PyTorch residual MLP each predict drag and lift, then combine. Best baseline on validation: LightGBM, Cd MAE 0.0103, R&sup2; 0.64.</p>
+          <div class="pipe-stat">Best Cd MAE <b>0.0103</b> &middot; R&sup2; <b>0.64</b></div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">STEP 04</div>
+          <h3>Uncertainty, honestly</h3>
+          <p>Conformal prediction wraps every Cd in an interval, so the model says how sure it is. A 90% interval covers the truth 93.2% of the time on validation.</p>
+          <div class="pipe-stat">90% interval <b>&plusmn;0.0245</b> &middot; 93.2% coverage</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">STEP 05</div>
+          <h3>EV range bridge</h3>
+          <p>Drag area Cd&middot;A feeds aero power, P = &frac12;&rho;CdAv&sup3;, and a 75 kWh EV highway range at 110 km/h. A 0.021 Cd drop is worth +14.2 km of range.</p>
+          <div class="pipe-stat">75 kWh EV &middot; <b>+14.2 km</b> per 0.021 Cd</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-num">STEP 06</div>
+          <h3>Inverse design</h3>
+          <p>An Optuna search runs the surrogate backwards, finding the lowest-drag body that still fits your constraints, cabin, ground clearance and styling limits included.</p>
+          <div class="pipe-stat">Optimum in <b>&lt; 1.5 s</b> &middot; constrained</div>
+        </div>
+      </div>
+      <div class="pipe-out reveal d1">
+        <div class="pipe-out-cell"><div class="k">Drag coefficient</div><div class="v">Cd <small>0.264 &plusmn;0.025</small></div></div>
+        <div class="pipe-out-cell"><div class="k">Lift coefficient</div><div class="v">Cl <small>0.082</small></div></div>
+        <div class="pipe-out-cell"><div class="k">Frontal area</div><div class="v">A <small>2.21 m&sup2;</small></div></div>
+        <div class="pipe-out-cell"><div class="k">One prediction</div><div class="v">0.051 <small>ms, ONNX CPU</small></div></div>
       </div>
     </div>
   </section>
