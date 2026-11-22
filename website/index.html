@@ -479,6 +479,7 @@
     font-size: 11px; color: #94a3b8; margin-bottom: 6px;
   }
   .stage-visual { position: relative; }
+  .stage-visual svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
   .demo-car-img { width: 100%; display: block; border-radius: 8px; }
   .silhouette-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
   .readout-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -1723,12 +1724,13 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     var y = CAR.roof[i] * (1 - fr) + CAR.roof[Math.min(i + 1, CAR.roof.length - 1)] * fr;
     return y * H;
   }
-  /* Roofline with a smooth bow-wave ramp ahead of the nose, so streamlines
-     curve up the nose instead of snapping to the roofline */
+  /* Roofline with a smooth linear bow-wave ramp ahead of the nose, so
+     streamlines curve up the nose at a constant gentle slope instead of
+     snapping to the roofline or plunging steeply */
   function roofTopAt(x) {
     if (x < car.x0) {
-      var r = Math.max(0, Math.min(1, (x - (car.x0 - 70)) / 70));
-      return car.ground + (carTopY(car.x0) - car.ground) * r * r;
+      var r = Math.max(0, Math.min(1, (x - (car.x0 - 110)) / 110));
+      return car.ground + (carTopY(car.x0) - car.ground) * r;
     }
     return carTopY(x);
   }
@@ -1750,7 +1752,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
         if (x >= car.x1) {
           if (liftTail === null) liftTail = y0 - lastY;
           y = y0 - liftTail * Math.exp(-(x - car.x1) / 320);
-        } else if (x < car.x0 - 70) {
+        } else if (x < car.x0 - 110) {
           y = y0;
         } else {
           var top = roofTopAt(x);
@@ -1773,7 +1775,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
       });
     }
   }
-  function drawPathPart(pts, a, b, col, alpha, width) {
+  function drawPathPart(pts, a, b, style, width) {
     if (b - a < 2) return;
     ctx.beginPath();
     for (var j = a; j < b; j++) {
@@ -1781,29 +1783,39 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
       var y = p.y;
       if (p.x >= car.x1) {
         var wEnv = Math.max(0, Math.min(1, (p.x - car.x1) / 90)) * Math.exp(-Math.max(0, p.x - car.x1 - 120) / 260);
-        y += Math.sin(p.x * 0.045 - hPhase * 2.2) * 3 * wEnv;
+        y += Math.sin(p.x * 0.045 - tPhase * 2.2) * 3 * wEnv;
       }
       if (j === a) ctx.moveTo(p.x, y); else ctx.lineTo(p.x, y);
     }
-    ctx.strokeStyle = "rgba(" + col + ", " + alpha + ")";
+    ctx.strokeStyle = style;
     ctx.lineWidth = width || 1.1;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.stroke();
   }
-  /* Visible wake vortices: rotating spiral eddies shed behind the tail */
+  /* Blend a streamline colour into amber across the tail, so there is no
+     vertical colour seam where the wake begins */
+  function blendCol(front, t) {
+    var r = Math.round(front[0] + (251 - front[0]) * t);
+    var g = Math.round(front[1] + (191 - front[1]) * t);
+    var b = Math.round(front[2] + (36 - front[2]) * t);
+    return r + "," + g + "," + b;
+  }
+  /* Visible wake vortices: rotating spiral eddies shed directly behind the
+     tail, at tail height, so they read as the wake, not decoration */
+  var tPhase = 0;
   function drawWakeVortices() {
     for (var k = 0; k < 3; k++) {
-      var cx = car.x1 + 46 + k * 40;
-      var cy = car.ground - 30 - k * 10 + Math.sin(hPhase * 1.4 + k * 2.1) * 5;
+      var cx = car.x1 + 40 + k * 36;
+      var cy = car.ground - 55 - k * 12 + Math.sin(tPhase * 1.4 + k * 2.1) * 5;
       ctx.beginPath();
       for (var a = 0; a <= Math.PI * 6; a += 0.25) {
-        var r = 2 + (a / (Math.PI * 6)) * 20;
-        var px = cx + Math.cos(a + hPhase * 0.9 + k) * r;
-        var py = cy + Math.sin(a + hPhase * 0.9 + k) * r;
+        var r = 2 + (a / (Math.PI * 6)) * 18;
+        var px = cx + Math.cos(a + tPhase * 0.9 + k) * r;
+        var py = cy + Math.sin(a + tPhase * 0.9 + k) * r;
         if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       }
-      ctx.strokeStyle = "rgba(251, 191, 36, 0.55)";
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.5)";
       ctx.lineWidth = 1.4;
       ctx.stroke();
     }
@@ -1838,19 +1850,28 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     ctx.clearRect(0, 0, W, H);
     drawTunnelCar();
     drawWakeVortices();
+    tPhase += 0.016;
     for (var s = 0; s < streamlines.length; s++) {
       var sl = streamlines[s];
       var pts = sl.pts;
-      var split = 0;
-      while (split < pts.length && pts[split].x < car.x1) split++;
-      drawPathPart(pts, 0, split, sl.overRoof ? "52, 211, 153" : "147, 197, 253", 0.20);
-      drawPathPart(pts, split, pts.length, "251, 191, 36", 0.16);
+      var front = sl.overRoof ? [52, 211, 153] : [147, 197, 253];
+      var f0 = "rgba(" + front[0] + "," + front[1] + "," + front[2] + ",0.20)";
+      var a0 = "rgba(251,191,36,0.16)";
+      var grad = ctx.createLinearGradient(-20, 0, W + 20, 0);
+      var s1 = Math.min((car.x1 + 20) / (W + 40), 1);
+      var s2 = Math.min((car.x1 + 70) / (W + 40), 1);
+      grad.addColorStop(0, f0);
+      grad.addColorStop(s1, f0);
+      grad.addColorStop(s2, a0);
+      grad.addColorStop(1, a0);
+      drawPathPart(pts, 0, pts.length, grad, 1.1);
       for (var m = 0; m < sl.marks.length; m++) {
         sl.marks[m] += sl.speed;
         if (sl.marks[m] > pts.length - 7) sl.marks[m] = 0;
         var i0 = Math.floor(sl.marks[m]);
-        var col = pts[i0].x >= car.x1 ? "251, 191, 36" : (sl.overRoof ? "52, 211, 153" : "147, 197, 253");
-        drawPathPart(pts, i0, Math.min(i0 + 6, pts.length), col, 0.85, 2);
+        var t = Math.max(0, Math.min(1, (pts[i0].x - car.x1) / 60));
+        var col = blendCol(front, t);
+        drawPathPart(pts, i0, Math.min(i0 + 6, pts.length), "rgba(" + col + ",0.85)", 2);
       }
     }
     if (!reduced) requestAnimationFrame(stepTunnel);
