@@ -1,0 +1,27 @@
+# Data and generated artifacts
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.env
+
+# Outputs
+artifacts/
+models/*.onnx
+models/*.onnx.data
+catboost_info/
+benchmarks/*.json
+benchmarks/*.csv
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store

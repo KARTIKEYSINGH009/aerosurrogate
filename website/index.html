@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AeroSurrogate — Car aerodynamics in milliseconds, not hours</title>
+<meta name="description" content="A physics-informed ML surrogate that predicts a car's drag, lift and EV highway range from geometry in under 2 ms, replacing hours of CFD.">
+<style>
+  :root {
+    --bg: #0c0e12;
+    --surface: #14171d;
+    --surface-2: #1a1e26;
+    --border: #262c38;
+    --text: #e8eaed;
+    --muted: #9aa3af;
+    --accent: #d4a437;
+    --accent-soft: rgba(212, 164, 55, 0.12);
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --mono: "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 72px 0 8px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+  }
+  h1 { font-size: 52px; line-height: 1.05; letter-spacing: -0.02em; font-weight: 700; }
+  h1 .thin { color: var(--muted); font-weight: 400; }
+  .lede { font-size: 19px; color: var(--muted); margin-top: 20px; max-width: 640px; }
+  .lede strong { color: var(--text); font-weight: 600; }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 8px;
+    font-weight: 600; font-size: 15px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+  }
+  .btn:hover { text-decoration: none; border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #14100a; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .stat-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--border); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin: 56px 0 8px;
+  }
+  .stat { background: var(--surface); padding: 20px 18px; }
+  .stat .num { font-family: var(--mono); font-size: 26px; font-weight: 700; }
+  .stat .num .unit { font-size: 14px; color: var(--muted); font-weight: 400; }
+  .stat .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .stat .tag { font-size: 11px; font-family: var(--mono); margin-top: 8px; display: inline-block; padding: 2px 8px; border-radius: 20px; }
+  .tag.met { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+  .tag.gap { background: rgba(251, 191, 36, 0.12); color: var(--amber); }
+  section { padding: 48px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 26px; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .sub { color: var(--muted); margin-bottom: 28px; max-width: 640px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+  .card h3 { font-size: 17px; margin-bottom: 6px; }
+  .card h3 .k { font-family: var(--mono); font-size: 12px; color: var(--accent); display: block; margin-bottom: 6px; letter-spacing: 0.08em; }
+  .card p { color: var(--muted); font-size: 15px; }
+  .card .soon { display: inline-block; margin-top: 10px; font-size: 12px; font-family: var(--mono); color: var(--amber); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  td.num, th.num { font-family: var(--mono); text-align: right; }
+  td .pill { font-size: 12px; font-family: var(--mono); padding: 2px 8px; border-radius: 20px; }
+  .pill.met { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+  .pill.gap { background: rgba(251, 191, 36, 0.12); color: var(--amber); }
+  .note {
+    background: var(--accent-soft); border: 1px solid rgba(212, 164, 55, 0.35);
+    border-radius: 12px; padding: 18px 20px; font-size: 15px; color: var(--text);
+  }
+  .note strong { color: var(--accent); }
+  .flow { font-family: var(--mono); font-size: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; overflow-x: auto; white-space: nowrap; }
+  .flow .dim { color: var(--muted); }
+  .flow .hl { color: var(--accent); }
+  .steps { list-style: none; }
+  .steps li { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .steps li:last-child { border-bottom: none; }
+  .steps .n { font-family: var(--mono); color: var(--accent); font-weight: 700; min-width: 44px; }
+  .steps .done { color: var(--green); }
+  .steps .todo { color: var(--muted); }
+  .steps p { color: var(--muted); font-size: 15px; }
+  .steps p strong { color: var(--text); }
+  code { font-family: var(--mono); font-size: 13px; background: var(--surface-2); padding: 2px 7px; border-radius: 5px; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; overflow-x: auto; }
+  pre code { background: none; padding: 0; font-size: 13.5px; line-height: 1.7; }
+  footer { border-top: 1px solid var(--border); padding: 32px 0 56px; color: var(--muted); font-size: 14px; }
+  footer .row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  @media (max-width: 640px) {
+    h1 { font-size: 38px; }
+    .stat-strip { grid-template-columns: 1fr 1fr; }
+    .cards { grid-template-columns: 1fr; }
+    .flow { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Automotive AI &middot; ML Surrogate &middot; DrivAerNet++</div>
+    <h1>AeroSurrogate<span class="thin">.</span></h1>
+    <p class="lede">Car aerodynamics in <strong>milliseconds, not hours</strong>. A physics-informed ML surrogate that predicts a car's drag, lift and EV highway range from its shape, and finds the lowest-drag shape under your constraints.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="https://github.com/KARTIKEYSINGH009/aerosurrogate">View on GitHub</a>
+      <a class="btn" href="#results">Measured results</a>
+      <a class="btn" href="#quickstart">Quick start</a>
+    </div>
+    <div class="stat-strip">
+      <div class="stat">
+        <div class="num">0.051 <span class="unit">ms</span></div>
+        <div class="lbl">Single prediction, joint MLP on CPU</div>
+        <span class="tag met">TARGET MET</span>
+      </div>
+      <div class="stat">
+        <div class="num">0.0103</div>
+        <div class="lbl">Cd MAE, best baseline (LightGBM), val</div>
+        <span class="tag gap">TARGET 0.005</span>
+      </div>
+      <div class="stat">
+        <div class="num">4,051</div>
+        <div class="lbl">Usable designs, DrivAerNet++ merged set</div>
+        <span class="tag met">VERIFIED</span>
+      </div>
+      <div class="stat">
+        <div class="num">&lt; 1.5 <span class="unit">s</span></div>
+        <div class="lbl">Constrained inverse design, Optuna</div>
+        <span class="tag met">BY DESIGN</span>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <h2>The problem</h2>
+    <p class="sub">Designing a car body means running CFD. One design takes hours, so engineers cannot iterate, and they definitely cannot ask "what shape is best?" in real time.</p>
+    <div class="flow"><span class="dim">shape (23 params)</span> &nbsp;&rarr;&nbsp; <span class="hl">AeroSurrogate</span> &nbsp;&rarr;&nbsp; <span class="dim">Cd, Cl, frontal area, EV range</span> &nbsp;in&nbsp; <span class="hl">0.051 ms</span><br><span class="dim">target Cd + constraints</span> &nbsp;&rarr;&nbsp; <span class="hl">inverse design</span> &nbsp;&rarr;&nbsp; <span class="dim">lowest-drag geometry</span> &nbsp;in&nbsp; <span class="hl">&lt; 1.5 s</span></div>
+  </section>
+
+  <section>
+    <h2>What it does</h2>
+    <p class="sub">Four parts. Three are built and measured, the fourth is in progress.</p>
+    <div class="cards">
+      <div class="card">
+        <h3><span class="k">01 / SURROGATE ENGINE</span>Predict the aero numbers</h3>
+        <p>LightGBM, CatBoost and a PyTorch Residual MLP ensemble predicting Cd, Cl and frontal area from 23 geometric parameters, served as ONNX on CPU, with calibrated 95% conformal prediction intervals.</p>
+      </div>
+      <div class="card">
+        <h3><span class="k">02 / EV RANGE BRIDGE</span>Turn drag into kilometres</h3>
+        <p>Drag area (Cd&middot;A) and aero power converted into EV highway range delta in km, for a reference 75 kWh EV at 110 km/h. A drag cut becomes a range number you can feel.</p>
+      </div>
+      <div class="card">
+        <h3><span class="k">03 / INVERSE DESIGN</span>Ask for the shape, not the number</h3>
+        <p>An Optuna optimizer that returns the lowest-drag geometry under practical constraints: cabin space, ground clearance, diffuser limits and frontal-area bounds.</p>
+      </div>
+      <div class="card">
+        <h3><span class="k">04 / DASHBOARD</span>Drive it with sliders</h3>
+        <p>FastAPI <code>/predict</code> and <code>/optimize</code> endpoints behind a Streamlit UI: geometry sliders, live Cd, Cl and range gauges, a SHAP waterfall and one-click optimization.</p>
+        <span class="soon">IN PROGRESS</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <h2>Measured results</h2>
+    <p class="sub">Measured 22 Nov 2026, laptop CPU only, on MIT's official validation split (555 designs). The test split (559 designs) stays untouched until final evaluation. Every number below is measured, none is claimed.</p>
+    <table>
+      <tr><th>Metric</th><th class="num">Target</th><th class="num">Measured</th><th>Status</th></tr>
+      <tr><td>Cd MAE, LightGBM baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0103</td><td><span class="pill gap">GAP</span></td></tr>
+      <tr><td>Cd R&sup2;, LightGBM baseline</td><td class="num">&gt; 0.96</td><td class="num">0.64</td><td><span class="pill gap">GAP</span></td></tr>
+      <tr><td>Cd MAE, CatBoost baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0110</td><td><span class="pill gap">GAP</span></td></tr>
+      <tr><td>Cd MAE, Residual MLP baseline</td><td class="num">&lt; 0.005</td><td class="num">0.0126</td><td><span class="pill gap">GAP</span></td></tr>
+      <tr><td>Cl R&sup2;, best baseline</td><td class="num">&gt; 0.96</td><td class="num">0.38</td><td><span class="pill gap">GAP</span></td></tr>
+      <tr><td>Frontal area R&sup2;, best baseline</td><td class="num">&gt; 0.96</td><td class="num">0.999</td><td><span class="pill met">MET</span></td></tr>
+      <tr><td>Inference latency, joint MLP ONNX</td><td class="num">&lt; 2 ms</td><td class="num">0.051 ms</td><td><span class="pill met">MET</span></td></tr>
+      <tr><td>Conformal coverage, 90% nominal, Cd</td><td class="num">90%</td><td class="num">90&ndash;94%</td><td><span class="pill met">MET</span></td></tr>
+      <tr><td>Conformal coverage, 95% nominal, Cd</td><td class="num">95%</td><td class="num">95&ndash;97%</td><td><span class="pill met">MET</span></td></tr>
+    </table>
+    <div style="height: 20px"></div>
+    <div class="note"><strong>Honest read.</strong> Latency is met and the uncertainty calibration is sound, but the accuracy targets are not. Baselines sit at Cd MAE 0.0103 and R&sup2; 0.64, lift is hard to predict from geometry alone, and estateback drag is the weakest subgroup (within-group R&sup2; 0.01&ndash;0.18). Closing that gap is the remaining work. Full breakdowns live in <code>benchmarks/</code> in the repo.</div>
+  </section>
+
+  <section>
+    <h2>Data</h2>
+    <p class="sub"><a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">DrivAerNet++</a> (MIT, NeurIPS 2024): 8,150 car designs with high-fidelity CFD, fastback, notchback and estateback, ICE and EV underbodies. This project uses only the lightweight tabular files, not the 39 TB of volumetric CFD. Dataset license: CC BY-NC 4.0, non-commercial research and education only.</p>
+    <p class="sub">One verified correction to the headline number: the parametric CSV covers 4,165 designs with 23 geometric parameters, and the full join (parameters + Cd + Cl + frontal area + official split) is 4,051 designs. The other ~4,000 designs exist in the Cd file and the splits but have no lightweight parametric row.</p>
+  </section>
+
+  <section id="quickstart">
+    <h2>Quick start</h2>
+    <pre><code>python -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -r requirements.txt
+python -m src.ingest.download_drivaer   # 6 lightweight files, ~2 MB
+python -m src.ingest.merge_validate     # merged Parquet + manifest
+python -m src.models.train_baselines    # LightGBM, CatBoost, MLP on train, eval on val</code></pre>
+  </section>
+
+  <section>
+    <h2>Status &amp; roadmap</h2>
+    <p class="sub">Two-week build, 22 Nov &ndash; 5 Dec 2026.</p>
+    <ul class="steps">
+      <li><span class="n done">DONE</span><p><strong>Day 1 &middot; Data.</strong> Download, merge and validate DrivAerNet++.</p></li>
+      <li><span class="n done">DONE</span><p><strong>Days 2&ndash;4 &middot; Features + baselines.</strong> 35 features, three baselines measured on val.</p></li>
+      <li><span class="n done">DONE</span><p><strong>Days 5&ndash;7 &middot; Uncertainty + ONNX.</strong> Conformal intervals, ONNX export, 0.051 ms latency.</p></li>
+      <li><span class="n done">DONE</span><p><strong>Days 8&ndash;9 &middot; EV physics + optimizer.</strong> Range bridge and Optuna inverse design.</p></li>
+      <li><span class="n todo">NEXT</span><p><strong>Days 10&ndash;12 &middot; API + dashboard + accuracy.</strong> FastAPI endpoints, Streamlit UI, tuning toward the Cd targets.</p></li>
+      <li><span class="n todo">NEXT</span><p><strong>Days 13&ndash;14 &middot; Final evaluation.</strong> Official test split, demo, README.</p></li>
+    </ul>
+  </section>
+
+  <footer>
+    <div class="row">
+      <span>AeroSurrogate &middot; built by <a href="https://github.com/KARTIKEYSINGH009">Kartikey Singh</a>, AI/ML Developer</span>
+      <span><a href="https://github.com/KARTIKEYSINGH009/aerosurrogate">GitHub</a> &middot; <a href="https://github.com/MIT-Decode/DrivAerNetPlusPlus">Dataset</a></span>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
