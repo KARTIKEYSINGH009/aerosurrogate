@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AeroSurrogate — Interactive 3D Wind-Tunnel Explorer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root, [data-theme="light"] {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --border: #e2e6ee;
+  --border-strong: #cbd2df;
+  --ink: #111827;
+  --muted: #5b6577;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --warn-bg: #fff7ed;
+  --warn-border: #fed7aa;
+  --warn-ink: #b45309;
+  --stage-bg: #0b0f17;
+  --stage-border: #1e293b;
+  --good: #059669;
+  --bad: #dc2626;
+}
+
+[data-theme="dark"] {
+  --bg: #0b0e14;
+  --surface: #121721;
+  --surface-2: #161d29;
+  --border: #242d3d;
+  --border-strong: #334055;
+  --ink: #f1f5f9;
+  --muted: #8b98ad;
+  --accent: #3b82f6;
+  --accent-soft: #172554;
+  --warn-bg: #271b0e;
+  --warn-border: #5c3a14;
+  --warn-ink: #fbbf24;
+  --stage-bg: #070a10;
+  --stage-border: #1e293b;
+  --good: #34d399;
+  --bad: #f87171;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 18px 16px 32px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+/* Header bar matching AeroSurrogate */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.tabs {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover { color: var(--ink); }
+.tab.active {
+  background: var(--ink);
+  color: var(--surface);
+  font-weight: 600;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge-warn {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--warn-ink);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.pill-btn {
+  appearance: none;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.pill-btn:hover { color: var(--ink); border-color: var(--border-strong); }
+.pill-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* Main 2-column grid matching AeroSurrogate */
+.main-grid {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+}
+
+.left-col {
+  padding: 22px 24px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.preset-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 7px 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+}
+.preset-btn:hover { color: var(--ink); border-color: var(--border-strong); }
+.preset-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.slider-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.slider-code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+.slider-val {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.35);
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  cursor: pointer;
+}
+
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* Sensitivity sparkline card in left column */
+.curve-box {
+  margin-top: auto;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.curve-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.curve-svg {
+  display: block;
+  width: 100%;
+  height: 68px;
+}
+
+/* Right column: 3D Wind Tunnel Stage + Telemetry Cards */
+.right-col {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stage-wrap {
+  position: relative;
+  background: var(--stage-bg);
+  border: 1px solid var(--stage-border);
+  border-radius: 12px;
+  overflow: hidden;
+  height: 390px;
+  user-select: none;
+}
+
+#viewport-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+#viewport-canvas:active { cursor: grabbing; }
+
+.hud-top {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.hud-top strong {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.hud-cams {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.cam-btn {
+  appearance: none;
+  background: rgba(15, 23, 42, 0.78);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.cam-btn:hover { color: #ffffff; border-color: rgba(148, 163, 184, 0.6); }
+.cam-btn.active {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.hud-legend {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.72);
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.leg-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Telemetry grid below viewport */
+.metrics-primary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.metric-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metric-big {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 4px 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-big.ink { color: var(--ink); }
+
+.metric-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pi-track {
+  position: relative;
+  height: 5px;
+  background: var(--border);
+  border-radius: 999px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.pi-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--accent);
+  opacity: 0.28;
+  border-radius: 999px;
+}
+
+.pi-marker {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.metrics-secondary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mini-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+}
+
+.mini-val {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-val.good { color: var(--good); }
+.mini-val.bad { color: var(--bad); }
+
+.mini-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.footer-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.footer-bar strong { color: var(--ink); }
+
+@media (max-width: 920px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .left-col { border-right: none; border-bottom: 1px solid var(--border); }
+  .stage-wrap { height: 320px; }
+}
+
+@media (max-width: 560px) {
+  .app { padding: 10px 8px 24px; }
+  .topbar { padding: 10px 12px; }
+  .left-col, .right-col { padding: 14px; }
+  .tabs { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .tab { padding: 7px 6px; font-size: 11px; text-align: center; }
+  .metrics-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stage-wrap { height: 270px; }
+  .hud-legend { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <header class="topbar">
+      <div class="tabs" role="tablist" aria-label="Vehicle body architecture">
+        <button type="button" class="tab active" data-body="fastback" role="tab" aria-selected="true">Fastback (R² 0.67)</button>
+        <button type="button" class="tab" data-body="notchback" role="tab" aria-selected="false">Notchback (R² 0.60)</button>
+        <button type="button" class="tab" data-body="estateback" role="tab" aria-selected="false">Estateback (R² 0.17)</button>
+      </div>
+      <div class="topbar-right">
+        <span class="badge-warn">Illustrative 3D flow field · Client-side response surface</span>
+        <button type="button" class="pill-btn active" id="btn-stream">Streamlines: On</button>
+        <button type="button" class="pill-btn" id="btn-tour">Tour: Off</button>
+        <button type="button" class="pill-btn" id="btn-theme">Dark</button>
+      </div>
+    </header>
+
+    <div class="main-grid">
+      <aside class="left-col">
+        <div>
+          <div class="section-label">Aerodynamic Test Cases (← / →)</div>
+          <div class="presets">
+            <button type="button" class="preset-btn active" data-case="0">1 · Clean Fastback</button>
+            <button type="button" class="preset-btn" data-case="1">2 · Steep Backlight</button>
+            <button type="button" class="preset-btn" data-case="2">3 · Sport Turismo</button>
+          </div>
+        </div>
+
+        <label class="slider-group">
+          <div class="slider-head">
+            <span><span class="slider-title">Rear window inclination</span><span class="slider-code">d_rear_window_inclination</span></span>
+            <span class="slider-val" id="val-rear">24.0°</span>
+          </div>
+          <input id="ctrl-rear" type="range" min="18" max="32" step="0.5" value="24">
+          <div class="slider-ticks"><span>18° attached</span><span>24° baseline</span><span>32° early sep.</span></div>
+        </label>
+
+        <label class="slider-group">
+          <div class="slider-head">
+            <span><span class="slider-title">Rear diffuser angle</span><span class="slider-code">b_diffusor_angle</span></span>
+            <span class="slider-val" id="val-diff">9.5°</span>
+          </div>
+          <input id="ctrl-diff" type="range" min="0" max="15" step="0.5" value="9.5">
+          <div class="slider-ticks"><span>0° flat</span><span>9.5° optimum</span><span>15° high downforce</span></div>
+        </label>
+
+        <label class="slider-group">
+          <div class="slider-head">
+            <span><span class="slider-title">Windscreen inclination</span><span class="slider-code">d_winscreen_inclination</span></span>
+            <span class="slider-val" id="val-wind">28.0°</span>
+          </div>
+          <input id="ctrl-wind" type="range" min="20" max="36" step="0.5" value="28">
+          <div class="slider-ticks"><span>20° sleek</span><span>28° baseline</span><span>36° upright</span></div>
+        </label>
+
+        <label class="slider-group">
+          <div class="slider-head">
+            <span><span class="slider-title">Roof height</span><span class="slider-code">a_car_roof_height</span></span>
+            <span class="slider-val" id="val-roof">1420 mm</span>
+          </div>
+          <input id="ctrl-roof" type="range" min="1340" max="1520" step="5" value="1420">
+          <div class="slider-ticks"><span>1340 mm low</span><span>1420 mm</span><span>1520 mm tall</span></div>
+        </label>
+
+        <label class="slider-group">
+          <div class="slider-head">
+            <span><span class="slider-title">Wind tunnel speed</span><span class="slider-code">v_freestream</span></span>
+            <span class="slider-val" id="val-speed">110 km/h</span>
+          </div>
+          <input id="ctrl-speed" type="range" min="60" max="140" step="1" value="110">
+          <div class="slider-ticks"><span>60 km/h</span><span>110 km/h</span><span>140 km/h</span></div>
+        </label>
+
+        <div class="curve-box">
+          <div class="curve-head">
+            <span>Cd vs Rear Window Inclination (18°–32°)</span>
+            <span id="curve-sep">Sep: 86%</span>
+          </div>
+          <svg class="curve-svg" id="curve-svg" viewBox="0 0 320 68" aria-label="Drag coefficient sensitivity curve"></svg>
+        </div>
+      </aside>
+
+      <main class="right-col">
+        <div class="stage-wrap" id="stage-wrap">
+          <canvas id="viewport-canvas"></canvas>
+          <div class="hud-top">
+            <span id="hud-mode">3D WIND TUNNEL · <strong>PORSCHE FASTBACK</strong></span>
+            <span id="hud-cda">Cd·A = <strong>0.584 m²</strong></span>
+          </div>
+          <div class="hud-cams" role="group" aria-label="Camera views">
+            <button type="button" class="cam-btn active" data-cam="hero">3/4 Hero</button>
+            <button type="button" class="cam-btn" data-cam="side">Side Profile</button>
+            <button type="button" class="cam-btn" data-cam="rear">Rear Wake</button>
+            <button type="button" class="cam-btn" data-cam="top">Top Plan</button>
+          </div>
+          <div class="hud-legend">
+            <span><span class="leg-dot" style="background:#38bdf8;"></span>Fast roof flow</span>
+            <span><span class="leg-dot" style="background:#fb923c;"></span>Separation</span>
+            <span><span class="leg-dot" style="background:#64748b;"></span>Wake vortex</span>
+          </div>
+        </div>
+
+        <div class="metrics-primary">
+          <div class="metric-card">
+            <div class="metric-label">Drag Coefficient (Cd)</div>
+            <div class="metric-big" id="m-cd">0.264</div>
+            <div class="metric-sub">
+              <span id="m-pi">90% PI: 0.2395 – 0.2885 (±0.0245)</span>
+              <span id="m-cd-delta">-0.021 vs ref</span>
+            </div>
+            <div class="pi-track">
+              <div class="pi-band" id="pi-band" style="left:20%;width:24%;"></div>
+              <div class="pi-marker" id="pi-marker" style="left:32%;"></div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-label">Lift Coefficient (Cl)</div>
+            <div class="metric-big ink" id="m-cl">0.082</div>
+            <div class="metric-sub">
+              <span id="m-cl-note">Balanced rear downforce</span>
+              <span id="m-diff-read">Diffuser 9.5°</span>
+            </div>
+            <div class="pi-track">
+              <div class="pi-band" id="cl-band" style="left:45%;width:16%;"></div>
+              <div class="pi-marker" id="cl-marker" style="left:53%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics-secondary">
+          <div class="mini-card">
+            <div class="metric-label">Drag Area (Cd·A)</div>
+            <div class="mini-val" id="m-cda">0.584 m²</div>
+            <div class="mini-sub" id="m-area">A = 2.21 m²</div>
+          </div>
+          <div class="mini-card">
+            <div class="metric-label">Aero Power</div>
+            <div class="mini-val" id="m-pwr">10.20 kW</div>
+            <div class="mini-sub" id="m-spd">at 110 km/h (0.5ρCdAv³)</div>
+          </div>
+          <div class="mini-card">
+            <div class="metric-label">EV Range Δ</div>
+            <div class="mini-val good" id="m-ev">+14.2 km</div>
+            <div class="mini-sub">vs 0.285 Cd · 75 kWh</div>
+          </div>
+          <div class="mini-card">
+            <div class="metric-label">Wake Intensity</div>
+            <div class="mini-val" id="m-wake">Compact (28%)</div>
+            <div class="mini-sub" id="m-sep-pt">Attached to 86%</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="footer-bar">
+      <span id="status-readout"><strong>Case 1 · Clean fastback</strong> · Drag viewport to orbit 360° · Scroll to zoom · ←/→ cases</span>
+      <span id="renderer-tag">WebGL 3D · Illustrative flow field, not a CFD solve.</span>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  // =========================================================================
+  // 1. UNIFIED AEROSURROGATE RESPONSE SURFACE MODEL
+  // =========================================================================
+  const AIR_DENSITY = 1.225;
+  const REF_CD = 0.285;
+  const BASELINE_RANGE_GAIN = 14.2;
+
+  const BODY_PRESETS = {
+    fastback:   { id: 'fastback',   label: 'PORSCHE FASTBACK',      r2: 0.67, cd0: 0.264, pi90: 0.0245, cl0: 0.082, area0: 2.21212, dispArea0: 2.21, wakeBase: 0.28, sens: 1.00 },
+    notchback:  { id: 'notchback',  label: 'PORSCHE SEDAN',         r2: 0.60, cd0: 0.282, pi90: 0.0260, cl0: 0.112, area0: 2.22000, dispArea0: 2.22, wakeBase: 0.48, sens: 0.82 },
+    estateback: { id: 'estateback', label: 'PORSCHE SPORT TURISMO', r2: 0.17, cd0: 0.318, pi90: 0.0285, cl0: 0.048, area0: 2.26000, dispArea0: 2.26, wakeBase: 0.86, sens: 0.22 },
+  };
+
+  const CASES = [
+    { name: 'Case 1 · Clean fastback',  state: { bodyType: 'fastback',   rearAngle: 24.0, diffAngle: 9.5, windAngle: 28.0, roofMm: 1420, windSpeed: 110 } },
+    { name: 'Case 2 · Steep backlight', state: { bodyType: 'fastback',   rearAngle: 31.0, diffAngle: 9.5, windAngle: 28.0, roofMm: 1420, windSpeed: 110 } },
+    { name: 'Case 3 · Sport Turismo',   state: { bodyType: 'estateback', rearAngle: 24.0, diffAngle: 9.5, windAngle: 28.0, roofMm: 1445, windSpeed: 110 } },
+  ];
+
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const gauss = (x, mu, sig) => { const d = (x - mu) / sig; return Math.exp(-d * d); };
+
+  function evaluateAero(st) {
+    const p = BODY_PRESETS[st.bodyType] || BODY_PRESETS.fastback;
+    const rear = clamp(st.rearAngle, 18, 32);
+    const diff = clamp(st.diffAngle, 0, 15);
+    const wind = clamp(st.windAngle, 20, 36);
+    const roof = clamp(st.roofMm, 1340, 1520);
+    const speed = clamp(st.windSpeed, 60, 140);
+
+    const dRear = rear - 24.0;
+    const cdRear = dRear >= 0
+      ? p.sens * (0.0046 * dRear + 0.00052 * dRear * dRear)
+      : p.sens * (0.0018 * dRear);
+    const clRear = dRear >= 0 ? p.sens * 0.0058 * dRear : p.sens * 0.0022 * dRear;
+
+    const dDiff = diff - 9.5;
+    const clDiff = -0.0085 * dDiff;
+    const cdDiff = 0.00026 * dDiff * dDiff;
+
+    const dWind = wind - 28.0;
+    const cdWind = dWind >= 0 ? 0.0018 * dWind : 0.0014 * dWind;
+
+    const roofRatio = roof / 1420;
+    const cdRoof = 0.018 * (roofRatio - 1.0);
+
+    const cd = +(p.cd0 + cdRear + cdDiff + cdWind + cdRoof).toFixed(3);
+    const cl = +(p.cl0 + clRear + clDiff).toFixed(3);
+    const areaM2 = p.area0 * roofRatio;
+    const dispArea = +(p.dispArea0 * roofRatio).toFixed(2);
+    const cdA = +(cd * areaM2).toFixed(3);
+
+    const vMs = speed / 3.6;
+    const aeroPowerKw = +((0.5 * AIR_DENSITY * cdA * vMs * vMs * vMs) / 1000).toFixed(2);
+    const evRangeDeltaKm = +(((REF_CD - cd) / (REF_CD - 0.264)) * BASELINE_RANGE_GAIN).toFixed(1);
+
+    let sepFrac;
+    if (st.bodyType === 'estateback') {
+      sepFrac = clamp(0.14 - 0.004 * dRear, 0.08, 0.20);
+    } else if (st.bodyType === 'notchback') {
+      sepFrac = clamp(0.70 - 0.055 * Math.max(0, dRear) + 0.015 * Math.min(0, dRear), 0.20, 0.82);
+    } else {
+      sepFrac = clamp(0.86 - 0.082 * Math.max(0, dRear) + 0.012 * Math.min(0, dRear), 0.22, 0.94);
+    }
+
+    const wakeSize = clamp(
+      p.wakeBase + p.sens * (0.062 * Math.max(0, dRear) + 0.008 * Math.min(0, dRear)) - 0.006 * dDiff + 0.25 * (roofRatio - 1),
+      0.22, 1.0
+    );
+
+    return {
+      ...st,
+      preset: p,
+      cd, cl,
+      pi90: p.pi90,
+      cdLow: +(cd - p.pi90).toFixed(4),
+      cdHigh: +(cd + p.pi90).toFixed(4),
+      dispArea, cdA, aeroPowerKw, evRangeDeltaKm,
+      sepFrac: +sepFrac.toFixed(3),
+      wakeSize: +wakeSize.toFixed(3),
+      underbodyUpwash: clamp(diff / 15, 0, 1),
+      speedScale: speed / 110,
+    };
+  }
+
+  // =========================================================================
+  // 2. PARAMETRIC 3D PORSCHE GEOMETRY (SHARED BY WEBGL THREE.JS & FALLBACK)
+  //    World space: X along car length (-2.45 nose .. +2.45 tail),
+  //                 Y up (0.00 ground .. ~1.42 roof), Z width (-0.98 .. +0.98)
+  // =========================================================================
+  function evalPorscheCenterY(x, aero) {
+    const roofScale = aero.roofMm / 1420;
+    const zRoof = 1.37 * roofScale;
+    const windRad = (aero.windAngle * Math.PI) / 180;
+    const xWindStart = -0.92;
+    const xRoofFront = xWindStart + clamp(0.46 / Math.tan(windRad), 0.56, 0.96);
+
+    let xRoofEnd, zTailTop, xDeckStart = 1.48, zDeck = 0.86 * roofScale;
+    if (aero.bodyType === 'estateback') {
+      xRoofEnd = 2.02;
+      zTailTop = 1.24 * roofScale;
+    } else if (aero.bodyType === 'notchback') {
+      xRoofEnd = 0.68;
+      const rad = (aero.rearAngle * Math.PI) / 180;
+      const drop = 0.50 * roofScale;
+      xDeckStart = clamp(xRoofEnd + drop / Math.tan(rad), 1.30, 1.92);
+      zDeck = zRoof - drop;
+      zTailTop = zDeck - 0.04;
+    } else {
+      const rad = (aero.rearAngle * Math.PI) / 180;
+      xRoofEnd = 0.25 + (24 - aero.rearAngle) * 0.022;
+      const drop = (2.45 - xRoofEnd) * Math.tan(rad) * 0.44;
+      zTailTop = clamp(zRoof - drop, 0.72 * roofScale, 1.05 * roofScale);
+    }
+
+    let y;
+    if (x <= -2.45) y = 0.34;
+    else if (x < -2.18) y = lerp(0.34, 0.66, Math.pow((x + 2.45) / 0.27, 0.58));
+    else if (x < xWindStart) {
+      const t = (x + 2.18) / (xWindStart + 2.18);
+      y = lerp(0.66, 0.82 * roofScale, t) + Math.sin(t * Math.PI) * 0.02;
+    } else if (x < xRoofFront) {
+      const t = (x - xWindStart) / Math.max(0.1, xRoofFront - xWindStart);
+      y = lerp(0.82 * roofScale, zRoof, smoothstep(0, 1, t * 0.94 + 0.03));
+    } else if (x <= xRoofEnd) {
+      const t = (x - xRoofFront) / Math.max(0.1, xRoofEnd - xRoofFront);
+      y = zRoof + Math.sin(t * Math.PI) * 0.045;
+    } else if (aero.bodyType === 'estateback') {
+      const t = clamp((x - xRoofEnd) / (2.45 - xRoofEnd), 0, 1);
+      y = lerp(zRoof, zTailTop - 0.06, t * t);
+    } else if (aero.bodyType === 'notchback') {
+      if (x < xDeckStart) {
+        y = lerp(zRoof, zDeck, smoothstep(0, 1, (x - xRoofEnd) / Math.max(0.1, xDeckStart - xRoofEnd)));
+      } else {
+        y = lerp(zDeck, zTailTop, clamp((x - xDeckStart) / Math.max(0.1, 2.45 - xDeckStart), 0, 1));
+      }
+    } else {
+      const t = clamp((x - xRoofEnd) / Math.max(0.1, 2.45 - xRoofEnd), 0, 1);
+      y = lerp(zRoof, zTailTop, 0.76 * t + 0.24 * t * t);
+    }
+
+    return { y, xWindStart, xRoofFront, xRoofEnd, xDeckStart, zTailTop, zRoof };
+  }
+
+  function buildPorscheRibs(aero) {
+    const N_STATIONS = 44;
+    const xFrontAxle = -1.46;
+    const xRearAxle = 1.44;
+    const rArch = 0.43;
+    const diffLift = 0.76 * Math.tan((aero.diffAngle * Math.PI) / 180);
+    const roofScale = aero.roofMm / 1420;
+
+    const xs = [];
+    for (let i = 0; i <= N_STATIONS; i++) {
+      const u = i / N_STATIONS;
+      // Cosine-clustered slightly at nose and tail for crisp curvature
+      const x = -2.45 + 4.90 * u;
+      xs.push(x);
+    }
+
+    const ribs = xs.map((x) => {
+      const info = evalPorscheCenterY(x, aero);
+      const yCenter = info.y;
+
+      // Iconic Porsche Taycan / 911 coke-bottle planform half-width
+      let wBelt = 0.90;
+      if (x < -1.92) {
+        wBelt = lerp(0.52, 0.92, smoothstep(-2.45, -1.92, x));
+      } else if (x < -0.90) {
+        wBelt = 0.90 + 0.075 * gauss(x, xFrontAxle, 0.42);
+      } else if (x < 0.65) {
+        const t = Math.sin(((x + 0.90) / 1.55) * Math.PI);
+        wBelt = 0.90 - 0.055 * t;
+      } else if (x < 2.02) {
+        wBelt = 0.90 + 0.115 * gauss(x, xRearAxle, 0.48); // Wide muscular Porsche hips!
+      } else {
+        wBelt = lerp(0.95, 0.76, smoothstep(1.98, 2.45, x));
+      }
+
+      // Circular wheel-arch cutouts
+      let archLift = 0;
+      const df = Math.abs(x - xFrontAxle);
+      if (df < rArch) archLift = Math.max(archLift, Math.sqrt(rArch * rArch - df * df) * 0.84);
+      const dr = Math.abs(x - xRearAxle);
+      if (dr < rArch) archLift = Math.max(archLift, Math.sqrt(rArch * rArch - dr * dr) * 0.84);
+
+      let ySill = 0.17;
+      if (x < -2.10) ySill = lerp(0.24, 0.17, smoothstep(-2.45, -2.10, x));
+      if (x > 1.72) ySill = 0.17 + ((x - 1.72) / 0.73) * diffLift;
+      const ySillOuter = Math.max(ySill, ySill + archLift);
+
+      let yBelt;
+      if (x < -2.05) {
+        yBelt = lerp(0.38, 0.68, smoothstep(-2.45, -2.05, x));
+      } else if (x < -0.90) {
+        // Proud Porsche front fenders rising higher than sunken frunk hood!
+        yBelt = lerp(0.68, 0.80 * roofScale, (x + 2.05) / 1.15) + 0.095 * gauss(x, xFrontAxle, 0.42);
+      } else if (x < 1.98) {
+        yBelt = lerp(0.80 * roofScale, 0.92 * roofScale, (x + 0.90) / 2.88) + 0.075 * gauss(x, xRearAxle, 0.50);
+      } else {
+        yBelt = lerp(0.92 * roofScale, Math.min(0.86 * roofScale, info.zTailTop - 0.03), smoothstep(1.98, 2.45, x));
+      }
+
+      const cabinH = Math.max(0, yCenter - yBelt);
+      let wCrown, yCrown, wRail, yRail;
+      if (x < info.xWindStart) {
+        const fenderPeak = 0.09 * gauss(x, xFrontAxle - 0.04, 0.42);
+        wCrown = wBelt * 0.78;
+        yCrown = Math.max(yBelt + 0.02, yCenter + fenderPeak);
+        wRail = wBelt * 0.40;
+        yRail = yCenter + 0.008;
+      } else if (cabinH > 0.06) {
+        const taperFront = smoothstep(info.xWindStart, info.xRoofFront + 0.08, x);
+        const taperRear = aero.bodyType === 'estateback'
+          ? lerp(1.0, 0.86, smoothstep(1.3, 2.45, x))
+          : lerp(1.0, 0.68, smoothstep(0.45, 2.45, x));
+        const roofHalfW = 0.54 * taperRear;
+        const baseCabinW = wBelt - 0.10 - (x > 0.75 ? 0.09 * gauss(x, xRearAxle, 0.55) : 0);
+        wCrown = baseCabinW;
+        yCrown = yBelt + 0.045;
+        wRail = lerp(baseCabinW - 0.05, roofHalfW, clamp(cabinH / 0.52, 0, 1) * (0.40 + 0.60 * taperFront));
+        yRail = yCenter - 0.058;
+      } else {
+        wCrown = wBelt * 0.82;
+        yCrown = yBelt + 0.03;
+        wRail = wBelt * 0.48;
+        yRail = yCenter - 0.015;
+      }
+
+      const wSill = wBelt - 0.09;
+      const wUndercut = wBelt - 0.035;
+      const wFlank = wBelt + 0.025;
+      const yUndercut = Math.max(ySillOuter + 0.02, lerp(ySill, yBelt, 0.24));
+      const yFlank = Math.max(yUndercut + 0.03, lerp(ySill, yBelt, 0.58));
+
+      // 13 cross-section points (Z = -w .. +w)
+      return {
+        x, info,
+        pts: [
+          [x, ySillOuter, -wSill],
+          [x, yUndercut, -wUndercut],
+          [x, yFlank, -wFlank],
+          [x, yBelt, -wBelt],
+          [x, yCrown, -wCrown],
+          [x, yRail, -wRail],
+          [x, yCenter, 0],
+          [x, yRail, wRail],
+          [x, yCrown, wCrown],
+          [x, yBelt, wBelt],
+          [x, yFlank, wFlank],
+          [x, yUndercut, wUndercut],
+          [x, ySillOuter, wSill],
+        ],
+      };
+    });
+
+    return { ribs, xs, xFrontAxle, xRearAxle, diffLift };
+  }
+
+  // =========================================================================
+  // 3. STATE & CONTROLS
+  // =========================================================================
+  const state = {
+    bodyType: 'fastback',
+    rearAngle: 24.0,
+    diffAngle: 9.5,
+    windAngle: 28.0,
+    roofMm: 1420,
+    windSpeed: 110,
+    streamlines: true,
+    tour: false,
+  };
+
+  let activeCase = 0;
+  let camTargetYaw = 0.68;
+  let camTargetPitch = 0.30;
+  let camTargetDist = 6.3;
+  let camYaw = camTargetYaw;
+  let camPitch = camTargetPitch;
+  let camDist = camTargetDist;
+  let flowTime = 0;
+  let tourClock = 0;
+  let paused = false;
+
+  const CAM_PRESETS = {
+    hero: { yaw: 0.68, pitch: 0.30, dist: 6.3 },
+    side: { yaw: 0.00, pitch: 0.06, dist: 6.1 },
+    rear: { yaw: 2.38, pitch: 0.34, dist: 6.0 },
+    top:  { yaw: 0.02, pitch: 1.38, dist: 6.8 },
+  };
+
+  // DOM refs
+  const canvas = document.getElementById('viewport-canvas');
+  const stageWrap = document.getElementById('stage-wrap');
+  const bodyTabs = Array.from(document.querySelectorAll('.tab[data-body]'));
+  const caseBtns = Array.from(document.querySelectorAll('.preset-btn[data-case]'));
+  const camBtns = Array.from(document.querySelectorAll('.cam-btn[data-cam]'));
+
+  const ctrlRear = document.getElementById('ctrl-rear');
+  const ctrlDiff = document.getElementById('ctrl-diff');
+  const ctrlWind = document.getElementById('ctrl-wind');
+  const ctrlRoof = document.getElementById('ctrl-roof');
+  const ctrlSpeed = document.getElementById('ctrl-speed');
+
+  const valRear = document.getElementById('val-rear');
+  const valDiff = document.getElementById('val-diff');
+  const valWind = document.getElementById('val-wind');
+  const valRoof = document.getElementById('val-roof');
+  const valSpeed = document.getElementById('val-speed');
+
+  const btnStream = document.getElementById('btn-stream');
+  const btnTour = document.getElementById('btn-tour');
+  const btnTheme = document.getElementById('btn-theme');
+
+  const hudMode = document.getElementById('hud-mode');
+  const hudCda = document.getElementById('hud-cda');
+  const mCd = document.getElementById('m-cd');
+  const mPi = document.getElementById('m-pi');
+  const mCdDelta = document.getElementById('m-cd-delta');
+  const piBand = document.getElementById('pi-band');
+  const piMarker = document.getElementById('pi-marker');
+  const mCl = document.getElementById('m-cl');
+  const mClNote = document.getElementById('m-cl-note');
+  const mDiffRead = document.getElementById('m-diff-read');
+  const clBand = document.getElementById('cl-band');
+  const clMarker = document.getElementById('cl-marker');
+  const mCda = document.getElementById('m-cda');
+  const mArea = document.getElementById('m-area');
+  const mPwr = document.getElementById('m-pwr');
+  const mSpd = document.getElementById('m-spd');
+  const mEv = document.getElementById('m-ev');
+  const mWake = document.getElementById('m-wake');
+  const mSepPt = document.getElementById('m-sep-pt');
+  const curveSvg = document.getElementById('curve-svg');
+  const curveSep = document.getElementById('curve-sep');
+  const statusReadout = document.getElementById('status-readout');
+  const rendererTag = document.getElementById('renderer-tag');
+
+  function updateSparkline(aero) {
+    const pts = [];
+    for (let ang = 18; ang <= 32; ang += 0.5) {
+      const a = evaluateAero({ ...state, rearAngle: ang });
+      const x = 14 + ((ang - 18) / 14) * 292;
+      const y = 58 - clamp((a.cd - 0.24) / 0.12, 0, 1) * 48;
+      pts.push([x.toFixed(1), y.toFixed(1)]);
+    }
+    const d = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0] + ' ' + p[1]).join('');
+    const curX = 14 + ((aero.rearAngle - 18) / 14) * 292;
+    const curY = 58 - clamp((aero.cd - 0.24) / 0.12, 0, 1) * 48;
+    const refY = 58 - clamp((REF_CD - 0.24) / 0.12, 0, 1) * 48;
+
+    curveSvg.innerHTML =
+      `<line x1="14" y1="${refY.toFixed(1)}" x2="306" y2="${refY.toFixed(1)}" stroke="currentColor" stroke-opacity="0.22" stroke-dasharray="3 3"/>` +
+      `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>` +
+      `<circle cx="${curX.toFixed(1)}" cy="${curY.toFixed(1)}" r="4.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`;
+    curveSep.textContent = 'Attached: ' + Math.round(aero.sepFrac * 100) + '%';
+  }
+
+  let currentAero = evaluateAero(state);
+
+  function syncUI() {
+    currentAero = evaluateAero(state);
+    const a = currentAero;
+
+    ctrlRear.value = state.rearAngle;
+    ctrlDiff.value = state.diffAngle;
+    ctrlWind.value = state.windAngle;
+    ctrlRoof.value = state.roofMm;
+    ctrlSpeed.value = state.windSpeed;
+
+    valRear.textContent = state.rearAngle.toFixed(1) + '°';
+    valDiff.textContent = state.diffAngle.toFixed(1) + '°';
+    valWind.textContent = state.windAngle.toFixed(1) + '°';
+    valRoof.textContent = Math.round(state.roofMm) + ' mm';
+    valSpeed.textContent = Math.round(state.windSpeed) + ' km/h';
+
+    bodyTabs.forEach((t) => {
+      const on = t.dataset.body === state.bodyType;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
+    });
+    caseBtns.forEach((b, i) => b.classList.toggle('active', i === activeCase));
+    btnStream.classList.toggle('active', state.streamlines);
+    btnStream.textContent = 'Streamlines: ' + (state.streamlines ? 'On' : 'Off');
+    btnTour.classList.toggle('active', state.tour);
+    btnTour.textContent = 'Tour: ' + (state.tour ? 'On' : 'Off');
+
+    hudMode.innerHTML = '3D WIND TUNNEL · <strong>' + a.preset.label + '</strong>';
+    hudCda.innerHTML = 'Cd·A = <strong>' + a.cdA.toFixed(3) + ' m²</strong>';
+
+    mCd.textContent = a.cd.toFixed(3);
+    mPi.textContent = `90% PI: ${a.cdLow.toFixed(4)} – ${a.cdHigh.toFixed(4)} (±${a.pi90.toFixed(4)})`;
+    const dRef = a.cd - REF_CD;
+    mCdDelta.textContent = (dRef >= 0 ? '+' : '') + dRef.toFixed(3) + ' vs 0.285';
+
+    const cdPct = clamp((a.cd - 0.20) / 0.20, 0, 1) * 100;
+    const loPct = clamp((a.cdLow - 0.20) / 0.20, 0, 1) * 100;
+    const hiPct = clamp((a.cdHigh - 0.20) / 0.20, 0, 1) * 100;
+    piBand.style.left = loPct + '%';
+    piBand.style.width = Math.max(2, hiPct - loPct) + '%';
+    piMarker.style.left = cdPct + '%';
+
+    mCl.textContent = a.cl.toFixed(3);
+    mClNote.textContent = a.cl < 0.055 ? 'High diffuser downforce' : a.cl > 0.115 ? 'Elevated rear lift' : 'Balanced aero lift';
+    mDiffRead.textContent = 'Diffuser ' + a.diffAngle.toFixed(1) + '°';
+    const clPct = clamp((a.cl + 0.05) / 0.30, 0, 1) * 100;
+    clBand.style.left = Math.max(0, clPct - 8) + '%';
+    clBand.style.width = '16%';
+    clMarker.style.left = clPct + '%';
+
+    mCda.textContent = a.cdA.toFixed(3) + ' m²';
+    mArea.textContent = 'A = ' + a.dispArea.toFixed(2) + ' m²';
+    mPwr.textContent = a.aeroPowerKw.toFixed(2) + ' kW';
+    mSpd.textContent = 'at ' + Math.round(a.windSpeed) + ' km/h (0.5ρCdAv³)';
+    mEv.textContent = (a.evRangeDeltaKm >= 0 ? '+' : '') + a.evRangeDeltaKm.toFixed(1) + ' km';
+    mEv.className = 'mini-val ' + (a.evRangeDeltaKm >= 0 ? 'good' : 'bad');
+
+    const wakeWord = a.wakeSize < 0.42 ? 'Compact' : a.wakeSize < 0.72 ? 'Expanded' : 'Large';
+    mWake.textContent = `${wakeWord} (${Math.round(a.wakeSize * 100)}%)`;
+    mSepPt.textContent = 'Attached to ' + Math.round(a.sepFrac * 100) + '%';
+
+    const caseLabel = activeCase >= 0 ? CASES[activeCase].name : 'Custom configuration';
+    statusReadout.innerHTML = `<strong>${caseLabel}</strong> · Cd ${a.cd.toFixed(3)} · Cl ${a.cl.toFixed(3)} · Drag viewport to orbit 360°`;
+
+    updateSparkline(a);
+    if (sceneApi) sceneApi.rebuild(a);
+  }
+
+  // =========================================================================
+  // 4. REAL-TIME 3D ENGINE (THREE.JS WEBGL PRIMARY + SMOOTH 3D CANVAS FALLBACK)
+  // =========================================================================
+  let sceneApi = null;
+
+  function initThreeRenderer() {
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x0b0f17, 1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0b0f17, 11, 22);
+
+    const camera = new THREE.PerspectiveCamera(34, 16 / 9, 0.1, 60);
+
+    // Studio wind-tunnel lighting (crisp overhead light-box strip + key + cool rim)
+    scene.add(new THREE.AmbientLight(0xdbeafe, 0.55));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.15);
+    keyLight.position.set(4.5, 7.5, 5.5);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(1024, 1024);
+    keyLight.shadow.camera.left = -4; keyLight.shadow.camera.right = 4;
+    keyLight.shadow.camera.top = 4; keyLight.shadow.camera.bottom = -4;
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x60a5fa, 0.65);
+    rimLight.position.set(-5.0, 3.2, -4.5);
+    scene.add(rimLight);
+
+    const fillLight = new THREE.DirectionalLight(0xe2e8f0, 0.35);
+    fillLight.position.set(0, 2.0, -5.0);
+    scene.add(fillLight);
+
+    // Wind-tunnel floor & turntable balance ring
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(24, 24),
+      new THREE.MeshStandardMaterial({ color: 0x0f1520, roughness: 0.85, metalness: 0.1 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const grid = new THREE.GridHelper(16, 32, 0x1e293b, 0x141c2b);
+    grid.position.y = 0.003;
+    scene.add(grid);
+
+    const turntable = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.85, 2.92, 0.04, 64),
+      new THREE.MeshStandardMaterial({ color: 0x161f2e, roughness: 0.6, metalness: 0.35 })
+    );
+    turntable.position.y = 0.02;
+    turntable.receiveShadow = true;
+    scene.add(turntable);
+
+    const ttRing = new THREE.Mesh(
+      new THREE.RingGeometry(2.78, 2.86, 64),
+      new THREE.MeshBasicMaterial({ color: 0x3b82f6, side: THREE.DoubleSide, transparent: true, opacity: 0.55 })
+    );
+    ttRing.rotation.x = -Math.PI / 2;
+    ttRing.position.y = 0.042;
+    scene.add(ttRing);
+
+    // Downstream 9-probe wake rake mast
+    const rakeGroup = new THREE.Group();
+    const rakeMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.6, roughness: 0.35 });
+    const mast = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.65, 0.08), rakeMat);
+    mast.position.set(3.45, 0.85, 0);
+    rakeGroup.add(mast);
+    for (let i = 0; i < 9; i++) {
+      const probe = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.38, 8), rakeMat);
+      probe.rotation.z = Math.PI / 2;
+      probe.position.set(3.26, 0.24 + i * 0.16, 0);
+      rakeGroup.add(probe);
+    }
+    scene.add(rakeGroup);
+
+    // Materials for Porsche
+    const paintMat = new THREE.MeshStandardMaterial({ color: 0xdbe3ee, metalness: 0.52, roughness: 0.22, side: THREE.DoubleSide });
+    const glassMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.85, roughness: 0.12, side: THREE.DoubleSide });
+    const trimMat  = new THREE.MeshStandardMaterial({ color: 0x1f2937, metalness: 0.35, roughness: 0.65, side: THREE.DoubleSide });
+    const lightBarMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    const drlMat   = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
+    const tireMat  = new THREE.MeshStandardMaterial({ color: 0x111318, roughness: 0.88, metalness: 0.05 });
+    const alloyMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.82, roughness: 0.22 });
+    const caliperMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, metalness: 0.4, roughness: 0.3 });
+
+    const carGroup = new THREE.Group();
+    const streamGroup = new THREE.Group();
+    scene.add(carGroup);
+    scene.add(streamGroup);
+
+    // Build 4 detailed 3D Porsche 5-twin-spoke wheels
+    const wheelMeshes = [];
+    const wheelPositions = [[-1.46, 0.36, 0.86], [-1.46, 0.36, -0.86], [1.44, 0.36, 0.86], [1.44, 0.36, -0.86]];
+    wheelPositions.forEach(([wx, wy, wz]) => {
+      const wg = new THREE.Group();
+      wg.position.set(wx, wy, wz);
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.27, 32), tireMat);
+      tire.rotation.x = Math.PI / 2;
+      tire.castShadow = true;
+      wg.add(tire);
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.28, 24), alloyMat);
+      rim.rotation.x = Math.PI / 2;
+      wg.add(rim);
+      const innerDark = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.21, 0.285, 20), glassMat);
+      innerDark.rotation.x = Math.PI / 2;
+      wg.add(innerDark);
+      const rotor = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.24, 20), rakeMat);
+      rotor.rotation.x = Math.PI / 2;
+      wg.add(rotor);
+      const sign = wz > 0 ? 1 : -1;
+      // 5 twin-spokes
+      const spokes = new THREE.Group();
+      for (let s = 0; s < 5; s++) {
+        const a = (s / 5) * Math.PI * 2;
+        for (const off of [-0.14, 0.14]) {
+          const sp = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.024, 0.025), alloyMat);
+          sp.position.set(Math.cos(a + off) * 0.11, Math.sin(a + off) * 0.11, sign * 0.135);
+          sp.rotation.z = a + off;
+          spokes.add(sp);
+        }
+      }
+      wg.add(spokes);
+      const cal = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.16, 0.09), caliperMat);
+      cal.position.set(0.14, 0.02, sign * 0.08);
+      wg.add(cal);
+      scene.add(wg);
+      wheelMeshes.push(spokes);
+    });
+
+    function clearGroup(g) {
+      while (g.children.length) {
+        const c = g.children[0];
+        if (c.geometry) c.geometry.dispose();
+        g.remove(c);
+      }
+    }
+
+    let animParticles = [];
+
+    function rebuild(aero) {
+      clearGroup(carGroup);
+      clearGroup(streamGroup);
+      animParticles = [];
+
+      const { ribs, xs, diffLift } = buildPorscheRibs(aero);
+      const bodyPos = [], glassPos = [], trimPos = [];
+
+      function pushQuad(arr, a, b, c, d) {
+        arr.push(...a, ...b, ...c, ...a, ...c, ...d);
+      }
+
+      for (let i = 0; i < ribs.length - 1; i++) {
+        const r0 = ribs[i].pts, r1 = ribs[i + 1].pts;
+        const xm = (xs[i] + xs[i + 1]) / 2;
+        const info = ribs[i].info;
+        for (let j = 0; j < 12; j++) {
+          let targetArr = bodyPos;
+          if (j === 0 || j === 11) targetArr = trimPos;
+          else if (xm > info.xWindStart + 0.02 && xm < info.xRoofFront && (j === 5 || j === 6)) targetArr = glassPos;
+          else if (xm > info.xWindStart + 0.25 && xm < (aero.bodyType === 'estateback' ? 1.85 : aero.bodyType === 'notchback' ? 1.05 : 1.35) && (j === 4 || j === 7)) targetArr = glassPos;
+          else if (xm >= info.xRoofEnd && xm < (aero.bodyType === 'notchback' ? info.xDeckStart : 2.22) && (j === 5 || j === 6)) targetArr = glassPos;
+          else if (xm > -2.30 && xm < -2.02 && (j === 3 || j === 8)) targetArr = glassPos;
+          pushQuad(targetArr, r0[j], r0[j + 1], r1[j + 1], r1[j]);
+        }
+      }
+
+      // Close nose & tail caps
+      const rn = ribs[0].pts;
+      for (let j = 0; j < 6; j++) pushQuad(j <= 1 ? trimPos : bodyPos, rn[j], rn[12 - j], rn[11 - j], rn[j + 1]);
+      const rt = ribs[ribs.length - 1].pts;
+      for (let j = 0; j < 6; j++) pushQuad(j <= 1 ? trimPos : bodyPos, rt[j], rt[j + 1], rt[11 - j], rt[12 - j]);
+
+      function addMeshFromPos(arr, mat) {
+        if (!arr.length) return;
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+        geo.computeVertexNormals();
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        carGroup.add(mesh);
+      }
+
+      addMeshFromPos(bodyPos, paintMat);
+      addMeshFromPos(glassPos, glassMat);
+      addMeshFromPos(trimPos, trimMat);
+
+      // Rear Porsche full-width LED lightbar
+      const tailInfo = evalPorscheCenterY(2.45, aero);
+      const lbY = Math.min(tailInfo.zTailTop - 0.14, 0.72);
+      const lightBar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.045, 1.46), lightBarMat);
+      lightBar.position.set(2.45, lbY, 0);
+      carGroup.add(lightBar);
+
+      // Front 4-point Porsche DRL blades
+      for (const s of [-1, 1]) {
+        const drl = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.035, 0.16), drlMat);
+        drl.position.set(-2.22, 0.62, s * 0.66);
+        drl.rotation.z = -0.35;
+        carGroup.add(drl);
+      }
+
+      // Rear 4-fin tilting underbody diffuser
+      const diffTray = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.03, 1.24), trimMat);
+      diffTray.position.set(2.08, 0.18 + diffLift * 0.5, 0);
+      diffTray.rotation.z = (aero.diffAngle * Math.PI) / 180;
+      carGroup.add(diffTray);
+      for (const fz of [-0.44, -0.15, 0.15, 0.44]) {
+        const fin = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.11, 0.022), trimMat);
+        fin.position.set(2.10, 0.14 + diffLift * 0.45, fz);
+        fin.rotation.z = (aero.diffAngle * Math.PI) / 180;
+        carGroup.add(fin);
+      }
+
+      // Live separation-point orange ridge on rear window
+      const sepX = lerp(tailInfo.xRoofEnd, aero.bodyType === 'notchback' ? tailInfo.xDeckStart : 2.38, aero.sepFrac);
+      const sepY = evalPorscheCenterY(sepX, aero).y + 0.025;
+      const sepBar = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.025, 0.92), new THREE.MeshBasicMaterial({ color: 0xfb923c }));
+      sepBar.position.set(sepX, sepY, 0);
+      carGroup.add(sepBar);
+
+      // --- 3D SMOKE STREAMLINES & HELICAL WAKE VORTICES ---
+      if (!aero.streamlines) return;
+
+      const zPlanes = [-0.46, -0.22, 0.0, 0.22, 0.46];
+      const yStarts = [0.42, 0.72, 1.04];
+
+      for (const zp of zPlanes) {
+        for (let yi = 0; yi < yStarts.length; yi++) {
+          const y0 = yStarts[yi];
+          const pts3 = [];
+          const steps = 48;
+          for (let s = 0; s <= steps; s++) {
+            const x = -3.7 + (7.15 * s) / steps;
+            let y = y0;
+            if (x > -2.85 && x < 2.65) {
+              const cY = evalPorscheCenterY(clamp(x, -2.45, 2.45), aero).y;
+              const clearance = 0.09 + yi * 0.22 + Math.abs(zp) * 0.08;
+              const targetY = Math.max(y0, cY + clearance);
+              const noseBlend = smoothstep(-2.85, -1.95, x);
+              if (x <= sepX) {
+                y = lerp(y0, targetY, noseBlend);
+              } else {
+                const afterT = clamp((x - sepX) / (1.1 + aero.wakeSize * 1.4), 0, 1);
+                const arch = (sepY + clearance) + Math.sin(afterT * Math.PI) * aero.wakeSize * (yi === 0 ? 0.26 : 0.12);
+                const rec = y0 + aero.wakeSize * (yi === 0 ? 0.34 : 0.14);
+                y = lerp(arch, rec, afterT * 0.65);
+              }
+            } else if (x >= 2.65) {
+              const t = clamp((x - 2.65) / 0.85, 0, 1);
+              y = lerp(y0 + aero.wakeSize * (yi === 0 ? 0.34 : 0.14), y0, t * 0.5);
+            }
+            pts3.push(new THREE.Vector3(x, y, zp));
+          }
+          // Smooth y
+          for (let p = 0; p < 3; p++) {
+            for (let k = 1; k < pts3.length - 1; k++) {
+              pts3[k].y = 0.25 * pts3[k - 1].y + 0.5 * pts3[k].y + 0.25 * pts3[k + 1].y;
+            }
+          }
+          const curve = new THREE.CatmullRomCurve3(pts3);
+          const isFast = yi === 0 && Math.abs(zp) < 0.3;
+          const col = isFast ? 0x38bdf8 : yi === 1 ? 0x60a5fa : 0x475569;
+          const tube = new THREE.Mesh(
+            new THREE.TubeGeometry(curve, 52, isFast ? 0.015 : 0.010, 6, false),
+            new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: isFast ? 0.88 : 0.45 })
+          );
+          streamGroup.add(tube);
+
+          // Animated smoke tracer bead riding this streamline
+          const bead = new THREE.Mesh(
+            new THREE.SphereGeometry(isFast ? 0.036 : 0.025, 8, 8),
+            new THREE.MeshBasicMaterial({ color: isFast ? 0xe0f2fe : 0x93c5fd })
+          );
+          streamGroup.add(bead);
+          animParticles.push({ curve, mesh: bead, offset: (yi * 0.31 + (zp + 0.5) * 0.7) % 1, speed: isFast ? 0.38 : 0.28 });
+        }
+      }
+
+      // Underbody diffuser upwash streamlines
+      for (const zp of [-0.30, 0.0, 0.30]) {
+        const pts = [];
+        for (let s = 0; s <= 32; s++) {
+          const x = -3.7 + (7.15 * s) / 32;
+          let y = 0.10;
+          if (x > 1.65 && x < 2.95) y = 0.10 + ((x - 1.65) / 1.30) * (0.12 + aero.underbodyUpwash * 0.48);
+          else if (x >= 2.95) y = 0.22 + aero.underbodyUpwash * 0.48;
+          pts.push(new THREE.Vector3(x, y, zp));
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const tube = new THREE.Mesh(
+          new THREE.TubeGeometry(curve, 36, 0.013, 6, false),
+          new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.72 })
+        );
+        streamGroup.add(tube);
+        const bead = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), new THREE.MeshBasicMaterial({ color: 0xe0f2fe }));
+        streamGroup.add(bead);
+        animParticles.push({ curve, mesh: bead, offset: (zp + 0.6) % 1, speed: 0.42 });
+      }
+
+      // 3D Swirling Helical Wake Vortices behind the tail (Techartist-style!)
+      const vortexCount = aero.wakeSize > 0.62 ? 4 : 2;
+      for (let v = 0; v < vortexCount; v++) {
+        const side = v % 2 === 0 ? 1 : -1;
+        const row = Math.floor(v / 2);
+        const pts = [];
+        const len = 0.9 + aero.wakeSize * 1.1;
+        const rad = 0.10 + aero.wakeSize * 0.16;
+        const yBase = 0.46 + row * (0.28 + aero.wakeSize * 0.22);
+        const zBase = side * (0.34 + row * 0.12);
+        for (let k = 0; k <= 40; k++) {
+          const t = k / 40;
+          const ang = side * t * Math.PI * 5.0;
+          const r = rad * (0.55 + 0.65 * Math.sin(t * Math.PI));
+          pts.push(new THREE.Vector3(2.48 + t * len, yBase + Math.sin(ang) * r, zBase + Math.cos(ang) * r));
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const swirl = new THREE.Mesh(
+          new THREE.TubeGeometry(curve, 44, 0.011, 6, false),
+          new THREE.MeshBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.55 + aero.wakeSize * 0.3 })
+        );
+        streamGroup.add(swirl);
+      }
+    }
+
+    function resize() {
+      const w = stageWrap.clientWidth || 720;
+      const h = stageWrap.clientHeight || 390;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+
+    function render(dt) {
+      const k = 1 - Math.exp(-dt * 7.5);
+      camYaw += (camTargetYaw - camYaw) * k;
+      camPitch += (camTargetPitch - camPitch) * k;
+      camDist += (camTargetDist - camDist) * k;
+
+      const cx = Math.sin(camYaw) * Math.cos(camPitch) * camDist;
+      const cy = Math.sin(camPitch) * camDist + 0.62;
+      const cz = Math.cos(camYaw) * Math.cos(camPitch) * camDist;
+      camera.position.set(cx, Math.max(0.35, cy), cz);
+      camera.lookAt(0.25, 0.62, 0);
+
+      if (!paused) {
+        const sp = currentAero.speedScale;
+        flowTime += dt * sp;
+        for (const w of wheelMeshes) w.rotation.z -= dt * 7.5 * sp;
+        for (const p of animParticles) {
+          const u = (p.offset + flowTime * p.speed) % 1;
+          p.curve.getPointAt(u, p.mesh.position);
+        }
+      }
+      renderer.render(scene, camera);
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    rendererTag.textContent = 'Three.js WebGL 3D · Illustrative flow field, not a CFD solve.';
+    return { rebuild, render, resize };
+  }
+
+  // Smooth-shaded 3D Canvas2D Fallback (guarantees crisp 3D Porsche even completely offline!)
+  function initCanvas3DFallback() {
+    const ctx = canvas.getContext('2d');
+    let cachedRibs = null;
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = stageWrap.clientWidth || 720;
+      const h = stageWrap.clientHeight || 390;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function project(pt, W, H) {
+      const cy = Math.cos(camYaw), sy = Math.sin(camYaw);
+      const cp = Math.cos(camPitch), sp = Math.sin(camPitch);
+      const x0 = pt[0] - 0.25, y0 = pt[1] - 0.62, z0 = pt[2];
+      const rx = x0 * cy - z0 * sy;
+      const rz = x0 * sy + z0 * cy;
+      const ry = y0 * cp - rz * sp;
+      const depth = y0 * sp + rz * cp + camDist;
+      const f = (H * 1.15) / Math.max(1.2, depth);
+      return [W * 0.5 + rx * f, H * 0.54 - ry * f, depth];
+    }
+
+    function rebuild(aero) {
+      cachedRibs = buildPorscheRibs(aero);
+    }
+
+    function render(dt) {
+      const W = stageWrap.clientWidth || 720;
+      const H = stageWrap.clientHeight || 390;
+      const k = 1 - Math.exp(-dt * 7.5);
+      camYaw += (camTargetYaw - camYaw) * k;
+      camPitch += (camTargetPitch - camPitch) * k;
+      camDist += (camTargetDist - camDist) * k;
+      if (!paused) flowTime += dt * currentAero.speedScale;
+
+      ctx.fillStyle = '#0b0f17';
+      ctx.fillRect(0, 0, W, H);
+
+      // Turntable ring on floor
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.42)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      for (let i = 0; i <= 48; i++) {
+        const a = (i / 48) * Math.PI * 2;
+        const p = project([Math.cos(a) * 2.8, 0.02, Math.sin(a) * 2.8], W, H);
+        if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+      }
+      ctx.stroke();
+
+      if (!cachedRibs) rebuild(currentAero);
+      const { ribs, xs } = cachedRibs;
+      const faces = [];
+      const light = [0.42, 0.78, 0.46];
+
+      for (let i = 0; i < ribs.length - 1; i++) {
+        const r0 = ribs[i].pts, r1 = ribs[i + 1].pts;
+        const xm = (xs[i] + xs[i + 1]) / 2;
+        const info = ribs[i].info;
+        for (let j = 0; j < 12; j++) {
+          const a = r0[j], b = r0[j + 1], c = r1[j + 1], d = r1[j];
+          const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+          const vx = d[0] - a[0], vy = d[1] - a[1], vz = d[2] - a[2];
+          let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+          const nl = Math.hypot(nx, ny, nz) || 1;
+          nx /= nl; ny /= nl; nz /= nl;
+          const pa = project(a, W, H), pb = project(b, W, H), pc = project(c, W, H), pd = project(d, W, H);
+          const area2 = (pb[0] - pa[0]) * (pc[1] - pa[1]) - (pb[1] - pa[1]) * (pc[0] - pa[0]);
+          /* watertight painter's sort */
+          const ld = Math.max(0.24, Math.abs(nx * light[0] + ny * light[1] + nz * light[2]));
+          let col;
+          if (j === 0 || j === 11) col = `rgb(${Math.round(35 * ld)},${Math.round(45 * ld)},${Math.round(62 * ld)})`;
+          else if ((xm > info.xWindStart && xm < info.xRoofFront && (j === 5 || j === 6)) ||
+                   (xm > info.xWindStart + 0.25 && xm < 1.35 && (j === 4 || j === 7)) ||
+                   (xm >= info.xRoofEnd && xm < 2.22 && (j === 5 || j === 6))) {
+            col = `rgb(${Math.round(22 * ld + 10)},${Math.round(30 * ld + 14)},${Math.round(44 * ld + 20)})`;
+          } else {
+            col = `rgb(${Math.round(165 * ld + 52)},${Math.round(176 * ld + 56)},${Math.round(192 * ld + 60)})`;
+          }
+          faces.push({ z: (pa[2] + pb[2] + pc[2] + pd[2]) / 4, pts: [pa, pb, pc, pd], col });
+        }
+      }
+      // Close nose & tail caps in fallback
+      const rn0 = ribs[0].pts, rt0 = ribs[ribs.length - 1].pts;
+      for (let j = 0; j < 6; j++) {
+        const pa = project(rn0[j], W, H), pb = project(rn0[12 - j], W, H), pc = project(rn0[11 - j], W, H), pd = project(rn0[j + 1], W, H);
+        faces.push({ z: (pa[2] + pb[2] + pc[2] + pd[2]) / 4, pts: [pa, pb, pc, pd], col: j <= 1 ? '#1e293b' : '#b8c4d4' });
+        const qa = project(rt0[j], W, H), qb = project(rt0[j + 1], W, H), qc = project(rt0[11 - j], W, H), qd = project(rt0[12 - j], W, H);
+        faces.push({ z: (qa[2] + qb[2] + qc[2] + qd[2]) / 4, pts: [qa, qb, qc, qd], col: j === 2 ? '#ef4444' : j <= 1 ? '#1e293b' : '#94a3b8' });
+      }
+      faces.sort((a, b) => b.z - a.z);
+      for (const f of faces) {
+        ctx.fillStyle = f.col;
+        ctx.strokeStyle = f.col;
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(f.pts[0][0], f.pts[0][1]);
+        ctx.lineTo(f.pts[1][0], f.pts[1][1]);
+        ctx.lineTo(f.pts[2][0], f.pts[2][1]);
+        ctx.lineTo(f.pts[3][0], f.pts[3][1]);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Draw wheels in 3D
+      for (const [wx, wy, wz] of [[-1.46, 0.36, 0.86], [1.44, 0.36, 0.86]]) {
+        const c2 = project([wx, wy, wz], W, H);
+        const edge = project([wx + 0.36, wy, wz], W, H);
+        const r = Math.hypot(edge[0] - c2[0], edge[1] - c2[1]);
+        ctx.fillStyle = '#0f131a';
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(c2[0], c2[1], r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.beginPath(); ctx.arc(c2[0], c2[1], r * 0.66, 0, Math.PI * 2); ctx.stroke();
+        for (let s = 0; s < 5; s++) {
+          const a = (s / 5) * Math.PI * 2 - flowTime * 4;
+          ctx.beginPath(); ctx.moveTo(c2[0], c2[1]); ctx.lineTo(c2[0] + Math.cos(a) * r * 0.64, c2[1] + Math.sin(a) * r * 0.64); ctx.stroke();
+        }
+      }
+
+      // Streamlines & wake vortices
+      if (currentAero.streamlines) {
+        const tailInfo = evalPorscheCenterY(2.45, currentAero);
+        const sepX = lerp(tailInfo.xRoofEnd, currentAero.bodyType === 'notchback' ? tailInfo.xDeckStart : 2.38, currentAero.sepFrac);
+        const sepY = evalPorscheCenterY(sepX, currentAero).y + 0.03;
+
+        for (let yi = 0; yi < 3; yi++) {
+          const y0 = 0.42 + yi * 0.30;
+          ctx.strokeStyle = yi === 0 ? '#38bdf8' : yi === 1 ? 'rgba(96,165,250,0.7)' : 'rgba(100,116,139,0.55)';
+          ctx.lineWidth = yi === 0 ? 2.0 : 1.3;
+          ctx.setLineDash([12, 6]);
+          ctx.lineDashOffset = -flowTime * 90;
+          ctx.beginPath();
+          for (let s = 0; s <= 44; s++) {
+            const x = -3.6 + (7.0 * s) / 44;
+            let y = y0;
+            if (x > -2.8 && x < 2.65) {
+              const cY = evalPorscheCenterY(clamp(x, -2.45, 2.45), currentAero).y;
+              const cl = 0.09 + yi * 0.22;
+              const nb = smoothstep(-2.8, -1.9, x);
+              y = x <= sepX ? lerp(y0, Math.max(y0, cY + cl), nb) : lerp(sepY + cl, y0 + currentAero.wakeSize * 0.3, clamp((x - sepX) / 1.8, 0, 1));
+            }
+            const p = project([x, y, 0], W, H);
+            if (s === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+          }
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        // Wake vortex rings
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.55)';
+        ctx.lineWidth = 1.4;
+        for (let v = 0; v < 2; v++) {
+          ctx.beginPath();
+          const rad = 0.14 + currentAero.wakeSize * 0.18;
+          for (let k = 0; k <= 32; k++) {
+            const t = k / 32;
+            const ang = (v === 0 ? 1 : -1) * (t * Math.PI * 4 - flowTime * 3);
+            const p = project([2.55 + t * (0.9 + currentAero.wakeSize), 0.52 + v * 0.24 + Math.sin(ang) * rad, (v === 0 ? 0.3 : -0.3) + Math.cos(ang) * rad], W, H);
+            if (k === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+          }
+          ctx.stroke();
+        }
+      }
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+    rendererTag.textContent = '3D Software Renderer · Illustrative flow field, not a CFD solve.';
+    return { rebuild, render, resize };
+  }
+
+  sceneApi = typeof THREE !== 'undefined' ? initThreeRenderer() : initCanvas3DFallback();
+
+  // =========================================================================
+  // 5. POINTER ORBIT, ZOOM, KEYBOARD & CONTROL WIRING
+  // =========================================================================
+  let dragging = false, lx = 0, ly = 0;
+  canvas.addEventListener('pointerdown', (e) => {
+    dragging = true; lx = e.clientX; ly = e.clientY;
+    camBtns.forEach((b) => b.classList.remove('active'));
+    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    camTargetYaw -= (e.clientX - lx) * 0.0085;
+    camTargetPitch = clamp(camTargetPitch + (e.clientY - ly) * 0.0065, 0.04, 1.42);
+    lx = e.clientX; ly = e.clientY;
+  });
+  window.addEventListener('pointerup', () => { dragging = false; });
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    camTargetDist = clamp(camTargetDist + e.deltaY * 0.004, 3.8, 9.5);
+  }, { passive: false });
+
+  camBtns.forEach((b) => {
+    b.addEventListener('click', () => {
+      const p = CAM_PRESETS[b.dataset.cam];
+      if (!p) return;
+      camTargetYaw = p.yaw; camTargetPitch = p.pitch; camTargetDist = p.dist;
+      camBtns.forEach((x) => x.classList.toggle('active', x === b));
+    });
+  });
+
+  function applyCase(idx) {
+    activeCase = ((idx % CASES.length) + CASES.length) % CASES.length;
+    Object.assign(state, CASES[activeCase].state);
+    syncUI();
+  }
+
+  caseBtns.forEach((b) => b.addEventListener('click', () => { state.tour = false; applyCase(Number(b.dataset.case)); }));
+  bodyTabs.forEach((t) => t.addEventListener('click', () => { state.tour = false; activeCase = -1; state.bodyType = t.dataset.body; syncUI(); }));
+  ctrlRear.addEventListener('input', () => { state.tour = false; activeCase = -1; state.rearAngle = Number(ctrlRear.value); syncUI(); });
+  ctrlDiff.addEventListener('input', () => { state.tour = false; activeCase = -1; state.diffAngle = Number(ctrlDiff.value); syncUI(); });
+  ctrlWind.addEventListener('input', () => { state.tour = false; activeCase = -1; state.windAngle = Number(ctrlWind.value); syncUI(); });
+  ctrlRoof.addEventListener('input', () => { state.tour = false; activeCase = -1; state.roofMm = Number(ctrlRoof.value); syncUI(); });
+  ctrlSpeed.addEventListener('input', () => { state.tour = false; state.windSpeed = Number(ctrlSpeed.value); syncUI(); });
+
+  btnStream.addEventListener('click', () => { state.streamlines = !state.streamlines; syncUI(); });
+  btnTour.addEventListener('click', () => { state.tour = !state.tour; tourClock = 0; syncUI(); });
+  btnTheme.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    btnTheme.textContent = next === 'light' ? 'Dark' : 'Light';
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.target && e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); state.tour = false; applyCase((activeCase < 0 ? 0 : activeCase) + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); state.tour = false; applyCase((activeCase < 0 ? 0 : activeCase) - 1); }
+  });
+
+  window.__aeroStudio = {
+    setCase(idx) { state.tour = false; applyCase(idx); return currentAero; },
+    pause(v = true) { paused = v; },
+    getAero() { return currentAero; },
+  };
+
+  syncUI();
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
+    last = now;
+    if (state.tour && !paused) {
+      tourClock += dt;
+      if (tourClock >= 4.0) { tourClock = 0; applyCase(activeCase + 1); }
+    }
+    sceneApi.render(dt);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
