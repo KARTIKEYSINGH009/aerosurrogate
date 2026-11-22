@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AeroSurrogate: Car aerodynamics in milliseconds, not hours</title>
 <meta name="description" content="A physics-informed ML surrogate that predicts a car's drag, lift and EV highway range from geometry in under 2 ms, replacing hours of CFD.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #08090b;
@@ -19,7 +22,9 @@
     --accent-dim: rgba(138, 180, 255, 0.14);
     --green: #5fd68f;
     --amber: #e8b34b;
-    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", monospace;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +32,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--sans);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -101,7 +106,7 @@
     font-size: clamp(48px, 7.6vw, 104px); line-height: 0.99;
     letter-spacing: -0.045em; font-weight: 700; max-width: 1000px;
   }
-  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero h1 em { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--accent); letter-spacing: -0.01em; }
   .hero h1 .thin { color: var(--muted); font-weight: 300; }
   .hero .lede {
     font-size: clamp(16px, 1.6vw, 19px); color: var(--muted);
@@ -131,7 +136,7 @@
   .hstat + .hstat { padding-left: 24px; }
   .hstat:last-child { border-right: none; }
   .hstat .num {
-    font-size: clamp(26px, 3vw, 36px); font-weight: 650; letter-spacing: -0.03em;
+    font-size: clamp(26px, 3vw, 36px); font-weight: 600; letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums; line-height: 1.1;
   }
   .hstat .num .unit { font-size: 15px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
@@ -194,7 +199,7 @@
   .race-card { background: var(--surface); padding: 32px; }
   .race-card .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); }
   .race-card .big {
-    font-size: clamp(40px, 5vw, 56px); font-weight: 650; letter-spacing: -0.04em;
+    font-size: clamp(40px, 5vw, 56px); font-weight: 600; letter-spacing: -0.04em;
     margin: 14px 0 6px; font-variant-numeric: tabular-nums; line-height: 1;
   }
   .race-card .big .unit { font-size: 20px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
@@ -222,7 +227,7 @@
   .card:hover { background: var(--surface-2); }
   .card .k { font-family: var(--mono); font-size: 11.5px; color: var(--faint); letter-spacing: 0.14em; display: block; margin-bottom: 14px; }
   .card .k b { color: var(--accent); font-weight: 500; }
-  .card h3 { font-size: 19px; margin-bottom: 8px; letter-spacing: -0.015em; font-weight: 650; }
+  .card h3 { font-size: 19px; margin-bottom: 8px; letter-spacing: -0.015em; font-weight: 600; }
   .card p { color: var(--muted); font-size: 14.5px; line-height: 1.7; }
   .card .soon { display: inline-block; margin-top: 16px; font-size: 11.5px; font-family: var(--mono); color: var(--amber); letter-spacing: 0.1em; }
   .card .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
@@ -235,7 +240,7 @@
   /* ---------- results chart ---------- */
   .chart-box { margin-top: 56px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 32px; }
   .chart-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .chart-head h3 { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
+  .chart-head h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .toggle { display: inline-flex; gap: 2px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
   .toggle button {
     font-family: var(--mono); font-size: 12px; color: var(--muted); background: none;
@@ -269,7 +274,7 @@
     border: 1px solid var(--line); border-left: 2px solid var(--accent);
     border-radius: 8px; padding: 22px 24px; font-size: 15px; color: var(--muted); margin-top: 32px; line-height: 1.7;
   }
-  .note strong { color: var(--text); font-weight: 650; }
+  .note strong { color: var(--text); font-weight: 600; }
 
   /* ---------- body type breakdown ---------- */
   .body-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 56px; }
@@ -277,9 +282,9 @@
   .body-card { background: var(--surface); padding: 32px; transition: background 0.3s ease; }
   .body-card:hover { background: var(--surface-2); }
   .body-card svg { width: 100%; height: 56px; display: block; margin-bottom: 22px; }
-  .body-card h3 { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
+  .body-card h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .body-card .count { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 3px; }
-  .body-card .r2 { font-size: 36px; font-weight: 650; letter-spacing: -0.03em; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
+  .body-card .r2 { font-size: 36px; font-weight: 600; letter-spacing: -0.03em; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
   .body-card .r2 small { font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
   .body-card .r2.good { color: var(--green); }
   .body-card .r2.warn { color: var(--amber); }
@@ -294,7 +299,7 @@
   @media (max-width: 760px) { .conf-grid { grid-template-columns: 1fr; } }
   .conf-card { background: var(--surface); padding: 32px; }
   .conf-card .lvl { font-family: var(--mono); font-size: 11.5px; color: var(--faint); letter-spacing: 0.14em; }
-  .conf-card .cov { font-size: 44px; font-weight: 650; letter-spacing: -0.035em; margin: 12px 0 2px; font-variant-numeric: tabular-nums; line-height: 1; }
+  .conf-card .cov { font-size: 44px; font-weight: 600; letter-spacing: -0.035em; margin: 12px 0 2px; font-variant-numeric: tabular-nums; line-height: 1; }
   .conf-card .cov small { font-size: 15px; color: var(--muted); font-weight: 400; letter-spacing: 0; }
   .conf-card p { color: var(--muted); font-size: 14px; line-height: 1.7; }
   .gauge { height: 3px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin: 22px 0 10px; }
@@ -305,7 +310,7 @@
   .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 56px; }
   @media (max-width: 760px) { .data-grid { grid-template-columns: 1fr 1fr; } }
   .data-cell { background: var(--surface); padding: 28px 24px; }
-  .data-cell .num { font-size: 28px; font-weight: 650; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .data-cell .num { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
   .data-cell .lbl { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.55; }
 
   /* ---------- roadmap ---------- */
