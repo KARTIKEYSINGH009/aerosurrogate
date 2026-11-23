@@ -21,7 +21,7 @@
 <meta name="twitter:description" content="Physics-informed ML surrogate on MIT's DrivAerNet++ (4,051 designs). 0.051 ms CPU inference, calibrated 90/95% conformal intervals, inverse design in <1.5 s.">
 
 <!-- Inline SVG Favicon -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c1220'/%3E%3Cpath d='M5 20c4-6 10-8 17-7 3 .4 5 2 5 4H5z' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 13h14M6 9h10' stroke='%2393c5fd' stroke-width='1.5' stroke-linecap='round' opacity='.7'/%3E%3Ccircle cx='10' cy='21' r='2' fill='%23fff'/%3E%3Ccircle cx='22' cy='21' r='2' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c1220'/%3E%3Cpath d='M5 20c4-6 10-8 17-7 3 .4 5 2 5 4H5z' fill='none' stroke='%23B91C1C' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 13h14M6 9h10' stroke='%23FCA5A5' stroke-width='1.5' stroke-linecap='round' opacity='.7'/%3E%3Ccircle cx='10' cy='21' r='2' fill='%23fff'/%3E%3Ccircle cx='22' cy='21' r='2' fill='%23fff'/%3E%3C/svg%3E">
 
 <!-- Structured Data -->
 <script type="application/ld+json">
@@ -43,42 +43,61 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* ============ AeroSurrogate design system ============
+     One accent (deep engineering red). No gradients, no glow,
+     no glass. Flat surfaces, 1px borders, closed radii set.
+     Type scale: 12 / 13 / 14 / 16 / 18 / 20 / 28 / 36 px.
+     Spacing grid: 4 / 8 / 12 / 16 / 24 / 32 / 48 px. */
   :root {
     --bg: #fafaf9;
-    --bg-alt: #f3f4f6;
+    --bg-alt: #f4f4f2;
     --surface: #ffffff;
-    --surface-2: #f4f5f7;
-    --surface-3: #ebedf0;
+    --surface-2: #f4f4f2;
+    --surface-3: #e8e8e5;
     --ink-dark: #0b0f17;
     --ink-dark-2: #151c28;
-    --line: rgba(15, 23, 42, 0.08);
-    --line-strong: rgba(15, 23, 42, 0.15);
-    --text: #0f172a;
-    --text-2: #334155;
-    --muted: #526071;
-    --faint: #64748b;
-    --accent: #2563eb;
-    --accent-hover: #1d4ed8;
-    --accent-soft: rgba(37, 99, 235, 0.08);
-    --accent-border: rgba(37, 99, 235, 0.24);
-    --green: #059669;
-    --green-soft: rgba(5, 150, 105, 0.09);
-    --green-border: rgba(5, 150, 105, 0.28);
-    --amber: #d97706;
-    --amber-soft: rgba(217, 119, 6, 0.09);
-    --amber-border: rgba(217, 119, 6, 0.28);
-    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 2px 8px -2px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 12px 32px -8px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-    --shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.12);
+    --line: rgba(17, 24, 39, 0.08);
+    --line-strong: rgba(17, 24, 39, 0.16);
+    --text: #111827;
+    --text-2: #374151;
+    --muted: #4b5563;
+    --faint: #6b7280;
+    --accent: #b91c1c;
+    --accent-hover: #991b1b;
+    --accent-soft: rgba(185, 28, 28, 0.07);
+    --accent-border: rgba(185, 28, 28, 0.30);
+    --green: #047857;
+    --green-soft: rgba(4, 120, 87, 0.08);
+    --green-border: rgba(4, 120, 87, 0.30);
+    --amber: #b45309;
+    --amber-soft: rgba(180, 83, 9, 0.08);
+    --amber-border: rgba(180, 83, 9, 0.30);
+    --shadow-xs: 0 1px 2px rgba(17, 24, 39, 0.05);
+    --shadow-sm: 0 1px 3px rgba(17, 24, 39, 0.06);
+    --shadow-md: 0 2px 6px rgba(17, 24, 39, 0.07);
+    --shadow-lg: 0 4px 12px rgba(17, 24, 39, 0.08);
     --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
     --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --serif: "Instrument Serif", Georgia, serif;
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
-    --radius: 14px;
-    --radius-sm: 8px;
+    --radius: 8px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
+    --text-xs: 12px;
+    --text-sm: 13px;
+    --text-base: 16px;
+    --text-lg: 18px;
+    --text-xl: 20px;
+    --text-2xl: 28px;
+    --text-3xl: 36px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -95,28 +114,20 @@
   }
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; }
-  ::selection { background: rgba(37, 99, 235, 0.16); color: var(--text); }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  ::selection { background: rgba(185, 28, 28, 0.14); color: var(--text); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-sm); }
 
   .skip-link {
     position: absolute; left: -999px; top: 8px; z-index: 200;
-    background: var(--text); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 13px;
+    background: var(--text); color: #fff; padding: 8px 14px; border-radius: var(--radius-md); font-size: 13px;
   }
   .skip-link:focus { left: 12px; }
-
-  /* scroll progress hairline */
-  .progress {
-    position: fixed; top: 0; left: 0; height: 2.5px; width: 0;
-    background: linear-gradient(90deg, var(--accent), #60a5fa); z-index: 100;
-  }
 
   /* ---------- nav ---------- */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 90;
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    background: rgba(250, 250, 249, 0.84);
+    background: var(--bg);
     border-bottom: 1px solid var(--line);
-    transition: box-shadow 0.25s ease;
   }
   nav.scrolled { box-shadow: var(--shadow-xs); }
   .nav-inner {
@@ -128,7 +139,7 @@
     display: inline-flex; align-items: center; gap: 9px; color: var(--text);
   }
   .logo-mark {
-    width: 24px; height: 24px; border-radius: 6px; background: var(--ink-dark);
+    width: 24px; height: 24px; border-radius: var(--radius-md); background: var(--ink-dark);
     display: inline-flex; align-items: center; justify-content: center;
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
   }
@@ -137,7 +148,7 @@
     display: flex; gap: 4px; margin-left: auto; font-size: 13.5px; align-items: center;
   }
   .nav-links a:not(.nav-cta):not(.nav-demo) {
-    color: var(--muted); padding: 6px 11px; border-radius: 6px; font-weight: 500;
+    color: var(--muted); padding: 6px 11px; border-radius: var(--radius-md); font-weight: 500;
     transition: color 0.18s ease, background 0.18s ease;
   }
   .nav-links a:not(.nav-cta):not(.nav-demo):hover,
@@ -147,26 +158,24 @@
   .nav-demo {
     color: var(--accent) !important; background: var(--accent-soft);
     border: 1px solid var(--accent-border);
-    padding: 6px 12px; border-radius: 99px; font-weight: 600; font-size: 12.5px;
+    padding: 6px 12px; border-radius: var(--radius-md); font-weight: 600; font-size: 12.5px;
     margin: 0 4px; display: inline-flex; align-items: center; gap: 6px;
     transition: background 0.2s ease, transform 0.2s var(--ease);
   }
   .nav-demo::before {
     content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   }
-  .nav-demo:hover { background: rgba(37, 99, 235, 0.14); transform: translateY(-1px); }
+  .nav-demo:hover { background: var(--accent-soft); }
   .nav-cta {
     font-weight: 600; color: #fff !important;
-    background: var(--text); padding: 7px 14px; border-radius: 8px;
+    background: var(--text); padding: 7px 14px; border-radius: var(--radius-md);
     display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
-    box-shadow: var(--shadow-xs);
-    transition: background 0.2s ease, transform 0.2s var(--ease);
+    transition: background 0.2s ease;
   }
-  .nav-cta:hover { background: #1e293b; transform: translateY(-1px); }
+  .nav-cta:hover { background: #1e293b; }
   .menu-btn {
     display: none; margin-left: auto; background: var(--surface);
-    border: 1px solid var(--line-strong); border-radius: 8px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-md);
     padding: 7px 10px; cursor: pointer; color: var(--text);
   }
   @media (max-width: 860px) {
@@ -185,47 +194,16 @@
 
   .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
   @media (max-width: 760px) { .wrap { padding: 0 20px; } }
-  /* ---------- hero: full-bleed CFD wind tunnel ---------- */
+  /* ---------- hero ---------- */
   .hero {
     position: relative;
-    padding: 136px 0 0; overflow: hidden;
-    background:
-      radial-gradient(ellipse 90% 65% at 62% 42%, rgba(37, 99, 235, 0.14), rgba(6, 182, 212, 0.08) 45%, transparent 75%),
-      radial-gradient(ellipse 55% 45% at 18% 20%, rgba(59, 130, 246, 0.10), transparent 65%),
-      linear-gradient(180deg, #f0f5ff 0%, #f6f8fc 55%, var(--bg) 100%);
+    padding: 104px 0 0; overflow: hidden;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
   }
   #hero-cfd {
     position: absolute; inset: 0; width: 100%; height: 100%;
      display: block; pointer-events: none; z-index: 1;
-  }
-  .hero-iso {
-    position: absolute; inset: 0; pointer-events: none; z-index: 1;
-    background-image:
-      linear-gradient(to right, rgba(37, 99, 235, 0.065) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(37, 99, 235, 0.065) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(ellipse 85% 75% at 55% 40%, black 15%, transparent 80%);
-    -webkit-mask-image: radial-gradient(ellipse 85% 75% at 55% 40%, black 15%, transparent 80%);
-  }
-  .cfd-legend {
-    display: inline-flex; align-items: center; gap: 10px;
-    font-family: var(--mono); font-size: 11px; color: var(--muted);
-    background: rgba(255,255,255,0.78); backdrop-filter: blur(8px);
-    border: 1px solid var(--line-strong); border-radius: 99px;
-    padding: 5px 12px; box-shadow: var(--shadow-xs);
-  }
-  .cfd-scale {
-    width: 72px; height: 6px; border-radius: 99px;
-    background: linear-gradient(90deg, #2563eb, #06b6d4, #10b981, #f59e0b, #ef4444);
-  }
-  .grid-lines {
-    position: absolute; inset: 0; pointer-events: none;
-    background-image:
-      linear-gradient(to right, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, black 20%, transparent 80%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, black 20%, transparent 80%);
   }
   .hero-grid {
     position: relative; z-index: 2;
@@ -237,20 +215,16 @@
   }
   .eyebrow {
     font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 22px;
-    display: inline-flex; align-items: center; gap: 10px;
-    background: var(--accent-soft); border: 1px solid var(--accent-border);
-    padding: 6px 12px; border-radius: 99px; font-weight: 600;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 20px;
+    display: inline-flex; align-items: center; gap: 10px; font-weight: 600;
   }
+  .eyebrow b { color: var(--accent); font-weight: 700; }
   .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   .hero h1 {
-    font-size: clamp(44px, 6.2vw, 82px); line-height: 0.98;
-    letter-spacing: -0.042em; font-weight: 700; color: var(--text);
+    font-size: clamp(32px, 4.2vw, 52px); line-height: 1.08;
+    letter-spacing: -0.03em; font-weight: 700; color: var(--text);
   }
-  .hero h1 em {
-    font-family: var(--serif); font-style: italic; font-weight: 400;
-    color: var(--accent); letter-spacing: -0.01em;
-  }
+  .hero h1 .accent { color: var(--accent); }
   .hero h1 .thin { color: var(--faint); font-weight: 400; }
   .hero .lede {
     font-size: clamp(16.5px, 1.45vw, 18.5px); color: var(--muted);
@@ -260,26 +234,23 @@
   .cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 32px; }
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 20px; border-radius: 10px; font-weight: 600; font-size: 14px;
+    padding: 12px 20px; border-radius: var(--radius-md); font-weight: 600; font-size: 14px;
     border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
-    box-shadow: var(--shadow-xs); cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s var(--ease), box-shadow 0.2s ease;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
   }
-  .btn:hover {
-    border-color: rgba(15, 23, 42, 0.28); background: var(--surface-2);
-    transform: translateY(-1px); box-shadow: var(--shadow-sm);
-  }
+  .btn:hover { border-color: rgba(17, 24, 39, 0.32); background: var(--surface-2); }
+  .btn:active { background: var(--surface-3); }
   .btn.primary {
     background: var(--accent); border-color: var(--accent); color: #fff;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
   }
   .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn.primary:active { background: #7f1d1d; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .btn.dark {
     background: var(--text); border-color: var(--text); color: #fff;
   }
   .btn.dark:hover { background: #1e293b; }
-  .btn .arrow { transition: transform 0.25s var(--ease); font-weight: 400; }
-  .btn:hover .arrow { transform: translateX(3px); }
 
   .trust-strip {
     display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
@@ -292,8 +263,8 @@
   /* hero wind-tunnel stage card */
   .tunnel-card {
     background: var(--ink-dark); color: #f8fafc;
-    border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: var(--shadow-lg); overflow: hidden; position: relative;
+    border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden; position: relative;
   }
   .tunnel-bar {
     display: flex; align-items: center; justify-content: space-between;
@@ -304,11 +275,10 @@
   .tunnel-dots { display: flex; gap: 6px; }
   .tunnel-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.18); display: block; }
   .tunnel-live {
-    display: inline-flex; align-items: center; gap: 6px; color: #60a5fa; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px; color: #fca5a5; font-weight: 600;
   }
   .tunnel-live::before {
     content: ""; width: 6px; height: 6px; border-radius: 50%; background: #34d399;
-    box-shadow: 0 0 8px #34d399;
   }
   .tunnel-canvas-wrap { position: relative; aspect-ratio: 2 / 1; width: 100%; }
   #airflow { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -324,7 +294,7 @@
   .hud-cell:last-child { border-right: none; }
   .hud-cell .k { font-size: 10.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
   .hud-cell .v { font-size: 18px; font-weight: 600; color: #fff; margin-top: 2px; font-variant-numeric: tabular-nums; }
-  .hud-cell .v small { font-size: 11.5px; color: #60a5fa; font-weight: 400; }
+  .hud-cell .v small { font-size: 11.5px; color: #fca5a5; font-weight: 400; }
 
   /* hero stat strip */
   .hero-stats {
@@ -334,7 +304,6 @@
     border: 1px solid var(--line-strong);
     border-radius: var(--radius) var(--radius) 0 0;
     border-bottom: none;
-    box-shadow: var(--shadow-sm);
   }
   .hstat { padding: 26px 28px; border-right: 1px solid var(--line); }
   .hstat:last-child { border-right: none; }
@@ -351,26 +320,21 @@
     .hstat { padding: 20px; }
   }
 
-  /* ---------- ticker ---------- */
+  /* ---------- parameter strip (static, no scroll animation) ---------- */
   .ticker {
     background: var(--surface-2);
     border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong);
-    overflow: hidden; padding: 11px 0; position: relative;
+    padding: 14px 0;
   }
-  .ticker-track {
-    display: flex; white-space: nowrap; width: max-content;
-    animation: tick 68s linear infinite;
+  .ticker-inner {
+    display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
   }
-  .ticker:hover .ticker-track { animation-play-state: paused; }
-  .ticker span {
-    font-family: var(--mono); font-size: 12px; letter-spacing: 0.03em;
-    color: var(--muted); padding: 0 16px;
+  .ticker-label {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); font-weight: 700; margin-right: 6px;
   }
-  .ticker span b {
-    color: var(--accent); font-weight: 600;
-    background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; margin-right: 4px;
-  }
-  @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-inner .pnum { color: var(--accent); font-weight: 700; margin-right: 4px; }
 
   /* ---------- sections ---------- */
   section { padding: 112px 0; position: relative; }
@@ -382,11 +346,7 @@
     text-transform: uppercase; color: var(--faint); padding-top: 10px;
     flex: none; width: 140px; font-weight: 600;
   }
-  .kicker b {
-    color: var(--accent); font-weight: 700;
-    background: var(--accent-soft); border: 1px solid var(--accent-border);
-    padding: 2px 7px; border-radius: 5px; margin-right: 6px;
-  }
+  .kicker b { color: var(--accent); font-weight: 700; margin-right: 6px; }
   .sec-body { flex: 1; min-width: 280px; }
   h2 {
     font-size: clamp(30px, 4vw, 48px); letter-spacing: -0.035em;
@@ -398,17 +358,11 @@
   .sub a { color: var(--accent); font-weight: 500; border-bottom: 1px solid var(--accent-border); transition: border-color 0.2s ease; }
   .sub a:hover { border-color: var(--accent); }
 
-  /* reveal on scroll */
-  .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
-  .reveal.in { opacity: 1; transform: none; }
-  .reveal.d1 { transition-delay: 0.08s; }
-  .reveal.d2 { transition-delay: 0.16s; }
-  .reveal.d3 { transition-delay: 0.24s; }
   /* ---------- interactive demo sandbox ---------- */
   .demo-shell {
     margin-top: 48px; background: var(--surface);
-    border: 1px solid var(--line-strong); border-radius: 18px;
-    box-shadow: var(--shadow-md); overflow: hidden;
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    overflow: hidden;
   }
   .demo-topbar {
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
@@ -417,12 +371,12 @@
   .demo-badge {
     font-family: var(--mono); font-size: 11.5px; color: var(--amber);
     background: var(--amber-soft); border: 1px solid var(--amber-border);
-    padding: 4px 10px; border-radius: 99px; font-weight: 600;
+    padding: 4px 10px; border-radius: var(--radius-sm); font-weight: 600;
   }
-  .body-pills { display: inline-flex; gap: 4px; background: var(--surface); padding: 4px; border-radius: 10px; border: 1px solid var(--line-strong); }
+  .body-pills { display: inline-flex; gap: 4px; background: var(--surface); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--line-strong); }
   .body-pills button {
     font-family: var(--mono); font-size: 12px; font-weight: 600;
-    padding: 7px 14px; border-radius: 7px; border: none; background: transparent;
+    padding: 7px 14px; border-radius: var(--radius-sm); border: none; background: transparent;
     color: var(--muted); cursor: pointer; transition: all 0.18s ease;
   }
   .body-pills button.active { background: var(--text); color: #fff; box-shadow: var(--shadow-xs); }
@@ -449,29 +403,27 @@
   input[type="range"] {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: 6px; background: var(--surface-3);
-    border-radius: 99px; outline: none; cursor: pointer;
+    border-radius: var(--radius-sm); outline: none; cursor: pointer;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
     width: 18px; height: 18px; border-radius: 50%;
     background: var(--accent); border: 2.5px solid #fff;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
-    transition: transform 0.15s ease;
+    box-shadow: 0 1px 3px rgba(17, 24, 39, 0.25);
   }
-  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.12); }
   input[type="range"]::-moz-range-thumb {
     width: 18px; height: 18px; border-radius: 50%;
     background: var(--accent); border: 2.5px solid #fff;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
+    box-shadow: 0 1px 3px rgba(17, 24, 39, 0.25);
   }
   .demo-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
 
   .demo-readout {
-    padding: 28px; background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    padding: 28px; background: var(--surface-2);
     display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
   }
   .silhouette-stage {
-    background: var(--ink-dark); border-radius: 12px; padding: 18px 20px 14px;
+    background: var(--ink-dark); border-radius: var(--radius); padding: 18px 20px 14px;
     border: 1px solid rgba(15,23,42,0.12); position: relative;
   }
   .silhouette-stage .stage-lbl {
@@ -480,12 +432,12 @@
   }
   .stage-visual { position: relative; }
   .stage-visual svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
-  .demo-car-img { width: 100%; display: block; border-radius: 8px; }
+  .demo-car-img { width: 100%; display: block; border-radius: var(--radius-md); }
   .silhouette-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
   .readout-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .readout-card {
     background: var(--surface); border: 1px solid var(--line-strong);
-    border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow-xs);
+    border-radius: var(--radius); padding: 16px 18px;
   }
   .readout-card .rk {
     font-family: var(--mono); font-size: 11px; text-transform: uppercase;
@@ -516,8 +468,7 @@
     box-shadow: var(--shadow-sm); position: relative;
   }
   .race-card.fast {
-    border-color: var(--accent-border);
-    background: linear-gradient(180deg, rgba(37,99,235,0.03) 0%, var(--surface) 100%);
+    border-top: 3px solid var(--accent);
   }
   .race-card .tag {
     font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.12em;
@@ -531,8 +482,8 @@
   .race-card .big .unit { font-size: 20px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
   .race-card.fast .big { color: var(--accent); }
   .race-card p { color: var(--muted); font-size: 15px; line-height: 1.65; max-width: 440px; }
-  .race-bar { height: 6px; background: var(--surface-3); margin-top: 26px; overflow: hidden; border-radius: 99px; }
-  .race-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.5s var(--ease); }
+  .race-bar { height: 6px; background: var(--surface-3); margin-top: 26px; overflow: hidden; border-radius: var(--radius-sm); }
+  .race-bar i { display: block; height: 100%; width: 0; border-radius: var(--radius-sm); transition: width 1.5s var(--ease); }
   .race-card.slow .race-bar i { background: #94a3b8; }
   .race-card.fast .race-bar i { background: var(--accent); }
   .race-bar-lbl { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-top: 10px; }
@@ -542,7 +493,7 @@
     border-radius: var(--radius); padding: 22px 28px;
     box-shadow: var(--shadow-sm);
   }
-  .flow-line .hl { color: #60a5fa; font-weight: 600; }
+  .flow-line .hl { color: #fca5a5; font-weight: 600; }
 
   /* ---------- cards ---------- */
   .cards {
@@ -552,12 +503,6 @@
   .card {
     background: var(--surface); padding: 32px;
     border: 1px solid var(--line-strong); border-radius: var(--radius);
-    box-shadow: var(--shadow-xs);
-    transition: transform 0.25s var(--ease), box-shadow 0.25s ease, border-color 0.25s ease;
-  }
-  .card:hover {
-    transform: translateY(-3px); box-shadow: var(--shadow-md);
-    border-color: rgba(37, 99, 235, 0.3);
   }
   .card .k { font-family: var(--mono); font-size: 11.5px; color: var(--faint); letter-spacing: 0.12em; display: block; margin-bottom: 12px; font-weight: 600; }
   .card .k b { color: var(--accent); font-weight: 700; }
@@ -567,13 +512,13 @@
     display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
     font-size: 11.5px; font-family: var(--mono); color: var(--amber);
     background: var(--amber-soft); border: 1px solid var(--amber-border);
-    padding: 4px 10px; border-radius: 99px; font-weight: 600; letter-spacing: 0.06em;
+    padding: 4px 10px; border-radius: var(--radius-sm); font-weight: 600; letter-spacing: 0.06em;
   }
   .card .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
   .chip {
     font-family: var(--mono); font-size: 11.5px; color: var(--muted);
     background: var(--surface-2); border: 1px solid var(--line-strong);
-    border-radius: 6px; padding: 4px 10px;
+    border-radius: var(--radius-md); padding: 4px 10px;
   }
   .chip b { color: var(--text); font-weight: 600; }
 
@@ -584,7 +529,7 @@
   @media (max-width: 820px) { .scorecard { grid-template-columns: 1fr 1fr; } }
   .score-tile {
     background: var(--surface); border: 1px solid var(--line-strong);
-    border-radius: 12px; padding: 20px 22px; box-shadow: var(--shadow-xs);
+    border-radius: var(--radius); padding: 20px 22px;
   }
   .score-tile.met { border-top: 3px solid var(--green); }
   .score-tile.gap { border-top: 3px solid var(--amber); }
@@ -602,11 +547,11 @@
   .chart-head h3 { font-size: 17.5px; font-weight: 700; letter-spacing: -0.015em; }
   .toggle {
     display: inline-flex; gap: 3px; background: var(--surface-2);
-    border: 1px solid var(--line-strong); border-radius: 10px; padding: 3px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-md); padding: 3px;
   }
   .toggle button {
     font-family: var(--mono); font-size: 12px; color: var(--muted); background: none;
-    border: none; cursor: pointer; padding: 7px 14px; border-radius: 7px; font-weight: 600;
+    border: none; cursor: pointer; padding: 7px 14px; border-radius: var(--radius-sm); font-weight: 600;
     transition: all 0.18s ease;
   }
   .toggle button.active { background: var(--surface); color: var(--accent); box-shadow: var(--shadow-xs); }
@@ -616,9 +561,9 @@
   @media (max-width: 640px) { .bar-row { grid-template-columns: 120px 1fr 64px; } }
   .bar-row .name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
   .bar-row .name small { display: block; font-weight: 400; color: var(--faint); font-size: 12px; font-family: var(--mono); margin-top: 2px; }
-  .bar-track { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
-  .bar-fill { height: 100%; width: 0; border-radius: 99px; transition: width 1s var(--ease); }
-  .bar-fill.best { background: linear-gradient(90deg, var(--accent), #60a5fa); }
+  .bar-track { height: 10px; background: var(--surface-2); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); }
+  .bar-fill { height: 100%; width: 0; border-radius: var(--radius-sm); transition: width 1s var(--ease); }
+  .bar-fill.best { background: var(--accent); }
   .bar-fill.mid { background: #64748b; }
   .bar-fill.low { background: #94a3b8; }
   .bar-row .val { font-family: var(--mono); font-size: 14.5px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
@@ -640,39 +585,32 @@
   td.num, th.num { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
   td .pill {
     font-size: 11px; font-family: var(--mono); font-weight: 700;
-    padding: 3px 10px; border-radius: 99px; display: inline-block;
+    padding: 3px 10px; border-radius: var(--radius-sm); display: inline-block;
   }
   .pill.met { color: var(--green); background: var(--green-soft); border: 1px solid var(--green-border); }
   .pill.gap { color: var(--amber); background: var(--amber-soft); border: 1px solid var(--amber-border); }
   .note {
     background: var(--surface); border: 1px solid var(--line-strong);
-    border-left: 3px solid var(--accent); border-radius: 10px;
+    border-left: 3px solid var(--accent); border-radius: var(--radius-md);
     padding: 20px 24px; font-size: 14.5px; color: var(--muted);
-    margin-top: 24px; line-height: 1.7; box-shadow: var(--shadow-xs);
+    margin-top: 24px; line-height: 1.7;
   }
   .note strong { color: var(--text); font-weight: 600; }
 
-  /* ---------- body type breakdown ---------- */
-  .body-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; }
-  @media (max-width: 820px) { .body-grid { grid-template-columns: 1fr; } }
-  .body-card {
-    background: var(--surface); padding: 30px;
-    border: 1px solid var(--line-strong); border-radius: var(--radius);
-    box-shadow: var(--shadow-xs); transition: transform 0.25s var(--ease), box-shadow 0.25s ease;
-  }
-  .body-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .body-card .car-photo { width: 100%; height: auto; display: block; margin-bottom: 20px; border-radius: 8px; border: 1px solid var(--line); }
-  .body-card h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.015em; }
-  .body-card .count-lbl { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 3px; }
-  .body-card .r2 { font-size: 38px; font-weight: 700; letter-spacing: -0.035em; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
-  .body-card .r2 small { font-size: 13.5px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
-  .body-card .r2.good { color: var(--green); }
-  .body-card .r2.warn { color: var(--amber); }
-  .body-card p { font-size: 14px; color: var(--muted); line-height: 1.68; }
-  .mini-bar { height: 6px; background: var(--surface-3); border-radius: 99px; overflow: hidden; margin: 14px 0 10px; }
-  .mini-bar i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width 1.2s var(--ease); }
-  .mini-bar i.good { background: var(--green); }
-  .mini-bar i.warn { background: var(--amber); }
+  /* ---------- body type breakdown: comparison table ---------- */
+  .body-table-wrap { margin-top: 48px; }
+  .body-cell { display: flex; align-items: center; gap: 16px; min-width: 220px; }
+  .body-cell img { width: 128px; height: auto; display: block; border-radius: var(--radius-sm); border: 1px solid var(--line); flex: none; }
+  .body-cell strong { font-size: 16px; font-weight: 700; letter-spacing: -0.015em; display: block; }
+  .body-cell .count-lbl { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-top: 2px; display: block; }
+  .r2-val { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .r2-val.good { color: var(--green); }
+  .r2-val.warn { color: var(--amber); }
+  .r2-bar { width: 120px; height: 6px; background: var(--surface-3); border-radius: var(--radius-sm); overflow: hidden; margin-top: 6px; }
+  .r2-bar i { display: block; height: 100%; border-radius: var(--radius-sm); transition: width 1.2s var(--ease); }
+  .r2-bar i.good { background: var(--green); }
+  .r2-bar i.warn { background: var(--amber); }
+  td .assess { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 420px; }
 
   /* ---------- uncertainty ---------- */
   .conf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 48px; }
@@ -680,14 +618,13 @@
   .conf-card {
     background: var(--surface); padding: 32px;
     border: 1px solid var(--line-strong); border-radius: var(--radius);
-    box-shadow: var(--shadow-xs);
   }
   .conf-card .lvl { font-family: var(--mono); font-size: 11.5px; color: var(--accent); letter-spacing: 0.12em; font-weight: 600; }
   .conf-card .cov { font-size: 44px; font-weight: 700; letter-spacing: -0.035em; margin: 12px 0 4px; font-variant-numeric: tabular-nums; line-height: 1; color: var(--text); }
   .conf-card .cov small { font-size: 15px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
   .conf-card p { color: var(--muted); font-size: 14.5px; line-height: 1.7; margin-top: 10px; }
-  .gauge { height: 6px; background: var(--surface-3); border-radius: 99px; overflow: hidden; margin: 20px 0 10px; }
-  .gauge i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width 1.3s var(--ease); }
+  .gauge { height: 6px; background: var(--surface-3); border-radius: var(--radius-sm); overflow: hidden; margin: 20px 0 10px; }
+  .gauge i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: var(--radius-sm); transition: width 1.3s var(--ease); }
   .gauge-lbl { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
 
   /* ---------- data ---------- */
@@ -695,7 +632,7 @@
   @media (max-width: 820px) { .data-grid { grid-template-columns: 1fr 1fr; } }
   .data-cell {
     background: var(--surface); padding: 26px 24px;
-    border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow-xs);
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
   }
   .data-cell .num { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--text); }
   .data-cell .lbl { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.55; }
@@ -715,11 +652,11 @@
   .copy-btn {
     font-family: var(--mono); font-size: 11.5px; color: #e2e8f0;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
-    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    padding: 5px 12px; border-radius: var(--radius-md); cursor: pointer;
     transition: background 0.18s ease;
   }
   .copy-btn:hover { background: rgba(255,255,255,0.15); }
-  code { font-family: var(--mono); font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: 4px; color: var(--text); }
+  code { font-family: var(--mono); font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: var(--radius-sm); color: var(--text); }
   pre { padding: 22px 26px; overflow-x: auto; margin: 0; }
   pre code { background: none; padding: 0; font-size: 13px; line-height: 1.9; color: #e2e8f0; }
   pre code .cm { color: #64748b; }
@@ -736,7 +673,7 @@
     width: 17px; height: 17px; border-radius: 50%; flex: none; margin-top: 4px;
     border: 2px solid var(--line-strong); background: var(--surface); position: relative; z-index: 1;
   }
-  .steps li.done .dot { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .steps li.done .dot { background: var(--accent); border-color: var(--accent); }
   .steps li.next .dot { border-color: var(--accent); }
   .steps .st { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; font-weight: 700; }
   .steps li.done .st { color: var(--green); }
@@ -764,31 +701,58 @@
   footer .row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
   footer a { color: var(--muted); font-weight: 500; transition: color 0.18s ease; }
   footer a:hover { color: var(--accent); }
-  footer .bigfoot {
-    font-size: clamp(44px, 9vw, 108px); font-weight: 800; letter-spacing: -0.045em; line-height: 1;
-    color: rgba(15, 23, 42, 0.045); margin-bottom: 32px; user-select: none; white-space: nowrap; overflow: hidden;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .ticker-track { animation: none; }
-    .reveal { opacity: 1; transform: none; transition: none; }
-    .bar-fill, .mini-bar i, .gauge i, .race-bar i, .steps .fill { transition: none; }
+    .bar-fill, .r2-bar i, .gauge i, .race-bar i, .steps .fill { transition: none; }
   }
 
+
+  /* ---------- dataset explorer ---------- */
+  .data-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }
+  @media (max-width: 920px) { .data-tiles { grid-template-columns: 1fr 1fr; } }
+  .data-tile { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 20px 22px; }
+  .data-tile .k { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); }
+  .data-tile .v { font-size: 28px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
+  .data-tile .v small { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .data-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 920px) { .data-grid { grid-template-columns: 1fr; } }
+  .data-card { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 22px; }
+  .data-card h3 { font-size: 17px; margin: 0 0 4px; }
+  .data-card .hint { font-size: 13px; color: var(--muted); margin: 0 0 18px; }
+  .hist { display: flex; align-items: flex-end; gap: 10px; height: 180px; padding-top: 8px; }
+  .hist-bin { flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 100%; }
+  .hist-bar { flex: 1; border-radius: var(--radius-sm) var(--radius-sm) 0 0; min-height: 2px; }
+  .hist-bar.f { background: #b91c1c; }
+  .hist-bar.n { background: #64748b; }
+  .hist-bar.e { background: #94a3b8; }
+  .hist-labels { display: flex; gap: 10px; margin-top: 8px; }
+  .hist-labels span { flex: 1; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .hist-legend { display: flex; gap: 16px; margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .hist-legend i { display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-sm); margin-right: 6px; vertical-align: -1px; }
+  .split-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 14px; }
+  .split-row .lbl { width: 52px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .split-row .bar { flex: 1; height: 12px; background: var(--surface-2); border-radius: var(--radius-sm); overflow: hidden; }
+  .split-row .bar i { display: block; height: 100%; background: var(--accent); border-radius: var(--radius-sm); }
+  .split-row .num { width: 48px; text-align: right; font-family: var(--mono); font-size: 12.5px; font-weight: 700; }
+  .body-mean { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+  .body-mean b { font-family: var(--mono); white-space: nowrap; }
+  .data-table { width: 100%; border-collapse: collapse; margin-top: 16px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; }
+  .data-table th, .data-table td { padding: 12px 16px; text-align: left; font-size: 14px; border-top: 1px solid var(--line); }
+  .data-table th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); border-top: 0; }
+  .data-table td b { font-family: var(--mono); }
+  .data-note { font-size: 13px; color: var(--muted); margin-top: 14px; }
 </style>
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
-<div class="progress" id="progress" aria-hidden="true"></div>
 
 <nav id="topnav" aria-label="Primary">
   <div class="nav-inner">
     <a href="#" class="logo" aria-label="AeroSurrogate home">
       <span class="logo-mark" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.2" stroke-linecap="round">
           <path d="M3 15c3-5 8-7 14-6 2.5.4 4 1.8 4 3.5H3z"/>
-          <path d="M2 9h11M4 5h8" stroke="#93c5fd" stroke-width="1.6"/>
+          <path d="M2 9h11M4 5h8" stroke="#fca5a5" stroke-width="1.6"/>
         </svg>
       </span>
       <span>Aero<i>Surrogate</i>.</span>
@@ -803,7 +767,7 @@
       <a href="#system">System</a>
       <a href="#results">Results</a>
       <a href="#limits">Limits</a>
-      <a href="#data">Data</a>
+      <a href="#dataset">Dataset</a>
       <a href="#quickstart">Quickstart</a>
       <a href="#roadmap">Roadmap</a>
       <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="nav-cta">
@@ -817,30 +781,25 @@
 <main id="main">
   <!-- ==================== HERO ==================== -->
   <header class="hero">
-    <div class="hero-iso" aria-hidden="true"></div>
     <canvas id="hero-cfd" aria-hidden="true"></canvas>
 
     <div class="wrap">
       <div class="hero-grid">
         <div>
           <div class="eyebrow"><span class="dot"></span>Automotive AI &middot; ML Surrogate &middot; DrivAerNet++</div>
-          <h1>Car aero in <em>milliseconds</em>, <span class="thin">not hours.</span></h1>
+          <h1>Car aero in <span class="accent">milliseconds</span>, <span class="thin">not hours.</span></h1>
           <p class="lede">
             A physics-informed ML surrogate that predicts a vehicle's <strong>drag, lift and EV highway range</strong> from 23 geometric parameters in <strong>0.051 ms</strong> on CPU &mdash; and searches for the lowest-drag body under your constraints.
           </p>
           <div class="cta-row">
-            <a href="#demo" class="btn primary">Try interactive surrogate <span class="arrow">&darr;</span></a>
+            <a href="#demo" class="btn primary">Try interactive surrogate <span >&darr;</span></a>
             <a href="#results" class="btn">Measured results</a>
-            <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="btn dark">View on GitHub <span class="arrow">&rarr;</span></a>
+            <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="btn dark">View on GitHub <span >&rarr;</span></a>
           </div>
           <div class="trust-strip">
-            <span class="cfd-legend">
-              <span>Flow velocity field</span>
-              <i class="cfd-scale" aria-hidden="true"></i>
-              <span>0 &rarr; 1.6 U&infin;</span>
-            </span>
             <span><b>MIT DrivAerNet++</b> (NeurIPS 2024)</span>
             <span><b>ONNX Runtime</b> CPU</span>
+            <span><b>4,051</b> designs</span>
           </div>
         </div>
 
@@ -893,13 +852,16 @@
   </header>
 
   <div class="ticker" aria-label="23 geometric input parameters">
-    <div class="ticker-track" id="ticker-track"></div>
+    <div class="wrap"><div class="ticker-inner">
+      <span class="ticker-label">23 geometric parameters</span>
+      <span><span class="pnum">01</span>a_car_length</span><span><span class="pnum">02</span>a_car_width</span><span><span class="pnum">03</span>a_car_roof_height</span><span><span class="pnum">04</span>a_car_green_house_angle</span><span><span class="pnum">05</span>b_ramp_angle</span><span><span class="pnum">06</span>b_diffusor_angle</span><span><span class="pnum">07</span>b_trunklid_angle</span><span><span class="pnum">08</span>c_side_mirrors_rotation</span><span><span class="pnum">09</span>c_side_mirrors_translate_x</span><span><span class="pnum">10</span>c_side_mirrors_translate_z</span><span><span class="pnum">11</span>d_rear_window_inclination</span><span><span class="pnum">12</span>d_winscreen_inclination</span><span><span class="pnum">13</span>d_winscreen_length</span><span><span class="pnum">14</span>d_rear_window_length</span><span><span class="pnum">15</span>e_a_b_c_pillar_thickness</span><span><span class="pnum">16</span>e_fenders_arch_offset</span><span><span class="pnum">17</span>f_door_handles_thickness</span><span><span class="pnum">18</span>f_door_handles_z_position</span><span><span class="pnum">19</span>f_door_handles_x_position</span><span><span class="pnum">20</span>g_trunklid_curvature</span><span><span class="pnum">21</span>g_trunklid_length</span><span><span class="pnum">22</span>h_front_bumper_curvature</span><span><span class="pnum">23</span>h_front_bumper_length</span>
+    </div></div>
   </div>
   
   <!-- ==================== INTERACTIVE WIND TUNNEL FIGURE ==================== -->
   <section id="demo" class="alt">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>LIVE</b> Sandbox</div>
         <div class="sec-body">
           <h2>Drive the surrogate. <span class="thin">Watch Cd, lift &amp; EV range respond.</span></h2>
@@ -909,7 +871,7 @@
         </div>
       </div>
 
-      <div class="demo-shell reveal d1">
+      <div class="demo-shell">
         <div class="demo-main">
           <iframe src="wind-tunnel.html" title="Interactive 3D wind-tunnel explorer" style="grid-column: 1 / -1; width:100%;height:880px;border:0;border-radius:12px;background:#f6f7f9;" loading="lazy"></iframe>
         </div>
@@ -919,7 +881,7 @@
 
   <section id="dataset" class="alt">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>THE DATA</b> Dataset</div>
         <div class="sec-body">
           <h2>Real designs, real drag numbers. <span class="thin">No synthetic filler.</span></h2>
@@ -928,19 +890,19 @@
           </p>
         </div>
       </div>
-      <div class="data-tiles reveal d1">
+      <div class="data-tiles">
         <div class="data-tile"><div class="k">Usable designs</div><div class="v">4,051</div></div>
         <div class="data-tile"><div class="k">Geometric parameters</div><div class="v">23</div></div>
         <div class="data-tile"><div class="k">Mean Cd</div><div class="v">0.254 <small>median 0.253</small></div></div>
         <div class="data-tile"><div class="k">Cd range</div><div class="v">0.200 <small>to 0.320</small></div></div>
       </div>
-      <div class="data-grid reveal d1">
+      <div class="data-grid">
         <div class="data-card">
           <h3>Cd distribution by body style</h3>
           <p class="hint">Count of designs in each 0.02 Cd bin. Estatebacks sit higher, fastbacks and notchbacks cluster lower.</p>
           <div class="hist"><div class="hist-bin"><div class="hist-bar f" style="height:20.2%" title="Fastback 108"></div><div class="hist-bar n" style="height:17.9%" title="Notchback 96"></div><div class="hist-bar e" style="height:0.8%" title="Estateback 1"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:83.4%" title="Fastback 446"></div><div class="hist-bar n" style="height:87.5%" title="Notchback 468"></div><div class="hist-bar e" style="height:9.3%" title="Estateback 50"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:83.7%" title="Fastback 448"></div><div class="hist-bar n" style="height:100.0%" title="Notchback 535"></div><div class="hist-bar e" style="height:64.7%" title="Estateback 346"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:40.4%" title="Fastback 216"></div><div class="hist-bar n" style="height:48.0%" title="Notchback 257"></div><div class="hist-bar e" style="height:100.0%" title="Estateback 535"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:8.2%" title="Fastback 44"></div><div class="hist-bar n" style="height:8.6%" title="Notchback 46"></div><div class="hist-bar e" style="height:70.5%" title="Estateback 377"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:0%" title="Fastback 0"></div><div class="hist-bar n" style="height:0%" title="Notchback 0"></div><div class="hist-bar e" style="height:14.4%" title="Estateback 77"></div></div></div>
           <div class="hist-labels"><span>0.20</span><span>0.22</span><span>0.24</span><span>0.26</span><span>0.28</span><span>0.30</span></div>
-          <div class="hist-legend"><span><i style="background:#2563eb"></i>Fastback</span><span><i style="background:#7aa5f8"></i>Notchback</span><span><i style="background:#f59e0b"></i>Estateback</span></div>
+          <div class="hist-legend"><span><i style="background:#b91c1c"></i>Fastback</span><span><i style="background:#64748b"></i>Notchback</span><span><i style="background:#94a3b8"></i>Estateback</span></div>
         </div>
         <div class="data-card">
           <h3>Train, validation, test</h3>
@@ -954,7 +916,7 @@
           <div class="body-mean"><span>Estateback <small style="color:var(--muted)">(1,386 designs)</small></span><b>0.272</b></div>
         </div>
       </div>
-      <div class="data-grid reveal d1" style="grid-template-columns: 1fr 1fr;">
+      <div class="data-grid" style="grid-template-columns: 1fr 1fr;">
         <div class="data-card">
           <h3>Baselines on validation (555 designs)</h3>
           <p class="hint">What the models actually score today. The target is Cd MAE under 0.005 and R&sup2; over 0.96, tuning is still to come.</p>
@@ -972,8 +934,8 @@
           <svg viewBox="0 0 320 120" style="width:100%; height:auto;" role="img" aria-label="Mean Cd rises from 0.243 at a -6.5 degree diffuser to 0.267 at a 13.5 degree diffuser">
             <line x1="16" y1="108" x2="304" y2="108" stroke="var(--line-strong)" stroke-width="1"/>
             <line x1="16" y1="16" x2="16" y2="108" stroke="var(--line-strong)" stroke-width="1"/>
-            <polyline points="34.0,99.1 70.1,97.3 106.0,83.2 142.0,78.3 177.9,56.5 213.8,42.7 249.7,32.6 285.6,25.8" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <circle cx="34.0" cy="99.1" r="3.5" fill="#2563eb"/><circle cx="70.1" cy="97.3" r="3.5" fill="#2563eb"/><circle cx="106.0" cy="83.2" r="3.5" fill="#2563eb"/><circle cx="142.0" cy="78.3" r="3.5" fill="#2563eb"/><circle cx="177.9" cy="56.5" r="3.5" fill="#2563eb"/><circle cx="213.8" cy="42.7" r="3.5" fill="#2563eb"/><circle cx="249.7" cy="32.6" r="3.5" fill="#2563eb"/><circle cx="285.6" cy="25.8" r="3.5" fill="#2563eb"/>
+            <polyline points="34.0,99.1 70.1,97.3 106.0,83.2 142.0,78.3 177.9,56.5 213.8,42.7 249.7,32.6 285.6,25.8" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <circle cx="34.0" cy="99.1" r="3.5" fill="#b91c1c"/><circle cx="70.1" cy="97.3" r="3.5" fill="#b91c1c"/><circle cx="106.0" cy="83.2" r="3.5" fill="#b91c1c"/><circle cx="142.0" cy="78.3" r="3.5" fill="#b91c1c"/><circle cx="177.9" cy="56.5" r="3.5" fill="#b91c1c"/><circle cx="213.8" cy="42.7" r="3.5" fill="#b91c1c"/><circle cx="249.7" cy="32.6" r="3.5" fill="#b91c1c"/><circle cx="285.6" cy="25.8" r="3.5" fill="#b91c1c"/>
             <text x="16" y="10" font-size="9" fill="var(--faint)" font-family="monospace">Cd 0.270</text>
             <text x="16" y="118" font-size="9" fill="var(--faint)" font-family="monospace">-8&deg; diffuser</text>
             <text x="252" y="118" font-size="9" fill="var(--faint)" font-family="monospace">+15&deg;</text>
@@ -981,7 +943,7 @@
           <p class="data-note">Mean Cd rises from 0.243 at a &minus;6.5&deg; diffuser to 0.267 at a 13.5&deg; diffuser. Rear window angle barely moves Cd (correlation 0.08), roof height not at all (&minus;0.01).</p>
         </div>
       </div>
-      <p class="data-note reveal d1">Source: DrivAerNet++ (MIT, NeurIPS 2024, CC BY-NC 4.0). Cd is the CFD-computed drag coefficient from the dataset; the surrogate predicts it from geometry. Frontal area mean 2.31 m&sup2;, Cd&middot;A mean 0.587.</p>
+      <p class="data-note">Source: DrivAerNet++ (MIT, NeurIPS 2024, CC BY-NC 4.0). Cd is the CFD-computed drag coefficient from the dataset; the surrogate predicts it from geometry. Frontal area mean 2.31 m&sup2;, Cd&middot;A mean 0.587.</p>
     </div>
   </section>
 
@@ -991,7 +953,7 @@
   <!-- ==================== 01 PROBLEM ==================== -->
   <section id="problem">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>01</b> Problem</div>
         <div class="sec-body">
           <h2>CFD takes hours. <span class="thin">Designers need answers now.</span></h2>
@@ -1001,7 +963,7 @@
         </div>
       </div>
 
-      <div class="race reveal d1">
+      <div class="race">
         <div class="race-card slow">
           <div class="tag">High-fidelity CFD</div>
           <div class="big">2&ndash;8 <span class="unit">hours</span></div>
@@ -1017,7 +979,7 @@
           <div class="race-bar-lbl"><span>per design</span><span>milliseconds</span></div>
         </div>
       </div>
-      <div class="flow-line reveal d2">
+      <div class="flow-line">
         shape (23 params) &nbsp;&rarr;&nbsp; <span class="hl">AeroSurrogate</span> &nbsp;&rarr;&nbsp; Cd, Cl, frontal area, EV range in <span class="hl">0.051 ms</span><br>
         target Cd + constraints &nbsp;&rarr;&nbsp; <span class="hl">inverse design</span> &nbsp;&rarr;&nbsp; lowest-drag geometry in <span class="hl">&lt; 1.5 s</span>
       </div>
@@ -1027,14 +989,14 @@
   <!-- ==================== 02 SYSTEM ==================== -->
   <section id="system" class="alt">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>02</b> System</div>
         <div class="sec-body">
           <h2>Four parts. <span class="thin">Three built and measured.</span></h2>
         </div>
       </div>
 
-      <div class="cards reveal d1">
+      <div class="cards">
         <div class="card">
           <span class="k"><b>01</b> &nbsp;/&nbsp; SURROGATE ENGINE</span>
           <h3>Predict the aero numbers</h3>
@@ -1077,7 +1039,7 @@
   <!-- ==================== 03 RESULTS ==================== -->
   <section id="results">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>03</b> Results</div>
         <div class="sec-body">
           <h2>Every number is measured. <span class="thin">None is claimed.</span></h2>
@@ -1088,7 +1050,7 @@
       </div>
 
       <!-- Executive Scorecard -->
-      <div class="scorecard reveal d1">
+      <div class="scorecard">
         <div class="score-tile met">
           <div class="st-top">
             <span class="st-lbl">Inference Latency</span>
@@ -1123,7 +1085,7 @@
         </div>
       </div>
 
-      <div class="chart-box reveal d1">
+      <div class="chart-box">
         <div class="chart-head">
           <h3 id="chart-title">Drag coefficient, MAE (lower is better)</h3>
           <div class="toggle" role="tablist" aria-label="Validation metric">
@@ -1137,7 +1099,7 @@
         <p class="chart-note">LightGBM trains in about 10 seconds on CPU. CatBoost is close behind and leads on frontal area. The Residual MLP trails the tree ensembles on this tabular geometry.</p>
       </div>
 
-      <div class="table-wrap reveal d2">
+      <div class="table-wrap">
         <table>
           <thead>
             <tr>
@@ -1161,7 +1123,7 @@
         </table>
       </div>
 
-      <div class="note reveal d3">
+      <div class="note">
         <strong>Honest read.</strong> Latency is met and the uncertainty calibration is sound, but the accuracy targets are not. Baselines sit at Cd MAE 0.0103 and R&sup2; 0.64, lift is hard to predict from geometry alone, and estateback drag is the weakest subgroup (within-group R&sup2; 0.01&ndash;0.18). Closing that gap is the remaining work. Full breakdowns live in <code>benchmarks/</code> in the repo.
       </div>
     </div>
@@ -1170,7 +1132,7 @@
   <!-- ==================== 04 LIMITS ==================== -->
   <section id="limits" class="alt">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>04</b> Limits</div>
         <div class="sec-body">
           <h2>Same model, three bodies. <span class="thin">One of them breaks it.</span></h2>
@@ -1180,33 +1142,37 @@
         </div>
       </div>
 
-      <div class="body-grid reveal d1">
-        <div class="body-card">
-          <img class="car-photo" src="fastback.jpg" alt="Fastback side profile" loading="lazy">
-          <h3>Fastback</h3>
-          <div class="count-lbl">177 designs in val</div>
-          <div class="r2 good">0.67 <small>R&sup2;</small></div>
-          <div class="mini-bar"><i class="good" data-w="67"></i></div>
-          <p>Sloping rear window, separation point moves with the angles. Geometry explains most of the drag.</p>
-        </div>
-
-        <div class="body-card">
-          <img class="car-photo" src="notchback.jpg" alt="Notchback side profile" loading="lazy">
-          <h3>Notchback</h3>
-          <div class="count-lbl">163 designs in val</div>
-          <div class="r2 good">0.60 <small>R&sup2;</small></div>
-          <div class="mini-bar"><i class="good" data-w="60"></i></div>
-          <p>Distinct boot lid, trunk and rear-window angles still steer the wake. Solid, not great.</p>
-        </div>
-
-        <div class="body-card">
-          <img class="car-photo" src="estateback.jpg" alt="Estateback side profile" loading="lazy">
-          <h3>Estateback</h3>
-          <div class="count-lbl">215 designs in val</div>
-          <div class="r2 warn">0.17 <small>R&sup2;</small></div>
-          <div class="mini-bar"><i class="warn" data-w="17"></i></div>
-          <p>Blunt squared tail. Wake separation barely responds to the parameters, so the model has almost nothing to learn from. The fix is body-type stratified trees or explicit estateback interaction terms.</p>
-        </div>
+      <div class="table-wrap body-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Body style</th>
+              <th scope="col" class="num">Designs in val</th>
+              <th scope="col" class="num">Cd R&sup2;</th>
+              <th scope="col">Assessment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="body-cell"><img src="fastback.jpg" alt="Fastback side profile" loading="lazy"><span><strong>Fastback</strong><span class="count-lbl">Sloping rear window</span></span></span></td>
+              <td class="num">177</td>
+              <td class="num"><span class="r2-val good">0.67</span><span class="r2-bar"><i class="good" data-w="67"></i></span></td>
+              <td><span class="assess">Separation point moves with the angles. Geometry explains most of the drag.</span></td>
+            </tr>
+            <tr>
+              <td><span class="body-cell"><img src="notchback.jpg" alt="Notchback side profile" loading="lazy"><span><strong>Notchback</strong><span class="count-lbl">Distinct boot lid</span></span></span></td>
+              <td class="num">163</td>
+              <td class="num"><span class="r2-val good">0.60</span><span class="r2-bar"><i class="good" data-w="60"></i></span></td>
+              <td><span class="assess">Boot lid, trunk and rear-window angles still steer the wake. Solid, not great.</span></td>
+            </tr>
+            <tr>
+              <td><span class="body-cell"><img src="estateback.jpg" alt="Estateback side profile" loading="lazy"><span><strong>Estateback</strong><span class="count-lbl">Blunt squared tail</span></span></span></td>
+              <td class="num">215</td>
+              <td class="num"><span class="r2-val warn">0.17</span><span class="r2-bar"><i class="warn" data-w="17"></i></span></td>
+              <td><span class="assess">Wake separation barely responds to the parameters, so the model has almost nothing to learn from. The fix is body-type stratified trees or explicit estateback interaction terms.</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -1214,17 +1180,17 @@
   <!-- ==================== 05 UNCERTAINTY ==================== -->
   <section id="uncertainty">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>05</b> Uncertainty</div>
         <div class="sec-body">
-          <h2>It knows how unsure it is. <span class="thin">And it is right about that.</span></h2>
+          <h2>It knows how unsure it is.</h2>
           <p class="sub">
             Split conformal prediction (CV+) on the training set gives distribution-free intervals for every Cd prediction. A 90% interval really does cover the truth about 93% of the time.
           </p>
         </div>
       </div>
 
-      <div class="conf-grid reveal d1">
+      <div class="conf-grid">
         <div class="conf-card">
           <div class="lvl">90% NOMINAL &middot; LIGHTGBM &middot; Cd</div>
           <div class="cov"><span class="count" data-target="93.15" data-decimals="2">93.15</span><small>% empirical coverage</small></div>
@@ -1246,7 +1212,7 @@
   <!-- ==================== 06 DATA ==================== -->
   <section id="data" class="alt">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>06</b> Data</div>
         <div class="sec-body">
           <h2>Real CFD. Real cars. <span class="thin">One honest correction.</span></h2>
@@ -1256,7 +1222,7 @@
         </div>
       </div>
 
-      <div class="data-grid reveal d1">
+      <div class="data-grid">
         <div class="data-cell">
           <div class="num"><span class="count" data-target="4051" data-decimals="0">4051</span></div>
           <div class="lbl">Usable designs after the full join</div>
@@ -1275,7 +1241,7 @@
         </div>
       </div>
 
-      <div class="note reveal d2">
+      <div class="note">
         One verified correction to the headline number: the parametric CSV covers <strong>4,165</strong> designs with 23 geometric parameters, and the full join (parameters + Cd + Cl + frontal area + official split) is <strong>4,051</strong> designs. The other ~4,000 designs exist in the Cd file and the splits but have no lightweight parametric row.
       </div>
     </div>
@@ -1284,14 +1250,14 @@
   <!-- ==================== 07 QUICKSTART ==================== -->
   <section id="quickstart">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>07</b> Start</div>
         <div class="sec-body">
           <h2>Clone it. Run it. <span class="thin">Ten minutes, CPU only.</span></h2>
         </div>
       </div>
 
-      <div class="code-shell reveal d1">
+      <div class="code-shell">
         <div class="code-head">
           <span>bash &middot; local setup &amp; baseline training</span>
           <button type="button" class="copy-btn" id="copy-btn">Copy commands</button>
@@ -1309,14 +1275,14 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   <!-- ==================== 08 ROADMAP ==================== -->
   <section id="roadmap" class="alt">
     <div class="wrap">
-      <div class="sec-head reveal">
+      <div class="sec-head">
         <div class="kicker"><b>08</b> Roadmap</div>
         <div class="sec-body">
           <h2>Two-week build. <span class="thin">22 Nov to 5 Dec 2026.</span></h2>
         </div>
       </div>
 
-      <ul class="steps reveal d1" id="steps">
+      <ul class="steps" id="steps">
         <div class="fill" id="steps-fill"></div>
         <li class="done"><span class="dot"></span><div><div class="st">DONE</div><p><strong>Day 1 &middot; Data.</strong> Download, merge and validate DrivAerNet++.</p></div></li>
         <li class="done"><span class="dot"></span><div><div class="st">DONE</div><p><strong>Days 2&ndash;4 &middot; Features + baselines.</strong> 35 features, three baselines measured on val.</p></div></li>
@@ -1326,7 +1292,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
         <li class="next"><span class="dot"></span><div><div class="st">NEXT</div><p><strong>Days 13&ndash;14 &middot; Final evaluation.</strong> Official test split, demo, README.</p></div></li>
       </ul>
 
-      <div class="builder-card reveal d2">
+      <div class="builder-card">
         <div class="builder-info">
           <div class="avatar" aria-hidden="true">KS</div>
           <div>
@@ -1335,7 +1301,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
           </div>
         </div>
         <div class="cta-row" style="margin-top:0">
-          <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="btn dark">Repository <span class="arrow">&rarr;</span></a>
+          <a href="https://github.com/KARTIKEYSINGH009/aerosurrogate" target="_blank" rel="noopener" class="btn dark">Repository <span >&rarr;</span></a>
           <a href="https://github.com/KARTIKEYSINGH009" target="_blank" rel="noopener" class="btn">GitHub Profile</a>
         </div>
       </div>
@@ -1345,7 +1311,6 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
 
 <footer>
   <div class="wrap">
-    <div class="bigfoot" aria-hidden="true">AeroSurrogate</div>
     <div class="row">
       <div>Built by <a href="https://github.com/KARTIKEYSINGH009" target="_blank" rel="noopener">Kartikey Singh</a>, AI/ML Developer</div>
       <div>
@@ -1361,13 +1326,10 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ----- scroll progress & nav shadow ----- */
-  var prog = document.getElementById("progress");
+  /* ----- nav shadow on scroll ----- */
   var nav = document.getElementById("topnav");
   function onScroll() {
     var h = document.documentElement;
-    var max = h.scrollHeight - h.clientHeight;
-    prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
     if (h.scrollTop > 12) nav.classList.add("scrolled");
     else nav.classList.remove("scrolled");
   }
@@ -1389,31 +1351,6 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
       });
     });
   }
-
-  /* ----- ticker: the 23 geometry parameters ----- */
-  var params = [
-    "a_car_length", "a_car_width", "a_car_roof_height", "a_car_green_house_angle",
-    "b_ramp_angle", "b_diffusor_angle", "b_trunklid_angle",
-    "c_side_mirrors_rotation", "c_side_mirrors_translate_x", "c_side_mirrors_translate_z",
-    "d_rear_window_inclination", "d_winscreen_inclination", "d_winscreen_length", "d_rear_window_length",
-    "e_a_b_c_pillar_thickness", "e_fenders_arch_offset",
-    "f_door_handles_thickness", "f_door_handles_z_position", "f_door_handles_x_position",
-    "g_trunklid_curvature", "g_trunklid_length",
-    "h_front_bumper_curvature", "h_front_bumper_length"
-  ];
-  var track = document.getElementById("ticker-track");
-  var half = params.map(function (p, i) {
-    return "<span><b>" + String(i + 1).padStart(2, "0") + "</b> " + p + "</span>";
-  }).join('<span style="color: rgba(15,23,42,0.18); padding: 0;">&middot;</span>');
-  track.innerHTML = half + '<span style="color: rgba(15,23,42,0.18); padding: 0;">&middot;</span>' + half;
-
-  /* ----- reveal on scroll ----- */
-  var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-    });
-  }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
-  document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
 
   /* ----- count-up numbers ----- */
   function countUp(el) {
@@ -1449,7 +1386,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
       if (e.isIntersecting) { armBars(e.target); bio.unobserve(e.target); }
     });
   }, { threshold: 0.3 });
-  document.querySelectorAll(".race-bar, .mini-bar, .gauge, .chart-box").forEach(function (el) { bio.observe(el); });
+  document.querySelectorAll(".race-bar, .r2-bar, .gauge, .chart-box").forEach(function (el) { bio.observe(el); });
 
   /* ----- roadmap progress line ----- */
   var stepsEl = document.getElementById("steps");
@@ -1541,7 +1478,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
         "python -m src.models.train_baselines"
       ].join("\n");
       navigator.clipboard.writeText(raw).then(function () {
-        copyBtn.textContent = "Copied ✓";
+        copyBtn.textContent = "Copied";
         setTimeout(function () { copyBtn.textContent = "Copy commands"; }, 1800);
       });
     });
@@ -1584,11 +1521,11 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
   }
 
   function velColor(vNorm, alpha) {
-    // CFD colormap: low speed blue -> cyan -> emerald -> amber high speed
-    if (vNorm < 0.35) return "rgba(37, 99, 235, " + alpha + ")";
-    if (vNorm < 0.62) return "rgba(6, 182, 212, " + alpha + ")";
-    if (vNorm < 0.82) return "rgba(16, 185, 129, " + alpha + ")";
-    return "rgba(245, 158, 11, " + alpha + ")";
+    // Velocity scale: slate (slow) -> dark red (fast). Single-hue, no blue.
+    if (vNorm < 0.35) return "rgba(100, 116, 139, " + alpha + ")";
+    if (vNorm < 0.62) return "rgba(71, 85, 105, " + alpha + ")";
+    if (vNorm < 0.82) return "rgba(153, 27, 27, " + alpha + ")";
+    return "rgba(185, 28, 28, " + alpha + ")";
   }
 
   function drawHeroField() {
@@ -1605,7 +1542,7 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     for (var r = 1; r <= 3; r++) {
       hCtx.beginPath();
       hCtx.ellipse(obsX, obsY, obsRx * (0.65 + r * 0.22), obsRy * (0.65 + r * 0.24), -0.04, 0, Math.PI * 2);
-      hCtx.strokeStyle = "rgba(37, 99, 235, " + (0.075 - r * 0.018) + ")";
+      hCtx.strokeStyle = "rgba(100, 116, 139, " + (0.075 - r * 0.018) + ")";
       hCtx.lineWidth = 1;
       hCtx.stroke();
     }
@@ -1694,9 +1631,9 @@ function buildFallbackClayCar() {
   octx.fillStyle = fg;
   octx.fillRect(0, 360 * CAR.ground, 720, 360 * (1 - CAR.ground));
   var g = octx.createLinearGradient(0, 360 * 0.47, 0, 360 * CAR.ground);
-  g.addColorStop(0, "#64748b");
-  g.addColorStop(0.55, "#475569");
-  g.addColorStop(1, "#1e293b");
+  g.addColorStop(0, "#6b7280");
+  g.addColorStop(0.55, "#4b5563");
+  g.addColorStop(1, "#1f2937");
   octx.fillStyle = g;
   octx.beginPath();
   octx.moveTo(720 * CAR.x0, 360 * CAR.ground);
@@ -1907,8 +1844,8 @@ function drawWakeZone(t) {
   var plumeY = yTail + wakeH * 0.46;
   var plumeR = Math.max(wakeH * 0.95, wakeW * 0.52);
   var baseGrad = ctx.createRadialGradient(plumeX, plumeY, 4, plumeX + wakeW * 0.14, plumeY, plumeR);
-  baseGrad.addColorStop(0, "rgba(251, 191, 36, 0.085)");
-  baseGrad.addColorStop(0.45, "rgba(190, 178, 152, 0.045)");
+  baseGrad.addColorStop(0, "rgba(148, 163, 184, 0.07)");
+  baseGrad.addColorStop(0.45, "rgba(148, 163, 184, 0.03)");
   baseGrad.addColorStop(1, "rgba(148, 163, 184, 0)");
   ctx.fillStyle = baseGrad;
   ctx.beginPath();
@@ -1928,10 +1865,9 @@ function drawWakeZone(t) {
     var alpha = 0.082 * env;
     if (alpha < 0.002) continue;
 
-    var warmMix = p.warmth * (1 - age * 0.72);
-    var rCol = Math.round(148 + (245 - 148) * warmMix);
-    var gCol = Math.round(163 + (192 - 163) * warmMix);
-    var bCol = Math.round(184 + (72 - 184) * warmMix);
+    var rCol = 148;
+    var gCol = 163;
+    var bCol = 184;
 
     var g = ctx.createRadialGradient(px, py, 0, px, py, rad);
     g.addColorStop(0, "rgba(" + rCol + "," + gCol + "," + bCol + "," + alpha.toFixed(3) + ")");
@@ -1959,10 +1895,9 @@ function drawWakeZone(t) {
       else ctx.lineTo(rx, ry);
     }
 
-    var wm = rb.warm;
-    var rr = Math.round(156 + (242 - 156) * wm);
-    var gg = Math.round(170 + (190 - 170) * wm);
-    var bb = Math.round(188 + (78 - 188) * wm);
+    var rr = 156;
+    var gg = 170;
+    var bb = 188;
 
     var rGrad = ctx.createLinearGradient(car.x1, 0, W, 0);
     rGrad.addColorStop(0, "rgba(" + rr + "," + gg + "," + bb + ",0)");
@@ -2012,13 +1947,13 @@ function drawSmokeStreamlines(t) {
       var roofBoost = clamp01((pm.v - 1.04) / 0.60);
       var wakeDim = pm.wake;
 
-      var rC = 148 + (228 - 148) * roofBoost;
-      var gC = 202 + (249 - 202) * roofBoost;
-      var bC = 250 + (255 - 250) * roofBoost;
+      var rC = 203 + (248 - 203) * roofBoost;
+      var gC = 213 + (248 - 213) * roofBoost;
+      var bC = 225 + (248 - 225) * roofBoost;
       if (wakeDim > 0.01) {
-        rC = rC + (226 - rC) * wakeDim * 0.62;
-        gC = gC + (186 - gC) * wakeDim * 0.62;
-        bC = bC + (120 - bC) * wakeDim * 0.72;
+        rC = rC + (100 - rC) * wakeDim * 0.62;
+        gC = gC + (116 - gC) * wakeDim * 0.62;
+        bC = bC + (139 - bC) * wakeDim * 0.72;
       }
       var rgb = Math.round(rC) + "," + Math.round(gC) + "," + Math.round(bC);
 
