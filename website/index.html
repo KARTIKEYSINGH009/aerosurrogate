@@ -201,10 +201,6 @@
     background: var(--bg);
     border-bottom: 1px solid var(--line);
   }
-  #hero-cfd {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-     display: block; pointer-events: none; z-index: 1;
-  }
   .hero-grid {
     position: relative; z-index: 2;
     display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 48px; align-items: center;
@@ -781,8 +777,6 @@
 <main id="main">
   <!-- ==================== HERO ==================== -->
   <header class="hero">
-    <canvas id="hero-cfd" aria-hidden="true"></canvas>
-
     <div class="wrap">
       <div class="hero-grid">
         <div>
@@ -1484,122 +1478,6 @@ python -m src.models.train_baselines    <span class="cm"># LightGBM, CatBoost, M
     });
   }
 
-  /* =====================================================================
-     1. FULL-BLEED HERO CFD STREAMLINE FIELD (#hero-cfd)
-     Velocity-colored aerodynamic streamlines + pressure wave contours
-     ===================================================================== */
-  var hCanvas = document.getElementById("hero-cfd");
-  var hCtx = hCanvas.getContext("2d");
-  var hW = 0, hH = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
-  var mouse = { x: -9999, y: -9999 };
-  var ribbons = [];
-  var hPhase = 0;
-
-  window.addEventListener("mousemove", function (e) {
-    var rect = hCanvas.getBoundingClientRect();
-    mouse.x = e.clientX - rect.left;
-    mouse.y = e.clientY - rect.top;
-  }, { passive: true });
-
-  function initHeroField() {
-    hW = hCanvas.clientWidth;
-    hH = hCanvas.clientHeight;
-    hCanvas.width = hW * dpr;
-    hCanvas.height = hH * dpr;
-    hCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ribbons = [];
-    var count = 22;
-    for (var i = 0; i < count; i++) {
-      ribbons.push({
-        baseY: (hH * 0.08) + (hH * 0.82) * (i / (count - 1)),
-        speed: 0.7 + (i % 5) * 0.18,
-        amp: 14 + (i % 4) * 8,
-        offset: i * 0.45,
-        dashOffset: Math.random() * 200
-      });
-    }
-  }
-
-  function velColor(vNorm, alpha) {
-    // Velocity scale: slate (slow) -> dark red (fast). Single-hue, no blue.
-    if (vNorm < 0.35) return "rgba(100, 116, 139, " + alpha + ")";
-    if (vNorm < 0.62) return "rgba(71, 85, 105, " + alpha + ")";
-    if (vNorm < 0.82) return "rgba(153, 27, 27, " + alpha + ")";
-    return "rgba(185, 28, 28, " + alpha + ")";
-  }
-
-  function drawHeroField() {
-    hCtx.clearRect(0, 0, hW, hH);
-    hPhase += 0.016;
-
-    // Virtual aerodynamic body obstacle centered around right-center of hero
-    var obsX = hW * 0.66;
-    var obsY = hH * 0.44;
-    var obsRx = Math.min(320, hW * 0.26);
-    var obsRy = 135;
-
-    // Subtle pressure contour rings around virtual aero body
-    for (var r = 1; r <= 3; r++) {
-      hCtx.beginPath();
-      hCtx.ellipse(obsX, obsY, obsRx * (0.65 + r * 0.22), obsRy * (0.65 + r * 0.24), -0.04, 0, Math.PI * 2);
-      hCtx.strokeStyle = "rgba(100, 116, 139, " + (0.075 - r * 0.018) + ")";
-      hCtx.lineWidth = 1;
-      hCtx.stroke();
-    }
-
-    // Draw continuous CFD streamlines deflected by virtual body + cursor
-    for (var i = 0; i < ribbons.length; i++) {
-      var rb = ribbons[i];
-      rb.dashOffset -= rb.speed * 1.9;
-      var dyObs = rb.baseY - obsY;
-      var distRatio = Math.min(1, Math.abs(dyObs) / (obsRy * 1.9));
-      var vNorm = 1 - distRatio * 0.65;
-
-      hCtx.beginPath();
-      var steps = 44;
-      for (var s = 0; s <= steps; s++) {
-        var x = (hW * s) / steps;
-        var dx = (x - obsX) / obsRx;
-        // Potential-flow dipole deflection around car body
-        var influence = Math.exp(-dx * dx * 1.45);
-        var sign = dyObs >= 0 ? 1 : -1;
-        var deflect = sign * influence * (obsRy * 0.58) * Math.exp(-Math.abs(dyObs) / (obsRy * 1.5));
-
-        // Wake Kármán oscillation behind body (x > obsX)
-        var wake = 0;
-        if (dx > 0.2 && Math.abs(dyObs) < obsRy * 1.2) {
-          var wEnv = Math.exp(-(dx - 0.8) * (dx - 0.8) * 0.9);
-          wake = Math.sin(dx * 5.5 - hPhase * 3.2 + rb.offset) * 14 * wEnv;
-        }
-
-        // Cursor wind deflection
-        var mdx = x - mouse.x;
-        var mdy = (rb.baseY + deflect) - mouse.y;
-        var mDist2 = mdx * mdx + mdy * mdy;
-        var mPush = mDist2 < 36000 ? (mdy / (Math.sqrt(mDist2) + 18)) * 22 * (1 - mDist2 / 36000) : 0;
-
-        var y = rb.baseY + deflect + wake + mPush + Math.sin(s * 0.22 + hPhase + rb.offset) * 3;
-        if (s === 0) hCtx.moveTo(x, y);
-        else hCtx.lineTo(x, y);
-      }
-      hCtx.strokeStyle = velColor(vNorm, 0.16);
-      hCtx.lineWidth = 1.25;
-      hCtx.setLineDash([]);
-      hCtx.stroke();
-
-      // High-velocity tracer packets riding the streamline
-      hCtx.strokeStyle = velColor(Math.min(1, vNorm + 0.2), 0.42);
-      hCtx.lineWidth = 1.8;
-      hCtx.setLineDash([28, 190]);
-      hCtx.lineDashOffset = rb.dashOffset;
-      hCtx.stroke();
-    }
-    hCtx.setLineDash([]);
-    if (!reduced) requestAnimationFrame(drawHeroField);
-  }
-  initHeroField();
-  drawHeroField();
-
     /* =====================================================================
      2. DARK WIND-TUNNEL STAGE CARD (#airflow)
      Continuous smoke streamlines conforming to CAR.roof + diffusing turbulent wake
@@ -2051,9 +1929,8 @@ var rT;
 window.addEventListener("resize", function () {
   clearTimeout(rT);
   rT = setTimeout(function () {
-    initHeroField();
     layout();
-    if (reduced) { drawHeroField(); renderTunnelFrame(); }
+    if (reduced) { renderTunnelFrame(); }
   }, 180);
 });
 
