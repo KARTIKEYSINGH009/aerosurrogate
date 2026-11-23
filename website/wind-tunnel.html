@@ -7,17 +7,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 :root, [data-theme="light"] {
-  --bg: #f6f7f9;
+  --bg: #faf8f3;
   --surface: #ffffff;
-  --surface-2: #f9fafb;
-  --border: #e2e6ee;
-  --border-strong: #cbd2df;
-  --ink: #111827;
-  --muted: #5b6577;
+  --surface-2: #f3efe7;
+  --border: #e8e2d9;
+  --border-strong: #d8cfbe;
+  --ink: #1a1917;
+  --muted: #6e675f;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --accent: #b91c1c;
-  --accent-soft: #fef2f2;
+  --accent: #9a7b2e;
+  --accent-soft: #faf6ec;
   --warn-bg: #fff7ed;
   --warn-border: #fed7aa;
   --warn-ink: #b45309;
@@ -624,9 +624,9 @@ input[type="range"]::-moz-range-thumb {
             <button type="button" class="cam-btn" data-cam="top">Top Plan</button>
           </div>
           <div class="hud-legend">
-            <span><span class="leg-dot" style="background:#b91c1c;"></span>Fast roof flow</span>
+            <span><span class="leg-dot" style="background:#f5f5f4; border:1px solid #a8a29e;"></span>Smoke streamlines</span>
             <span><span class="leg-dot" style="background:#fb923c;"></span>Separation</span>
-            <span><span class="leg-dot" style="background:#64748b;"></span>Wake vortex</span>
+            <span><span class="leg-dot" style="background:#d6d3d1;"></span>Wake</span>
           </div>
         </div>
 
@@ -1428,7 +1428,7 @@ input[type="range"]::-moz-range-thumb {
 
     const ttRing = new THREE.Mesh(
       new THREE.RingGeometry(2.78, 2.86, 64),
-      new THREE.MeshBasicMaterial({ color: 0xb91c1c, side: THREE.DoubleSide, transparent: true, opacity: 0.55 })
+      new THREE.MeshBasicMaterial({ color: 0x9a7b2e, side: THREE.DoubleSide, transparent: true, opacity: 0.55 })
     );
     ttRing.rotation.x = -Math.PI / 2;
     ttRing.position.y = 0.042;
@@ -1728,63 +1728,132 @@ input[type="range"]::-moz-range-thumb {
       sepBar.position.set(sepX, sepY, 0);
       carGroup.add(sepBar);
 
-      // --- 3D SMOKE STREAMLINES & HELICAL WAKE VORTICES ---
+      // --- 3D WHITE SMOKE STREAMLINES & WAKE ---
+      // Real wind-tunnel smoke: air meets the nose at the stagnation point,
+      // splits, flows OVER the roof on the centre lanes and AROUND the sides
+      // on the outer lanes, then converges behind the car into a diffusing wake.
       if (!aero.streamlines) return;
 
-      const zPlanes = [-0.46, -0.22, 0.0, 0.22, 0.46];
-      const yStarts = [0.42, 0.72, 1.04];
-
-      for (const zp of zPlanes) {
-        for (let yi = 0; yi < yStarts.length; yi++) {
-          const y0 = yStarts[yi];
-          const pts3 = [];
-          const steps = 48;
-          for (let s = 0; s <= steps; s++) {
-            const x = -3.7 + (7.15 * s) / steps;
-            let y = y0;
-            if (x > -2.85 && x < 2.65) {
-              const cY = evalBMWCenterY(clamp(x, -2.45, 2.45), aero).y;
-              const clearance = 0.09 + yi * 0.22 + Math.abs(zp) * 0.08;
-              const targetY = Math.max(y0, cY + clearance);
-              const noseBlend = smoothstep(-2.85, -1.95, x);
-              if (x <= sepX) {
-                y = lerp(y0, targetY, noseBlend);
-              } else {
-                const afterT = clamp((x - sepX) / (1.1 + aero.wakeSize * 1.4), 0, 1);
-                const arch = (sepY + clearance) + Math.sin(afterT * Math.PI) * aero.wakeSize * (yi === 0 ? 0.26 : 0.12);
-                const rec = y0 + aero.wakeSize * (yi === 0 ? 0.34 : 0.14);
-                y = lerp(arch, rec, afterT * 0.65);
-              }
-            } else if (x >= 2.65) {
-              const t = clamp((x - 2.65) / 0.85, 0, 1);
-              y = lerp(y0 + aero.wakeSize * (yi === 0 ? 0.34 : 0.14), y0, t * 0.5);
-            }
-            pts3.push(new THREE.Vector3(x, y, zp));
-          }
-          for (let p = 0; p < 3; p++) {
-            for (let k = 1; k < pts3.length - 1; k++) {
-              pts3[k].y = 0.25 * pts3[k - 1].y + 0.5 * pts3[k].y + 0.25 * pts3[k + 1].y;
-            }
-          }
-          const curve = new THREE.CatmullRomCurve3(pts3);
-          const isFast = yi === 0 && Math.abs(zp) < 0.3;
-          const col = isFast ? 0xb91c1c : yi === 1 ? 0xf87171 : 0x475569;
-          const tube = new THREE.Mesh(
-            new THREE.TubeGeometry(curve, 52, isFast ? 0.015 : 0.010, 6, false),
-            new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: isFast ? 0.88 : 0.45 })
-          );
-          streamGroup.add(tube);
-
-          const bead = new THREE.Mesh(
-            new THREE.SphereGeometry(isFast ? 0.036 : 0.025, 8, 8),
-            new THREE.MeshBasicMaterial({ color: isFast ? 0xfee2e2 : 0xfca5a5 })
-          );
-          streamGroup.add(bead);
-          animParticles.push({ curve, mesh: bead, offset: (yi * 0.31 + (zp + 0.5) * 0.7) % 1, speed: isFast ? 0.38 : 0.28 });
+      // Car plan shape (half-width) so side lanes can curve around the body.
+      function bmwHalfWidth(x) {
+        const xFrontAxle = -1.46, xRearAxle = 1.44;
+        let w = 0.91;
+        if (x < -1.94) {
+          const tn = smoothstep(-2.45, -1.94, x);
+          w = lerp(0.62, 0.92, Math.pow(tn, 0.68));
+        } else if (x < -0.92) {
+          w = 0.91 + 0.068 * gauss(x, xFrontAxle, 0.39);
+        } else if (x < 0.58) {
+          const waist = Math.sin(((x + 0.92) / 1.50) * Math.PI);
+          w = 0.91 - 0.048 * waist;
+        } else if (x < 2.02) {
+          w = 0.91 + 0.115 * gauss(x, xRearAxle, 0.45);
+        } else {
+          const tr = smoothstep(2.00, 2.45, x);
+          w = lerp(0.96, 0.78, Math.pow(tr, 1.2));
         }
+        return w;
       }
 
-      // Underbody diffuser upwash streamlines
+      function smokeTube(curve, radius, opacity) {
+        const tube = new THREE.Mesh(
+          new THREE.TubeGeometry(curve, 52, radius, 6, false),
+          new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity })
+        );
+        streamGroup.add(tube);
+        return tube;
+      }
+
+      function smokeBead(curve, offset, speed) {
+        const bead = new THREE.Mesh(
+          new THREE.SphereGeometry(0.028, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xffffff })
+        );
+        streamGroup.add(bead);
+        animParticles.push({ curve, mesh: bead, offset, speed });
+      }
+
+      // Over-top lanes: centre lanes that follow the roof profile.
+      const topLanes = [
+        { z: -0.22, y: 0.72 }, { z: 0.0, y: 0.72 }, { z: 0.22, y: 0.72 },
+        { z: -0.22, y: 1.04 }, { z: 0.0, y: 1.04 }, { z: 0.22, y: 1.04 },
+        { z: 0.0, y: 0.42 },
+      ];
+      for (const lane of topLanes) {
+        const y0 = lane.y, zp = lane.z;
+        const pts3 = [];
+        const steps = 48;
+        for (let s = 0; s <= steps; s++) {
+          const x = -3.7 + (7.15 * s) / steps;
+          let y = y0;
+          if (x > -2.85 && x < 2.65) {
+            const cY = evalBMWCenterY(clamp(x, -2.45, 2.45), aero).y;
+            const clearance = y0 > 0.9 ? 0.53 : y0 > 0.6 ? 0.31 : 0.09;
+            const targetY = Math.max(y0, cY + clearance);
+            const noseBlend = smoothstep(-2.85, -1.95, x);
+            if (x <= sepX) {
+              y = lerp(y0, targetY, noseBlend);
+            } else {
+              const afterT = clamp((x - sepX) / (1.1 + aero.wakeSize * 1.4), 0, 1);
+              const arch = (sepY + clearance) + Math.sin(afterT * Math.PI) * aero.wakeSize * (y0 < 0.6 ? 0.26 : 0.12);
+              const rec = y0 + aero.wakeSize * (y0 < 0.6 ? 0.34 : 0.14);
+              y = lerp(arch, rec, afterT * 0.65);
+            }
+          } else if (x >= 2.65) {
+            const t = clamp((x - 2.65) / 0.85, 0, 1);
+            y = lerp(y0 + aero.wakeSize * (y0 < 0.6 ? 0.34 : 0.14), y0, t * 0.5);
+          }
+          pts3.push(new THREE.Vector3(x, y, zp));
+        }
+        for (let p = 0; p < 3; p++) {
+          for (let k = 1; k < pts3.length - 1; k++) {
+            pts3[k].y = 0.25 * pts3[k - 1].y + 0.5 * pts3[k].y + 0.25 * pts3[k + 1].y;
+          }
+        }
+        const curve = new THREE.CatmullRomCurve3(pts3);
+        smokeTube(curve, 0.011, 0.72);
+        smokeBead(curve, (y0 * 0.31 + (zp + 0.5) * 0.7) % 1, 0.32);
+      }
+
+      // Side lanes: flow AROUND the car. z is pushed out to clear the body
+      // (half-width + gap) over the car's length, then eases back behind it.
+      const sideLanes = [
+        { z: -1.25, y: 0.60 }, { z: -0.95, y: 0.60 }, { z: 0.95, y: 0.60 }, { z: 1.25, y: 0.60 },
+        { z: -1.25, y: 0.90 }, { z: -0.95, y: 0.90 }, { z: 0.95, y: 0.90 }, { z: 1.25, y: 0.90 },
+      ];
+      for (const lane of sideLanes) {
+        const z0 = lane.z, y0 = lane.y;
+        const pts3 = [];
+        const steps = 48;
+        for (let s = 0; s <= steps; s++) {
+          const x = -3.7 + (7.15 * s) / steps;
+          let z = z0, y = y0;
+          if (x > -2.85 && x < 2.65) {
+            const halfW = bmwHalfWidth(clamp(x, -2.45, 2.45));
+            const need = halfW + 0.10;
+            const sideBlend = smoothstep(-2.85, -1.95, x) * (1 - smoothstep(2.30, 2.65, x));
+            const targetZ = Math.sign(z0) * Math.max(Math.abs(z0), need);
+            z = lerp(z0, targetZ, sideBlend);
+            y = y0 + 0.04 * Math.sin(clamp((x + 2.45) / 4.9, 0, 1) * Math.PI);
+          } else if (x >= 2.65) {
+            const t = clamp((x - 2.65) / 0.85, 0, 1);
+            z = lerp(z0, Math.sign(z0) * Math.abs(z0) * 0.82, t * 0.6);
+            y = y0 + aero.wakeSize * 0.10 * Math.sin(t * Math.PI);
+          }
+          pts3.push(new THREE.Vector3(x, y, z));
+        }
+        for (let p = 0; p < 3; p++) {
+          for (let k = 1; k < pts3.length - 1; k++) {
+            pts3[k].y = 0.25 * pts3[k - 1].y + 0.5 * pts3[k].y + 0.25 * pts3[k + 1].y;
+            pts3[k].z = 0.25 * pts3[k - 1].z + 0.5 * pts3[k].z + 0.25 * pts3[k + 1].z;
+          }
+        }
+        const curve = new THREE.CatmullRomCurve3(pts3);
+        smokeTube(curve, 0.011, 0.62);
+        smokeBead(curve, (y0 * 0.31 + (z0 + 1.4) * 0.3) % 1, 0.30);
+      }
+
+      // Underbody diffuser upwash streamlines (white smoke)
       for (const zp of [-0.30, 0.0, 0.30]) {
         const pts = [];
         for (let s = 0; s <= 32; s++) {
@@ -1795,17 +1864,11 @@ input[type="range"]::-moz-range-thumb {
           pts.push(new THREE.Vector3(x, y, zp));
         }
         const curve = new THREE.CatmullRomCurve3(pts);
-        const tube = new THREE.Mesh(
-          new THREE.TubeGeometry(curve, 36, 0.013, 6, false),
-          new THREE.MeshBasicMaterial({ color: 0xb91c1c, transparent: true, opacity: 0.72 })
-        );
-        streamGroup.add(tube);
-        const bead = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfee2e2 }));
-        streamGroup.add(bead);
-        animParticles.push({ curve, mesh: bead, offset: (zp + 0.6) % 1, speed: 0.42 });
+        smokeTube(curve, 0.013, 0.60);
+        smokeBead(curve, (zp + 0.6) % 1, 0.42);
       }
 
-      // 3D Swirling Helical Wake Vortices behind the tail
+      // Diffusing wake: soft white-grey helical swirls behind the tail
       const vortexCount = aero.wakeSize > 0.62 ? 4 : 2;
       for (let v = 0; v < vortexCount; v++) {
         const side = v % 2 === 0 ? 1 : -1;
@@ -1824,7 +1887,7 @@ input[type="range"]::-moz-range-thumb {
         const curve = new THREE.CatmullRomCurve3(pts);
         const swirl = new THREE.Mesh(
           new THREE.TubeGeometry(curve, 44, 0.011, 6, false),
-          new THREE.MeshBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.55 + aero.wakeSize * 0.3 })
+          new THREE.MeshBasicMaterial({ color: 0xd6d3d1, transparent: true, opacity: 0.45 + aero.wakeSize * 0.2 })
         );
         streamGroup.add(swirl);
       }
@@ -1995,7 +2058,7 @@ input[type="range"]::-moz-range-thumb {
 
         for (let yi = 0; yi < 3; yi++) {
           const y0 = 0.42 + yi * 0.30;
-          ctx.strokeStyle = yi === 0 ? '#b91c1c' : yi === 1 ? 'rgba(248,113,113,0.7)' : 'rgba(100,116,139,0.55)';
+          ctx.strokeStyle = yi === 0 ? '#f5f5f4' : yi === 1 ? 'rgba(245,245,244,0.7)' : 'rgba(214,211,209,0.55)';
           ctx.lineWidth = yi === 0 ? 2.0 : 1.3;
           ctx.setLineDash([12, 6]);
           ctx.lineDashOffset = -flowTime * 90;

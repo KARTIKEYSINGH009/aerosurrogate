@@ -21,7 +21,7 @@
 <meta name="twitter:description" content="Physics-informed ML surrogate on MIT's DrivAerNet++ (4,051 designs). 0.051 ms CPU inference, calibrated 90/95% conformal intervals, inverse design in <1.5 s.">
 
 <!-- Inline SVG Favicon -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c1220'/%3E%3Cpath d='M5 20c4-6 10-8 17-7 3 .4 5 2 5 4H5z' fill='none' stroke='%23B91C1C' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 13h14M6 9h10' stroke='%23FCA5A5' stroke-width='1.5' stroke-linecap='round' opacity='.7'/%3E%3Ccircle cx='10' cy='21' r='2' fill='%23fff'/%3E%3Ccircle cx='22' cy='21' r='2' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c1220'/%3E%3Cpath d='M5 20c4-6 10-8 17-7 3 .4 5 2 5 4H5z' fill='none' stroke='%239A7B2E' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M4 13h14M6 9h10' stroke='%23D6C9A8' stroke-width='1.5' stroke-linecap='round' opacity='.7'/%3E%3Ccircle cx='10' cy='21' r='2' fill='%23fff'/%3E%3Ccircle cx='22' cy='21' r='2' fill='%23fff'/%3E%3C/svg%3E">
 
 <!-- Structured Data -->
 <script type="application/ld+json">
@@ -51,23 +51,23 @@
      Type scale: 12 / 13 / 14 / 16 / 18 / 20 / 28 / 36 px.
      Spacing grid: 4 / 8 / 12 / 16 / 24 / 32 / 48 px. */
   :root {
-    --bg: #fafaf9;
-    --bg-alt: #f4f4f2;
+    --bg: #faf8f3;
+    --bg-alt: #f3efe7;
     --surface: #ffffff;
-    --surface-2: #f4f4f2;
-    --surface-3: #e8e8e5;
+    --surface-2: #f3efe7;
+    --surface-3: #e9e2d5;
     --ink-dark: #0b0f17;
     --ink-dark-2: #151c28;
-    --line: rgba(17, 24, 39, 0.08);
-    --line-strong: rgba(17, 24, 39, 0.16);
-    --text: #111827;
-    --text-2: #374151;
-    --muted: #4b5563;
-    --faint: #6b7280;
-    --accent: #b91c1c;
-    --accent-hover: #991b1b;
-    --accent-soft: rgba(185, 28, 28, 0.07);
-    --accent-border: rgba(185, 28, 28, 0.30);
+    --line: rgba(26, 25, 23, 0.08);
+    --line-strong: rgba(26, 25, 23, 0.16);
+    --text: #1a1917;
+    --text-2: #3d3a35;
+    --muted: #6e675f;
+    --faint: #8a8378;
+    --accent: #9a7b2e;
+    --accent-hover: #7d6423;
+    --accent-soft: rgba(154, 123, 46, 0.08);
+    --accent-border: rgba(154, 123, 46, 0.35);
     --green: #047857;
     --green-soft: rgba(4, 120, 87, 0.08);
     --green-border: rgba(4, 120, 87, 0.30);
@@ -114,7 +114,7 @@
   }
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; }
-  ::selection { background: rgba(185, 28, 28, 0.14); color: var(--text); }
+  ::selection { background: rgba(154, 123, 46, 0.16); color: var(--text); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-sm); }
 
   .skip-link {
@@ -718,7 +718,7 @@
   .hist { display: flex; align-items: flex-end; gap: 10px; height: 180px; padding-top: 8px; }
   .hist-bin { flex: 1; display: flex; align-items: flex-end; gap: 2px; height: 100%; }
   .hist-bar { flex: 1; border-radius: var(--radius-sm) var(--radius-sm) 0 0; min-height: 2px; }
-  .hist-bar.f { background: #b91c1c; }
+  .hist-bar.f { background: #9a7b2e; }
   .hist-bar.n { background: #64748b; }
   .hist-bar.e { background: #94a3b8; }
   .hist-labels { display: flex; gap: 10px; margin-top: 8px; }
@@ -746,7 +746,7 @@
   <div class="nav-inner">
     <a href="#" class="logo" aria-label="AeroSurrogate home">
       <span class="logo-mark" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.2" stroke-linecap="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b89a4e" stroke-width="2.2" stroke-linecap="round">
           <path d="M3 15c3-5 8-7 14-6 2.5.4 4 1.8 4 3.5H3z"/>
           <path d="M2 9h11M4 5h8" stroke="#fca5a5" stroke-width="1.6"/>
         </svg>
@@ -896,7 +896,7 @@
           <p class="hint">Count of designs in each 0.02 Cd bin. Estatebacks sit higher, fastbacks and notchbacks cluster lower.</p>
           <div class="hist"><div class="hist-bin"><div class="hist-bar f" style="height:20.2%" title="Fastback 108"></div><div class="hist-bar n" style="height:17.9%" title="Notchback 96"></div><div class="hist-bar e" style="height:0.8%" title="Estateback 1"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:83.4%" title="Fastback 446"></div><div class="hist-bar n" style="height:87.5%" title="Notchback 468"></div><div class="hist-bar e" style="height:9.3%" title="Estateback 50"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:83.7%" title="Fastback 448"></div><div class="hist-bar n" style="height:100.0%" title="Notchback 535"></div><div class="hist-bar e" style="height:64.7%" title="Estateback 346"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:40.4%" title="Fastback 216"></div><div class="hist-bar n" style="height:48.0%" title="Notchback 257"></div><div class="hist-bar e" style="height:100.0%" title="Estateback 535"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:8.2%" title="Fastback 44"></div><div class="hist-bar n" style="height:8.6%" title="Notchback 46"></div><div class="hist-bar e" style="height:70.5%" title="Estateback 377"></div></div><div class="hist-bin"><div class="hist-bar f" style="height:0%" title="Fastback 0"></div><div class="hist-bar n" style="height:0%" title="Notchback 0"></div><div class="hist-bar e" style="height:14.4%" title="Estateback 77"></div></div></div>
           <div class="hist-labels"><span>0.20</span><span>0.22</span><span>0.24</span><span>0.26</span><span>0.28</span><span>0.30</span></div>
-          <div class="hist-legend"><span><i style="background:#b91c1c"></i>Fastback</span><span><i style="background:#64748b"></i>Notchback</span><span><i style="background:#94a3b8"></i>Estateback</span></div>
+          <div class="hist-legend"><span><i style="background:#9a7b2e"></i>Fastback</span><span><i style="background:#64748b"></i>Notchback</span><span><i style="background:#94a3b8"></i>Estateback</span></div>
         </div>
         <div class="data-card">
           <h3>Train, validation, test</h3>
@@ -928,8 +928,8 @@
           <svg viewBox="0 0 320 120" style="width:100%; height:auto;" role="img" aria-label="Mean Cd rises from 0.243 at a -6.5 degree diffuser to 0.267 at a 13.5 degree diffuser">
             <line x1="16" y1="108" x2="304" y2="108" stroke="var(--line-strong)" stroke-width="1"/>
             <line x1="16" y1="16" x2="16" y2="108" stroke="var(--line-strong)" stroke-width="1"/>
-            <polyline points="34.0,99.1 70.1,97.3 106.0,83.2 142.0,78.3 177.9,56.5 213.8,42.7 249.7,32.6 285.6,25.8" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <circle cx="34.0" cy="99.1" r="3.5" fill="#b91c1c"/><circle cx="70.1" cy="97.3" r="3.5" fill="#b91c1c"/><circle cx="106.0" cy="83.2" r="3.5" fill="#b91c1c"/><circle cx="142.0" cy="78.3" r="3.5" fill="#b91c1c"/><circle cx="177.9" cy="56.5" r="3.5" fill="#b91c1c"/><circle cx="213.8" cy="42.7" r="3.5" fill="#b91c1c"/><circle cx="249.7" cy="32.6" r="3.5" fill="#b91c1c"/><circle cx="285.6" cy="25.8" r="3.5" fill="#b91c1c"/>
+            <polyline points="34.0,99.1 70.1,97.3 106.0,83.2 142.0,78.3 177.9,56.5 213.8,42.7 249.7,32.6 285.6,25.8" fill="none" stroke="#9a7b2e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <circle cx="34.0" cy="99.1" r="3.5" fill="#9a7b2e"/><circle cx="70.1" cy="97.3" r="3.5" fill="#9a7b2e"/><circle cx="106.0" cy="83.2" r="3.5" fill="#9a7b2e"/><circle cx="142.0" cy="78.3" r="3.5" fill="#9a7b2e"/><circle cx="177.9" cy="56.5" r="3.5" fill="#9a7b2e"/><circle cx="213.8" cy="42.7" r="3.5" fill="#9a7b2e"/><circle cx="249.7" cy="32.6" r="3.5" fill="#9a7b2e"/><circle cx="285.6" cy="25.8" r="3.5" fill="#9a7b2e"/>
             <text x="16" y="10" font-size="9" fill="var(--faint)" font-family="monospace">Cd 0.270</text>
             <text x="16" y="118" font-size="9" fill="var(--faint)" font-family="monospace">-8&deg; diffuser</text>
             <text x="252" y="118" font-size="9" fill="var(--faint)" font-family="monospace">+15&deg;</text>
@@ -1871,7 +1871,7 @@ function drawSmokeStreamlines(t) {
 function drawRoofOverlay() {
   if (!showRoofOverlay) return;
   ctx.save();
-  ctx.strokeStyle = "#f43f5e";
+  ctx.strokeStyle = "#9a7b2e";
   ctx.lineWidth = 1.6;
   ctx.setLineDash([4, 3]);
   ctx.beginPath();
